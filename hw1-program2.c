@@ -25,9 +25,6 @@ float f(float x)
 
 float Trap(float a, float b, int n)
 {
-
-
-
     float integral, lower_bound, upper_bound;
     double step;
     int i;
@@ -50,7 +47,6 @@ int main(int argc, char** argv) {
 
     float a, b, step, process_n;
     int n;
-
 
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);

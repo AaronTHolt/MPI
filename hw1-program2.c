@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     {
         a = 0;
         b = 1;
-        n = 3;
+        n = 1000;
         //number of traps per process, round up in case
         //of indivisible amount
         process_n = ceil( ((float)n) / ((float)world_size) );

@@ -53,9 +53,6 @@ int main(int argc, char *argv[])
 	//For now, hardcode tag (operation)
 	tag = 0; //tag = 0 => addition
 
-	//data to add up, each process will have its own data
-	double data;
-
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
@@ -73,8 +70,12 @@ int main(int argc, char *argv[])
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    //Initialize data on all processes
-    data = 1;
+    double data;
+
+    if (world_rank == 0)
+    {
+    	data = 12345.6789;
+    }
 
     //first masks to be used with l-h and h-l
 	int bitmask;
@@ -103,7 +104,17 @@ int main(int argc, char *argv[])
     int i; //counter
     int deliver_to;	//who to send to
     int receive_from;	//who to receive from
-    int delivered = 0; //In reduce, a process should only deliver once
+    int received;
+
+    if (world_rank == 0)
+    {
+    	received = 1; //In bcast, each process should receive only once
+    }
+    else
+    {
+    	received = 0;
+    }
+    
 
     for (i = 0; i<iterations; i++)
     {
@@ -111,35 +122,31 @@ int main(int argc, char *argv[])
     	if (type == 1)
     	{
     		// Check which processes should be sending
-    		if ((world_rank & bitmask) == bitmask)
-	    	{
-	    		if (delivered == 0)
-	    		{
-	    			deliver_to = world_rank ^ bitmask;
-		    		printf("Process %d delivers to %d on iteration %d \n", 
-		    			world_rank, deliver_to, i);
-		    		MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
-		    		delivered = 1;
-	    		}
-	    	}
-	    	else
+    		//can only send if you've received
+    		if (received == 1)
+    		{
+    			deliver_to = world_rank + pow(2,i);
+    			if (deliver_to < world_size)
+    			{
+    				printf("Process %d delivers to %d on iteration %d \n", 
+	    			world_rank, deliver_to, i);
+	    			MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+    			}
+    		}
+    		else
 	    	{
 	    		//Check which processes should be receiving
-	    		if (world_rank < bitmask)
+	    		if (received == 0)
 	    		{
-	    			double local_result;
-		    		local_result = data;
-		    		receive_from = world_rank ^ bitmask;
-
-		    		//Account for a process that doesn't need to do anything
-		    		//during a send
-		    		if (receive_from < world_size)
+	    			//Account for a processes that doesn't need to do anything
+			    	//for current iteration
+	    			if (world_rank < pow(2,i+1))
 		    		{
+			    		receive_from = world_rank - pow(2,i);
 		    			// printf("Process %d receives from %d \n", world_rank, receive_from);
 			    		MPI_Recv(&data, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
 			    			MPI_STATUS_IGNORE);
-			    		// Sum data
-			    		data = local_result + data;
+			    		received = 1;
 		    		}
 	    		}
 	    	}
@@ -148,63 +155,64 @@ int main(int argc, char *argv[])
     	else if (type == 0)
     	{
     		// Check which processes should be sending
-    		if ((world_rank & bitmask) == bitmask)
-	    	{
-	    		if (delivered == 0)
-	    		{
-	    			deliver_to = world_rank ^ bitmask;
-		    		printf("Process %d delivers to %d on iteration %d \n", 
-		    			world_rank, deliver_to, i);
-		    		MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
-		    		delivered = 1;
-	    		}
-	    	}
-	    	else
-	    	{
-	    		//Check which processes should be receiving
-	    		if ((world_rank % (int)pow(2,(i+1))) == 0)
+    		//can only send if you've received
+    		if (received == 1)
+    		{
+    			deliver_to = world_rank + (int)pow(2, iterations-i-1);
+    			if (deliver_to < world_size)
+    			{
+    				printf("Process %d delivers to %d on iteration %d \n", 
+	    			world_rank, deliver_to, i);
+	    			MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+    			}
+    		}
+
+    		//Check which processes should be receiving
+    		else if (received == 0)
+    		{
+    			//Account for a processes that doesn't need to do anything
+		    	//for current iteration
+    			if (world_rank % (int)pow(2, iterations-i-1) == 0)
 	    		{
 	    			double local_result;
-		    		local_result = data;
-		    		receive_from = world_rank ^ bitmask;
+		    		receive_from = world_rank - (int)pow(2, iterations-i-1);
 
-		    		//Account for a process that doesn't need to do anything
-		    		//during a send
-		    		if (receive_from < world_size)
+		    		if (receive_from>=0)
 		    		{
-		    			// printf("Process %d receives from %d on iteration %d \n", 
-		    			// 	world_rank, receive_from, i);
-			    		MPI_Recv(&data, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+		    			printf("Process %d receives from %d on iteration %d. \n", 
+	    				world_rank, receive_from, i);
+			    		MPI_Recv(&local_result, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
 			    			MPI_STATUS_IGNORE);
-			    		// Sum data
-			    		data = local_result + data;
+			    		data = local_result;
+			    		received = 1;
+
 		    		}
 	    		}
-	    	}
+    		}
+	  
     	}
     	
 
     	//Debug
-    	// if (world_rank == 0)
-    	// {
-    	// 	printf("Type = %d, Mask = %d, iteration = %d \n", type, bitmask, i);
-    	// }
+    	if (world_rank == 0)
+    	{
+    		printf("Type = %d, pow = %d, iteration = %d, n/2 = %d \n", 
+    			type, (int)pow(2, iterations-i-1), i, n/2);
+    	}
 
-    	//Update bitmask
-    	if (type == 1)
-    	{
-    		bitmask = bitmask / 2;
-    	}
-    	else
-    	{
-    		bitmask = bitmask * 2;
-    	}
+    	// //Update bitmask
+    	// if (type == 1)
+    	// {
+    	// 	bitmask = bitmask / 2;
+    	// }
+    	// else
+    	// {
+    	// 	bitmask = bitmask * 2;
+    	// }
     }
     
-    if (world_rank == 0)
-    {
-    	printf("Final Result is %f \n", data);
-    }
+
+    printf("Process %d has data = %f \n", world_rank, data);
 
 
     MPI_Finalize();

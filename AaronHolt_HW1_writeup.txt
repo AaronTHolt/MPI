@@ -1,0 +1,29 @@
+﻿Aaron Holt
+Homework 1
+
+Instructions:
+I ran my code on an AMD64 system with mpich.
+For all programs I compiled by:
+	$mpicc hw1-programN -lm
+where N = {1,2,3}
+
+For the first two programs I ran by:
+	$mpiexec -np NP ./a.out 
+where NP is the process number
+
+For the third program I ran by:
+	$mpiexec -np NP ./a.out -n N -v
+	or
+	$mpiexec -np NP ./a.out -n N -verbose
+
+where NP is process number, N is number of areas to use for Simpson's rule, -'v' and '-verbose' make it verbose mode which prints out interval information. The order of '-n N' and '-v' don't matter.
+
+TESTING:
+I tested each program by running with a range of processes from 1-16. I made sure the output was reasonable for each.
+For the Trapezoid and Simpson questions I tried a variety of integral intervals and areas to make sure the functions got the correct result.
+For the Simpson question I also tested with and without command line options.
+I have included screenshots for verification. 
+
+Ring Questions:
+1. A program should send then receive. Sending and receiving are blocking functions, meaning the program will wait until the function is complete to continue (an exception being send with buffers, but you can't count on that). Thus if the function receives first, the program will deadlock as all processes will wait to receive something, and nothing will come.
+2. Apparently this is implementation specific. In my case nothing happened and I had to write logic to make the program work for 1 process.

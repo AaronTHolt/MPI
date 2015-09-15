@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
 
 	//High-Low or Low-High
 	//1 = h->l
-	//0 = l->h
-	int type;
+	//0 = l->h   default
+	int type = 0;
 	int j; //counter in arg parse loop
 
 	char option_h2l[] = "-h";
@@ -94,11 +94,11 @@ int main(int argc, char *argv[])
     	bitmask = 1;
     }
 
-	if (world_rank == 0)
-    {
-	    printf("n = %d, iterations = %d, mask = %d, type = %d \n", n, 
-	    	iterations, bitmask, type);
-    }
+	// if (world_rank == 0)
+ //    {
+	//     printf("n = %d, iterations = %d, mask = %d, type = %d \n", n, 
+	//     	iterations, bitmask, type);
+ //    }
 
     // Variables
     int i; //counter
@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
     			deliver_to = world_rank + pow(2,i);
     			if (deliver_to < world_size)
     			{
-    				printf("Process %d delivers to %d on iteration %d \n", 
-	    			world_rank, deliver_to, i);
+    				// printf("Process %d delivers to %d on iteration %d \n", 
+	    			// 	world_rank, deliver_to, i);
 	    			MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
     			}
     		}
@@ -161,8 +161,8 @@ int main(int argc, char *argv[])
     			deliver_to = world_rank + (int)pow(2, iterations-i-1);
     			if (deliver_to < world_size)
     			{
-    				printf("Process %d delivers to %d on iteration %d \n", 
-	    			world_rank, deliver_to, i);
+    				// printf("Process %d delivers to %d on iteration %d \n", 
+	    			// world_rank, deliver_to, i);
 	    			MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
     			}
     		}
@@ -179,8 +179,8 @@ int main(int argc, char *argv[])
 
 		    		if (receive_from>=0)
 		    		{
-		    			printf("Process %d receives from %d on iteration %d. \n", 
-	    				world_rank, receive_from, i);
+		    			// printf("Process %d receives from %d on iteration %d. \n", 
+	    				// world_rank, receive_from, i);
 			    		MPI_Recv(&local_result, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
 			    			MPI_STATUS_IGNORE);
 			    		data = local_result;
@@ -194,21 +194,12 @@ int main(int argc, char *argv[])
     	
 
     	//Debug
-    	if (world_rank == 0)
-    	{
-    		printf("Type = %d, pow = %d, iteration = %d, n/2 = %d \n", 
-    			type, (int)pow(2, iterations-i-1), i, n/2);
-    	}
+    	// if (world_rank == 0)
+    	// {
+    	// 	printf("Type = %d, pow = %d, iteration = %d, n/2 = %d \n", 
+    	// 		type, (int)pow(2, iterations-i-1), i, n/2);
+    	// }
 
-    	// //Update bitmask
-    	// if (type == 1)
-    	// {
-    	// 	bitmask = bitmask / 2;
-    	// }
-    	// else
-    	// {
-    	// 	bitmask = bitmask * 2;
-    	// }
     }
     
 

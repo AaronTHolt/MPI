@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
 
 	//High-Low or Low-High
 	//1 = h->l
-	//0 = l->h
-	int type;
+	//0 = l->h   default
+	int type = 0;
 	int j; //counter in arg parse loop
 
 	char option_h2l[] = "-h";
@@ -95,8 +95,8 @@ int main(int argc, char *argv[])
 
 	if (world_rank == 0)
     {
-	    printf("n = %d, iterations = %d, mask = %d, type = %d \n", n, 
-	    	iterations, bitmask, type);
+	    // printf("n = %d, iterations = %d, mask = %d, type = %d \n", n, 
+	    // 	iterations, bitmask, type);
     }
 
     // Variables
@@ -116,8 +116,8 @@ int main(int argc, char *argv[])
 	    		if (delivered == 0)
 	    		{
 	    			deliver_to = world_rank ^ bitmask;
-		    		printf("Process %d delivers to %d on iteration %d \n", 
-		    			world_rank, deliver_to, i);
+		    		// printf("Process %d delivers to %d on iteration %d \n", 
+		    		// 	world_rank, deliver_to, i);
 		    		MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
 		    		delivered = 1;
 	    		}
@@ -153,8 +153,8 @@ int main(int argc, char *argv[])
 	    		if (delivered == 0)
 	    		{
 	    			deliver_to = world_rank ^ bitmask;
-		    		printf("Process %d delivers to %d on iteration %d \n", 
-		    			world_rank, deliver_to, i);
+		    		// printf("Process %d delivers to %d on iteration %d \n", 
+		    		// 	world_rank, deliver_to, i);
 		    		MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
 		    		delivered = 1;
 	    		}

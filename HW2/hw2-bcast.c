@@ -3,6 +3,7 @@
 #include "stdlib.h"
 #include "math.h"
 #include "string.h"
+#include <time.h>
 
 //Aaron Holt
 
@@ -203,7 +204,7 @@ int main(int argc, char *argv[])
     }
     
 
-    printf("Process %d has data = %f \n", world_rank, data);
+    // printf("Process %d has data = %f \n", world_rank, data);
 
 
     MPI_Finalize();

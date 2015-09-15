@@ -9,6 +9,8 @@
 
 
 
+
+
 int main(int argc, char *argv[]) 
 {
 
@@ -71,9 +73,7 @@ int main(int argc, char *argv[])
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    double data;
-
-    data = 1.0;
+    
     
     //first masks to be used with l-h and h-l
 	int bitmask;
@@ -90,15 +90,23 @@ int main(int argc, char *argv[])
 	//     printf("n = %d, iterations = %d, mask = %d, type = %d \n", n, 
 	//     	iterations, bitmask, type);
  //    }
-    int k;
+    int k, jj;
     double total_time;
     total_time = 0;
     double starttime, endtime;
+
+    
     
 
     for (k=0; k<=11; k++)
     {
+        double data[8*8*8*8] = {1};
+        double local_result[8*8*8*8] = {1};
+        int size;
+        size = sizeof(data)/sizeof(data[0]);
+
         starttime = MPI_Wtime();
+        
         if (type == 1)
         {
             bitmask = n/2;
@@ -109,133 +117,171 @@ int main(int argc, char *argv[])
         }
             // Variables
         int i; //counter
+        int alternate;
         int deliver_to; //who to send to
         int receive_from;   //who to receive from
 
 
         for (i = 0; i<iterations; i++)
         {
-            /////////////////// High to Low//////////////////////
-            if (type == 1)
+            //Make sure it doesn't deadlock with larger payloads
+            for (alternate = 0; alternate<=1; alternate++)
             {
-                // Check which processes should be sending
-                deliver_to = world_rank ^ bitmask;
-                // deliver_to = world_rank + pow(2,i);
-                if (deliver_to < world_size)
-                {
-                    // printf("Process %d delivers to %d on iteration %d \n", 
-        //                 world_rank, deliver_to, i);
-                    MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
-                }
+                /////////////////// High to Low//////////////////////
+                if (type == 1)
+                {   
 
-                //Deal with odd process numbers
-                if ((i > 0) && ((world_rank + 2*bitmask)>=world_size))
+                    // Check which processes should be sending
+                    deliver_to = world_rank ^ bitmask;
+
+                    if (deliver_to < world_size)
+                    {
+                        if (alternate == 0 && deliver_to>world_rank)
+                        {
+                            MPI_Send(&data, size, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+                            //Deal with odd process numbers
+                            if ((i > 0) && ((world_rank + 2*bitmask)>=world_size))
+                            {
+                                deliver_to = world_rank + bitmask;
+                                if (deliver_to < world_size)
+                                {
+                                    // printf("Process %d delivers to %d on iteration %d \n", 
+                                    //     world_rank, deliver_to, i);
+                                    MPI_Send(&data, size, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+                                }
+                            }
+                        }
+                        else if (alternate == 1 && deliver_to<world_rank)
+                        {
+                            MPI_Send(&data, size, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+                        }
+                        
+                    }
+
+                    
+
+                    //Check which processes should be receiving
+                    receive_from = world_rank ^ bitmask;
+                    if (receive_from < world_size)
+                    {
+
+                        for (jj=0; jj<size; jj++)
+                        {
+                            local_result[jj] = data[jj];
+                        }
+                        if (alternate == 0 && receive_from<world_rank)
+                        {
+                            // printf("Process %d receives from %d \n", world_rank, receive_from);
+                            MPI_Recv(&data, size, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+                                MPI_STATUS_IGNORE);
+
+                            //Account for odd process numbers
+                            if (receive_from >= world_size)
+                            {
+                                if (i > 0)
+                                {
+                                    receive_from = world_rank - bitmask;
+                                    if (receive_from < world_size)
+                                    {
+                                        
+                                        for (jj=0; jj<size; jj++)
+                                        {
+                                            local_result[jj] = data[jj];
+                                        }
+                                        // printf("Process %d receives from %d \n", world_rank, receive_from);
+                                        MPI_Recv(&data, size, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+                                            MPI_STATUS_IGNORE);
+                                        for (jj=0; jj<size; jj++)
+                                        {
+                                            data[jj] = local_result[jj] + data[jj];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (alternate == 1 && receive_from>world_rank)
+                        {
+                            // printf("Process %d receives from %d \n", world_rank, receive_from);
+                            MPI_Recv(&data, size, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+                                MPI_STATUS_IGNORE);
+                        }
+                            
+                        for (jj=0; jj<size; jj++)
+                        {
+                            data[jj] = local_result[jj] + data[jj];
+                        }
+                        
+                    }
+                                   
+                }
+                /////////////Low to high//////////////////////
+                else if (type == 0)
                 {
-                    deliver_to = world_rank + bitmask;
+                    // Check which processes should be sending
+                    deliver_to = world_rank ^ bitmask;
+                    // deliver_to = world_rank + pow(2,i);
                     if (deliver_to < world_size)
                     {
                         // printf("Process %d delivers to %d on iteration %d \n", 
                         //     world_rank, deliver_to, i);
-                        MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+                        MPI_Send(&data, size, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
                     }
-                }
 
-                //Check which processes should be receiving
-                receive_from = world_rank ^ bitmask;
-                if (receive_from < world_size)
-                {
-                    double local_result;
-                    local_result = data;
-                    // receive_from = world_rank - pow(2,i);
-                    // printf("Process %d receives from %d \n", world_rank, receive_from);
-                    MPI_Recv(&data, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
-                        MPI_STATUS_IGNORE);
-                    data = local_result + data;
-                }
-                //Account for odd process numbers
-                else if (receive_from >= world_size)
-                {
-                    if (i > 0)
+                    //Deal with odd process numbers
+                    if ((i > 0) && ((world_rank + 2*bitmask)>=world_size))
                     {
-                        receive_from = world_rank - bitmask;
-                        if (receive_from < world_size)
+                        deliver_to = world_rank + bitmask;
+                        if (deliver_to < world_size)
                         {
-                            double local_result;
-                            local_result = data;
-                            // receive_from = world_rank - pow(2,i);
-                            // printf("Process %d receives from %d \n", world_rank, receive_from);
-                            MPI_Recv(&data, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
-                                MPI_STATUS_IGNORE);
-                            data = local_result + data;
+                            // printf("Process %d delivers to %d on iteration %d \n", 
+                            //     world_rank, deliver_to, i);
+                            MPI_Send(&data, size, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
                         }
                     }
-                }               
-            }
-            /////////////Low to high//////////////////////
-            else if (type == 0)
-            {
-                // Check which processes should be sending
-                deliver_to = world_rank ^ bitmask;
-                // deliver_to = world_rank + pow(2,i);
-                if (deliver_to < world_size)
-                {
-                    // printf("Process %d delivers to %d on iteration %d \n", 
-                    //     world_rank, deliver_to, i);
-                    MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
-                }
 
-                //Deal with odd process numbers
-                if ((i > 0) && ((world_rank + 2*bitmask)>=world_size))
-                {
-                    deliver_to = world_rank + bitmask;
-                    if (deliver_to < world_size)
+                    //Check which processes should be receiving
+                    receive_from = world_rank ^ bitmask;
+                    if (receive_from < world_size)
                     {
-                        // printf("Process %d delivers to %d on iteration %d \n", 
-                        //     world_rank, deliver_to, i);
-                        MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
-                    }
-                }
-
-                //Check which processes should be receiving
-                receive_from = world_rank ^ bitmask;
-                if (receive_from < world_size)
-                {
-                    double local_result;
-                    local_result = data;
-                    // receive_from = world_rank - pow(2,i);
-                    // printf("Process %d receives from %d \n", world_rank, receive_from);
-                    MPI_Recv(&data, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
-                        MPI_STATUS_IGNORE);
-                    data = local_result + data;
-                }
-                //Account for odd process numbers
-                else if (receive_from >= world_size)
-                {
-                    if (i > 0)
-                    {
-                        receive_from = world_rank - bitmask;
-                        if (receive_from < world_size)
+                        for (jj=0; jj<size; jj++)
                         {
-                            double local_result;
-                            local_result = data;
-                            // receive_from = world_rank - pow(2,i);
-                            // printf("Process %d receives from %d \n", world_rank, receive_from);
-                            MPI_Recv(&data, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
-                                MPI_STATUS_IGNORE);
-                            data = local_result + data;
+                            local_result[jj] = data[jj];
+                        }
+                        // printf("Process %d receives from %d \n", world_rank, receive_from);
+                        MPI_Recv(&data, size, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+                            MPI_STATUS_IGNORE);
+                        for (jj=0; jj<size; jj++)
+                        {
+                            data[jj] = local_result[jj] + data[jj];
                         }
                     }
-                }    
+                    //Account for odd process numbers
+                    else if (receive_from >= world_size)
+                    {
+                        if (i > 0)
+                        {
+                            receive_from = world_rank - bitmask;
+                            if (receive_from < world_size)
+                            {
+                                for (jj=0; jj<size; jj++)
+                                {
+                                    local_result[jj] = data[jj];
+                                }
+                                // printf("Process %d receives from %d \n", world_rank, receive_from);
+                                MPI_Recv(&data, size, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+                                    MPI_STATUS_IGNORE);
+
+                                for (jj=0; jj<size; jj++)
+                                {
+                                    data[jj] = local_result[jj] + data[jj];
+                                }
+                            }
+                        }
+                    }    
+                }
             }
+            
 
-
-            //// Debug
-            // if (world_rank == 0)
-            // {
-            //     printf("Type = %d, pow = %d, iteration = %d, n/2 = %d \n", 
-            //         type, (int)pow(2, iterations-i-1), i, n/2);
-            //     printf("Bitmask = %d\n", bitmask);
-            // }
 
             //Update bitmask
             if (type == 1)
@@ -249,10 +295,14 @@ int main(int argc, char *argv[])
         }
         
 
-        // printf("Process %d has data = %f \n", world_rank, data);
+        // printf("Process %d has data = %f \n", world_rank, data[0]);
         //Timing
         endtime = MPI_Wtime();
         total_time = total_time + endtime - starttime;
+        if (world_rank == 0)
+        {
+            printf("Process %d has data = %f \n", world_rank, data[0]);
+        }
     }
 
     total_time = total_time / 11.0;

@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
 
     for (k=0; k<=0; k++)
     {
-        double data[8*8*8*8] = {1};
-        double local_result[8*8*8*8] = {1};
+        double data[8*8*8*8*8*4] = {1};
+        double local_result[8*8*8*8*8*4] = {1};
         int size;
         size = sizeof(data)/sizeof(data[0]);
 

@@ -202,10 +202,10 @@ int main(int argc, char *argv[])
     	}
     }
     
-    // if (world_rank == 0)
-    // {
-    // 	printf("Final Result is %f \n", data);
-    // }
+    if (world_rank == 0)
+    {
+    	printf("Final Result is %f \n", data);
+    }
 
 
     MPI_Finalize();

@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
     }
     
 
-    // printf("Process %d has data = %f \n", world_rank, data);
+    printf("Process %d has data = %f \n", world_rank, data);
 
 
     MPI_Finalize();

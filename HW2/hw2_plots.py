@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-size = 		[1, 3, 6, 9, 12, 15, 18, 20]
+size = 		[1, 2**3, 2**6, 2**9, 2**12, 2**15, 2**18, 2**20]
 data32_official = 	[0.002974, 0.003238, 0.001770, 0.003322, 0.002570, 0.001672, 0.002420, 0.004662]
 data128_official = 	[0.003163, 0.006406, 0.007149, 0.007143, 0.004036, 0.003866, 0.003570, 0.004131]
 
@@ -18,12 +18,14 @@ line2, = plt.plot(size, data32_l2h, 'bo-')
 line3, = plt.plot(size, data128_l2h, 'bs--')
 line4, = plt.plot(size, data32_h2l, 'ko-')
 line5, = plt.plot(size, data128_h2l, 'ks--')
-plt.xlabel('Log2(size of buffer (Bytes))')
+plt.xlabel('Size of buffer (Bytes)')
 plt.ylabel('Time (s)')
+plt.xscale('log', basey=2)
+plt.yscale('log', basey=2)
 plt.title("Time vs Buffer size for np=32,128")
 plt.legend([line0,line1,line2,line3,line4,line5], 
 	['32_official', '128_official', '32_l2h', '128_l2h', '32_h2l', '128_h2l'], loc=2)
-plt.show()
+# plt.show()
 
 
 nodes = [2, 4, 8, 16, 32]
@@ -39,7 +41,15 @@ line2, = plt.plot(nodes, bflyreduce_l2h, 'go-')
 line3, = plt.plot(nodes, bfly_official, 'ro-')
 plt.xlabel('Processes (Nodes used)')
 plt.ylabel('Time (s)')
+plt.xscale('log', basey=2)
+plt.yscale('log', basey=2)
 plt.title('Time vs Nodes for Various Allreduce Algorithms')
 plt.legend([line0,line1,line2,line3], 
 	['Simple Allreduce', 'Bfly_h2l', 'Bfly_l2h', 'Official Allreduce'], loc=2)
-plt.show()
+# plt.show()
+
+
+# print np.polyfit(nodes,bfly_official,2)
+# print np.polyfit(nodes,bflyreduce_l2h,2)
+# print np.polyfit(nodes,bflyreduce_h2l,2)
+# print np.polyfit(nodes,simplereduce,2)

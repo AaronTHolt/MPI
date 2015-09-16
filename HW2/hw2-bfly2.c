@@ -6,9 +6,14 @@
 #include <time.h>
 
 //Aaron Holt
-
-
-
+//instructions
+/*
+Compile with $mpicc hw2-fly2.c -lm
+run with $mpiexec -np NP ./a.out -type SIZE
+where NP is process number
+-type is -h or -l for high to low and low to high
+SIZE is buffer size
+*/
 
 
 int main(int argc, char *argv[]) 

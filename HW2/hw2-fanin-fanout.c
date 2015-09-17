@@ -207,6 +207,123 @@ int main(int argc, char *argv[])
     	printf("Result after reduce on rank %d is %f \n", world_rank, data);
     }
 
+    if (type == 1)
+    {
+    	bitmask = n/2;
+    }
+    else
+    {
+    	bitmask = 1;
+    }
+
+	// if (world_rank == 0)
+ //    {
+	//     printf("n = %d, iterations = %d, mask = %d, type = %d \n", n, 
+	//     	iterations, bitmask, type);
+ //    }
+
+
+    int received; //In bcast, each process should receive only once
+
+    if (world_rank == 0)
+    {
+    	received = 1; //In bcast, each process should receive only once
+    }
+    else
+    {
+    	received = 0;
+    }
+    
+
+    for (i = 0; i<iterations; i++)
+    {
+    	/////////////////// High to Low//////////////////////
+    	if (type == 1)
+    	{
+    		// Check which processes should be sending
+    		//can only send if you've received
+    		if (received == 1)
+    		{
+    			deliver_to = world_rank + pow(2,i);
+    			if (deliver_to < world_size)
+    			{
+    				// printf("Process %d delivers to %d on iteration %d \n", 
+	    			// 	world_rank, deliver_to, i);
+	    			MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+    			}
+    		}
+    		else
+	    	{
+	    		//Check which processes should be receiving
+	    		if (received == 0)
+	    		{
+	    			//Account for a processes that doesn't need to do anything
+			    	//for current iteration
+	    			if (world_rank < pow(2,i+1))
+		    		{
+			    		receive_from = world_rank - pow(2,i);
+		    			// printf("Process %d receives from %d \n", world_rank, receive_from);
+			    		MPI_Recv(&data, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+			    			MPI_STATUS_IGNORE);
+			    		received = 1;
+		    		}
+	    		}
+	    	}
+    	}
+    	/////////////Low to high//////////////////////
+    	else if (type == 0)
+    	{
+    		// Check which processes should be sending
+    		//can only send if you've received
+    		if (received == 1)
+    		{
+    			deliver_to = world_rank + (int)pow(2, iterations-i-1);
+    			if (deliver_to < world_size)
+    			{
+    				// printf("Process %d delivers to %d on iteration %d \n", 
+	    			// world_rank, deliver_to, i);
+	    			MPI_Send(&data, 1, MPI_DOUBLE, deliver_to, tag, MPI_COMM_WORLD);
+    			}
+    		}
+
+    		//Check which processes should be receiving
+    		else if (received == 0)
+    		{
+    			//Account for a processes that doesn't need to do anything
+		    	//for current iteration
+    			if (world_rank % (int)pow(2, iterations-i-1) == 0)
+	    		{
+	    			double local_result;
+		    		receive_from = world_rank - (int)pow(2, iterations-i-1);
+
+		    		if (receive_from>=0)
+		    		{
+		    			// printf("Process %d receives from %d on iteration %d. \n", 
+	    				// world_rank, receive_from, i);
+			    		MPI_Recv(&local_result, 1, MPI_DOUBLE, receive_from, tag, MPI_COMM_WORLD,
+			    			MPI_STATUS_IGNORE);
+			    		data = local_result;
+			    		received = 1;
+
+		    		}
+	    		}
+    		}
+	  
+    	}
+    	
+
+    	//Debug
+    	// if (world_rank == 0)
+    	// {
+    	// 	printf("Type = %d, pow = %d, iteration = %d, n/2 = %d \n", 
+    	// 		type, (int)pow(2, iterations-i-1), i, n/2);
+    	// }
+
+    }
+    
+
+    printf("After bcast, process %d has data = %f \n", world_rank, data);
+
 
     MPI_Finalize();
 }

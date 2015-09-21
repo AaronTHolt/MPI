@@ -1,0 +1,16 @@
+README
+Aaron Holt
+
+autoscript.py is my automatic submission script for Janus
+hw-plots.py plots my graphs
+
+all other programs are compiled with:
+
+	$mpicc program.c -lm -o program.o
+
+and run with
+
+	$mpiexec -np NP ./program.out -type 
+
+where NP is the number of cores and type is '-h' high to low or '-l' low to high
+The simple allreduce and fanin-fanout don't take a type.

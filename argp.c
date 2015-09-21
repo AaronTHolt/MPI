@@ -11,7 +11,7 @@ static char doc[] =
   "Argp example #3 -- a program with options and arguments using argp";
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "ARG1 ARG2";
+static char args_doc[] = "BufferSize(bytes) ARG2";
 
 /* The options we understand. */
 static struct argp_option options[] = {
@@ -24,7 +24,7 @@ static struct argp_option options[] = {
 /* Used by main to communicate with parse_opt. */
 struct arguments
 {
-  char *args[2];                /* arg1 & arg2 */
+  char *args[2];                /* buffer size & arg2 */
   int silent, verbose;
   char *output_file;
 };
@@ -78,13 +78,12 @@ main (int argc, char **argv)
   /* Default values. */
   arguments.silent = 0;
   arguments.verbose = 0;
-  arguments.output_file = "-";
 
   /* Parse our arguments; every option seen by parse_opt will
      be reflected in arguments. */
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
-  printf ("ARG1 = %s\nARG2 = %s\n"
+  printf ("Buffer Size (bytes) = %s\nARG2 = %s\n"
           "VERBOSE = %s\nSILENT = %s\n",
           arguments.args[0], arguments.args[1],
           arguments.verbose ? "yes" : "no",

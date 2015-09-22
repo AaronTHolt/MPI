@@ -211,14 +211,14 @@ main (int argc, char **argv)
         {
             if (i < 49)
             {
-                printf("%2.8f,", alltime[i]);
+                printf("%2.9f,", alltime[i]);
             }
             else
             {
-                printf("%2.8f", alltime[i]);
+                printf("%2.9f", alltime[i]);
             }
         }
-        printf("\n%2.8f\n", total_time/100);
+        printf("\n%2.9f\n", total_time/100);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 

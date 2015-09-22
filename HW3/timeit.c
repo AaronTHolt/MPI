@@ -117,6 +117,14 @@ main (int argc, char **argv)
         }
         exit(0);
     }
+    if (world_size < 2)
+    {
+        if (world_rank == 0)
+        {
+            printf("World size less than 2, exiting\n");
+        }
+        exit(0);
+    }
 
     if (world_rank == 0 && arguments.verbose == 1)
     {
@@ -127,6 +135,7 @@ main (int argc, char **argv)
     double total_time;
     total_time = 0;
     double starttime, endtime;
+    double alltime[50] = {0};
 
     //Dynamically allocate arrays
     char *buffer;     //buffer to send
@@ -153,7 +162,7 @@ main (int argc, char **argv)
     //Timing
     //10 warmup, 40 test
     int kk;
-    for (kk=0; kk<50; kk++)
+    for (kk=0; kk<60; kk++)
     {
         for (j=0; j<size; j++)
         {
@@ -170,28 +179,46 @@ main (int argc, char **argv)
         //Time bcast
         if (world_size > 1)
         {
-            MPI_Bcast(buffer, size, MPI_CHAR, 0, MPI_COMM_WORLD);
-            MPI_Bcast(buffer, size, MPI_CHAR, 1, MPI_COMM_WORLD);
+            if (world_rank == 0)
+            {
+                MPI_Send(buffer, size, MPI_CHAR, 1, 0, MPI_COMM_WORLD);
+                MPI_Recv(buffer, size, MPI_CHAR, 1, 0, MPI_COMM_WORLD, 
+                    MPI_STATUS_IGNORE);
+            }
+            else if (world_rank == 1)
+            {
+                MPI_Recv(buffer, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD, 
+                    MPI_STATUS_IGNORE);
+                MPI_Send(buffer, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+            }
         }
-        else
-        {
-            MPI_Bcast(buffer, size, MPI_CHAR, 0, MPI_COMM_WORLD);
-        }
-        
 
         if (kk>=10)
         {
             endtime = MPI_Wtime();
             total_time = total_time + endtime - starttime;
+            alltime[kk-10] = endtime - starttime;
         }
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    printf("Data %d, world rank %d\n", buffer[0], world_rank);
+    // printf("Data %d, world rank %d\n", buffer[0], world_rank);
 
     if (world_rank == 0)
     {
-        printf("Average Time = %f\n", total_time/40);
+        int i;
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.8f,", alltime[i]);
+            }
+            else
+            {
+                printf("%2.8f", alltime[i]);
+            }
+        }
+        printf("\n%2.8f\n", total_time/100);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 

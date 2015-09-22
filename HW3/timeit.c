@@ -49,20 +49,20 @@ parse_opt (int key, char *arg, struct argp_state *state)
             /* Too many arguments. */
             argp_usage (state);
 
-      arguments->args[state->arg_num] = arg;
+            arguments->args[state->arg_num] = arg;
 
-      break;
+            break;
 
-    case ARGP_KEY_END:
-      if (state->arg_num < 1)
-        /* Not enough arguments. */
-        argp_usage (state);
-      break;
+        case ARGP_KEY_END:
+            if (state->arg_num < 1)
+            /* Not enough arguments. */
+            argp_usage (state);
+            break;
 
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+        default:
+            return ARGP_ERR_UNKNOWN;
+        }
+    return 0;
 }
 
 /* Our argp parser. */
@@ -80,14 +80,125 @@ main (int argc, char **argv)
     // printf ("Buffer Size (bytes) = %s\n"
     //         "VERBOSE = %s\n",
     //         arguments.args[0],
-    //         arguments.verbose ? "yes" : "no");
+    //         arguments.verbose ? "yes" : "no");    
 
     //buffer size from input char* to int
     int size;
+    size = 1; //default
     if (sscanf (arguments.args[0], "%i", &size)!=1) {}
 
-    printf("Size = %d\n", size);
+
+    //For now, hardcode tag (operation)
+    int tag = 0; //tag = 0 => addition
+
+    // Initialize the MPI environment
+    MPI_Init(NULL, NULL);
+
+    // Get the number of processes
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 
+    // Get the rank of the process
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+    // Get the name of the processor
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    int name_len;
+    MPI_Get_processor_name(processor_name, &name_len);
+
+    //Bail if incorrect
+    if (world_size > 2)
+    {
+        if (world_rank == 0)
+        {
+            printf("World size greater than 2, exiting\n");
+        }
+        exit(0);
+    }
+
+    if (world_rank == 0 && arguments.verbose == 1)
+    {
+        printf("Buffer size (bytes) = %d\n", size);
+    }
+
+    //Timing variables
+    double total_time;
+    total_time = 0;
+    double starttime, endtime;
+
+    //Dynamically allocate arrays
+    char *buffer;     //buffer to send
+    buffer = (char*) malloc(size*sizeof(char)+1);
+    buffer[size] = '\0';
+
+    int j = 0;
+    if (world_rank == 0)
+    {
+        for (j=0; j<size; j++)
+        {
+            buffer[j] = (char)11.0;
+        } 
+        if ( arguments.verbose == 1)
+        {
+            for (j=0; j<3; j++)
+            {
+                printf("Initial data in buffer[%d]: %d ", j, buffer[j]);
+                printf("\n");
+            } 
+        }
+    }
+    
+    //Timing
+    //10 warmup, 40 test
+    int kk;
+    for (kk=0; kk<50; kk++)
+    {
+        for (j=0; j<size; j++)
+        {
+            buffer[j] = (char)11.0;
+        } 
+
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (kk>=10)
+        {
+            starttime = MPI_Wtime();
+        } 
+
+        //Time bcast
+        if (world_size > 1)
+        {
+            MPI_Bcast(buffer, size, MPI_CHAR, 0, MPI_COMM_WORLD);
+            MPI_Bcast(buffer, size, MPI_CHAR, 1, MPI_COMM_WORLD);
+        }
+        else
+        {
+            MPI_Bcast(buffer, size, MPI_CHAR, 0, MPI_COMM_WORLD);
+        }
+        
+
+        if (kk>=10)
+        {
+            endtime = MPI_Wtime();
+            total_time = total_time + endtime - starttime;
+        }
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    printf("Data %d, world rank %d\n", buffer[0], world_rank);
+
+    if (world_rank == 0)
+    {
+        printf("Average Time = %f\n", total_time/40);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+
+    //Free malloc'ed data
+    free (buffer);
+
+    MPI_Finalize();
     exit (0);
 }

@@ -5,6 +5,12 @@
 #include "math.h"
 #include "string.h"
 
+//Aaron Holt
+//HPSC
+//MPI Ping Pong
+//compile with mpicc timeit.c -o timeit.o
+//run with mpiexec -np 2 ./timeit.o BufferSize
+
 const char *argp_program_version =
     "argp-ex3 1.0";
 const char *argp_program_bug_address =

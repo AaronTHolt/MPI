@@ -5,6 +5,12 @@
 #include "math.h"
 #include "string.h"
 
+//Aaron Holt
+//HPSC
+//MPI Dense Matrix Transpose
+//compile with mpicc dense_transpose.c -o dense_transpose.o
+//run with mpiexec -np 2 ./dense_transpose.o SquareMatrixSize
+
 const char *argp_program_version =
     "argp-ex3 1.0";
 const char *argp_program_bug_address =

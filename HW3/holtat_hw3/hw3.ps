@@ -2,7 +2,7 @@
 %%BoundingBox: 18 36 594 756
 %%Title: Enscript Output
 %%Creator: GNU Enscript 1.6.5.90
-%%CreationDate: Tue Sep 22 23:11:41 2015
+%%CreationDate: Wed Sep 23 11:58:04 2015
 %%Orientation: Landscape
 %%Pages: (atend)
 %%DocumentMedia: Letter 612 792 0 () ()
@@ -502,13 +502,1197 @@ _S
 90 rotate
 36 -594 translate
 /pagenum 1 def
-/fname (dense_transpose.c) def
+/fname (hw3.1-holtat.c) def
 /fdir (.) def
-/ftail (dense_transpose.c) def
+/ftail (hw3.1-holtat.c) def
 % User defined strings:
 /pagenumstr (1) def
 /moddatestr (09/22/15) def
-/modtimestr (21:15:16) def
+/modtimestr (23:22:52) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 530 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 530 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 530 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 530 M
+(<stdlib.h>) s
+/F-gs-font 7 7 SF
+5 522 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 522 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 522 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 522 M
+(<argp.h>) s
+/F-gs-font 7 7 SF
+5 514 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 514 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 514 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 514 M
+("mpi.h") s
+/F-gs-font 7 7 SF
+5 506 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 506 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 506 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 506 M
+("stdio.h") s
+/F-gs-font 7 7 SF
+5 498 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 498 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 498 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 498 M
+("math.h") s
+/F-gs-font 7 7 SF
+5 490 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 490 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 490 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 490 M
+("string.h") s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+5 474 M
+(//Aaron Holt) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+5 466 M
+(//HPSC) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+5 458 M
+(//MPI Ping Pong) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+5 450 M
+(//compile with mpicc hw3.1-holtat.c -o timeit.o) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+5 442 M
+(//run with mpiexec -np 2 ./timeit.o BufferSize) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 426 M
+(const) s
+/F-gs-font 7 7 SF
+26 426 M
+( ) s
+/Courier-Bold 7 7 SUF
+30.2 426 M
+(char) s
+/F-gs-font 7 7 SF
+47 426 M
+( *argp_program_version =) s
+5 418 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 418 M
+("argp-ex3 1.0") s
+/F-gs-font 7 7 SF
+80.6 418 M
+(;) s
+/Courier-Bold 7 7 SUF
+5 410 M
+(const) s
+/F-gs-font 7 7 SF
+26 410 M
+( ) s
+/Courier-Bold 7 7 SUF
+30.2 410 M
+(char) s
+/F-gs-font 7 7 SF
+47 410 M
+( *argp_program_bug_address =) s
+5 402 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 402 M
+("<bug-gnu-utils@gnu.org>") s
+/F-gs-font 7 7 SF
+126.8 402 M
+(;) s
+/Courier-Oblique 7 7 SUF
+5 386 M
+(/* Program documentation. */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 378 M
+(static) s
+/F-gs-font 7 7 SF
+30.2 378 M
+( ) s
+/Courier-Bold 7 7 SUF
+34.4 378 M
+(char) s
+/F-gs-font 7 7 SF
+51.2 378 M
+( doc[] =) s
+5 370 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 370 M
+("Argp example #3 -- a program with options and arguments using argp") s
+/F-gs-font 7 7 SF
+307.4 370 M
+(;) s
+/Courier-Oblique 7 7 SUF
+5 354 M
+(/* A description of the arguments we accept. */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 346 M
+(static) s
+/F-gs-font 7 7 SF
+30.2 346 M
+( ) s
+/Courier-Bold 7 7 SUF
+34.4 346 M
+(char) s
+/F-gs-font 7 7 SF
+51.2 346 M
+( args_doc[] = ) s
+/Courier-Bold 7 7 SUF
+110 346 M
+("BufferSize\(bytes\)") s
+/F-gs-font 7 7 SF
+189.8 346 M
+(;) s
+/Courier-Oblique 7 7 SUF
+5 330 M
+(/* The options we understand. */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 322 M
+(static) s
+/F-gs-font 7 7 SF
+30.2 322 M
+( ) s
+/Courier-Bold 7 7 SUF
+34.4 322 M
+(struct) s
+/F-gs-font 7 7 SF
+59.6 322 M
+( argp_option options[] = {) s
+5 314 M
+(    {) s
+/Courier-Bold 7 7 SUF
+26 314 M
+("verbose") s
+/F-gs-font 7 7 SF
+63.8 314 M
+(,  ) s
+/Courier-Bold 7 7 SUF
+76.4 314 M
+('v') s
+/F-gs-font 7 7 SF
+89 314 M
+(, 0,      0,  ) s
+/Courier-Bold 7 7 SUF
+147.8 314 M
+("Produce verbose output") s
+/F-gs-font 7 7 SF
+248.6 314 M
+( },) s
+5 306 M
+(    { 0 }) s
+5 298 M
+(};) s
+/Courier-Oblique 7 7 SUF
+5 282 M
+(/* Used by main to communicate with parse_opt. */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 274 M
+(struct) s
+/F-gs-font 7 7 SF
+30.2 274 M
+( arguments) s
+5 266 M
+({) s
+5 258 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 258 M
+(char) s
+/F-gs-font 7 7 SF
+38.6 258 M
+( *args[1];                ) s
+/Courier-Oblique 7 7 SUF
+147.8 258 M
+(/* buffer size */) s
+/F-gs-font 7 7 SF
+5 250 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 250 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 250 M
+( verbose;) s
+5 242 M
+(};) s
+/Courier-Oblique 7 7 SUF
+5 226 M
+(/* Parse a single option. */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 218 M
+(static) s
+/F-gs-font 7 7 SF
+30.2 218 M
+( error_t) s
+/Courier-Bold 7 7 SUF
+5 210 M
+(parse_opt) s
+/F-gs-font 7 7 SF
+42.8 210 M
+( \() s
+/Courier-Bold 7 7 SUF
+51.2 210 M
+(int) s
+/F-gs-font 7 7 SF
+63.8 210 M
+( key, ) s
+/Courier-Bold 7 7 SUF
+89 210 M
+(char) s
+/F-gs-font 7 7 SF
+105.8 210 M
+( *arg, ) s
+/Courier-Bold 7 7 SUF
+135.2 210 M
+(struct) s
+/F-gs-font 7 7 SF
+160.4 210 M
+( argp_state *state\)) s
+5 202 M
+({) s
+5 194 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 194 M
+(/* Get the input argument from argp_parse, which we) s
+5 186 M
+(     know is a pointer to our arguments structure. */) s
+/F-gs-font 7 7 SF
+5 178 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 178 M
+(struct) s
+/F-gs-font 7 7 SF
+47 178 M
+( arguments *arguments = state->input;) s
+5 162 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 162 M
+(switch) s
+/F-gs-font 7 7 SF
+47 162 M
+( \(key\)) s
+5 154 M
+(        {) s
+5 146 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 146 M
+(case) s
+/F-gs-font 7 7 SF
+55.4 146 M
+( ) s
+/Courier-Bold 7 7 SUF
+59.6 146 M
+('v') s
+/F-gs-font 7 7 SF
+72.2 146 M
+(:) s
+5 138 M
+(            arguments->verbose = 1;) s
+5 130 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 130 M
+(break) s
+/F-gs-font 7 7 SF
+76.4 130 M
+(;) s
+5 114 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 114 M
+(case) s
+/F-gs-font 7 7 SF
+55.4 114 M
+( ) s
+/Courier-Bold 7 7 SUF
+59.6 114 M
+(ARGP_KEY_ARG) s
+/F-gs-font 7 7 SF
+110 114 M
+(:) s
+5 106 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 106 M
+(if) s
+/F-gs-font 7 7 SF
+63.8 106 M
+( \(state->arg_num >= 1\)) s
+5 98 M
+(            ) s
+/Courier-Oblique 7 7 SUF
+55.4 98 M
+(/* Too many arguments. */) s
+/F-gs-font 7 7 SF
+5 90 M
+(            argp_usage \(state\);) s
+5 74 M
+(            arguments->args[state->arg_num] = arg;) s
+5 58 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 58 M
+(break) s
+/F-gs-font 7 7 SF
+76.4 58 M
+(;) s
+5 42 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 42 M
+(case) s
+/F-gs-font 7 7 SF
+55.4 42 M
+( ) s
+/Courier-Bold 7 7 SUF
+59.6 42 M
+(ARGP_KEY_END) s
+/F-gs-font 7 7 SF
+110 42 M
+(:) s
+5 34 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 34 M
+(if) s
+/F-gs-font 7 7 SF
+63.8 34 M
+( \(state->arg_num < 1\)) s
+5 26 M
+(            ) s
+/Courier-Oblique 7 7 SUF
+55.4 26 M
+(/* Not enough arguments. */) s
+/F-gs-font 7 7 SF
+5 18 M
+(            argp_usage \(state\);) s
+5 10 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 10 M
+(break) s
+/F-gs-font 7 7 SF
+76.4 10 M
+(;) s
+365 530 M
+(        ) s
+/Courier-Bold 7 7 SUF
+398.6 530 M
+(default) s
+/F-gs-font 7 7 SF
+428 530 M
+(:) s
+365 522 M
+(            ) s
+/Courier-Bold 7 7 SUF
+415.4 522 M
+(return) s
+/F-gs-font 7 7 SF
+440.6 522 M
+( ARGP_ERR_UNKNOWN;) s
+365 514 M
+(        }) s
+365 506 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 506 M
+(return) s
+/F-gs-font 7 7 SF
+407 506 M
+( 0;) s
+365 498 M
+(}) s
+/Courier-Oblique 7 7 SUF
+365 482 M
+(/* Our argp parser. */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+365 474 M
+(static) s
+/F-gs-font 7 7 SF
+390.2 474 M
+( ) s
+/Courier-Bold 7 7 SUF
+394.4 474 M
+(struct) s
+/F-gs-font 7 7 SF
+419.6 474 M
+( argp argp = { options, parse_opt, args_doc, doc };) s
+/Courier-Bold 7 7 SUF
+365 458 M
+(int) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+365 450 M
+(main) s
+/F-gs-font 7 7 SF
+381.8 450 M
+( \() s
+/Courier-Bold 7 7 SUF
+390.2 450 M
+(int) s
+/F-gs-font 7 7 SF
+402.8 450 M
+( argc, ) s
+/Courier-Bold 7 7 SUF
+432.2 450 M
+(char) s
+/F-gs-font 7 7 SF
+449 450 M
+( **argv\)) s
+365 442 M
+({) s
+365 434 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 434 M
+(struct) s
+/F-gs-font 7 7 SF
+407 434 M
+( arguments arguments;) s
+365 418 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 418 M
+(/* Parse our arguments; every option seen by parse_opt will) s
+365 410 M
+(       be reflected in arguments. */) s
+/F-gs-font 7 7 SF
+365 402 M
+(    argp_parse \(&argp, argc, argv, 0, 0, &arguments\);) s
+365 386 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 386 M
+(// printf \("Buffer Size \(bytes\) = %s\\n") s
+/F-gs-font 7 7 SF
+365 378 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 378 M
+(//         "VERBOSE = %s\\n",) s
+/F-gs-font 7 7 SF
+365 370 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 370 M
+(//         arguments.args[0],) s
+/F-gs-font 7 7 SF
+365 362 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 362 M
+(//         arguments.verbose ? "yes" : "no"\);    ) s
+/F-gs-font 7 7 SF
+365 346 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 346 M
+(//buffer size from input char* to int) s
+/F-gs-font 7 7 SF
+365 338 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 338 M
+(int) s
+/F-gs-font 7 7 SF
+394.4 338 M
+( size;) s
+365 330 M
+(    size = 1; ) s
+/Courier-Oblique 7 7 SUF
+423.8 330 M
+(//default) s
+/F-gs-font 7 7 SF
+365 322 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 322 M
+(if) s
+/F-gs-font 7 7 SF
+390.2 322 M
+( \(sscanf \(arguments.args[0], ) s
+/Courier-Bold 7 7 SUF
+512 322 M
+("%i") s
+/F-gs-font 7 7 SF
+528.8 322 M
+(, &size\)!=1\) {}) s
+365 298 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 298 M
+(//For now, hardcode tag \(operation\)) s
+/F-gs-font 7 7 SF
+365 290 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 290 M
+(int) s
+/F-gs-font 7 7 SF
+394.4 290 M
+( tag = 0; ) s
+/Courier-Oblique 7 7 SUF
+436.4 290 M
+(//tag = 0 => addition) s
+/F-gs-font 7 7 SF
+365 274 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 274 M
+(// Initialize the MPI environment) s
+/F-gs-font 7 7 SF
+365 266 M
+(    MPI_Init\(NULL, NULL\);) s
+365 250 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 250 M
+(// Get the number of processes) s
+/F-gs-font 7 7 SF
+365 242 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 242 M
+(int) s
+/F-gs-font 7 7 SF
+394.4 242 M
+( world_size;) s
+365 234 M
+(    MPI_Comm_size\(MPI_COMM_WORLD, &world_size\);) s
+365 210 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 210 M
+(// Get the rank of the process) s
+/F-gs-font 7 7 SF
+365 202 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 202 M
+(int) s
+/F-gs-font 7 7 SF
+394.4 202 M
+( world_rank;) s
+365 194 M
+(    MPI_Comm_rank\(MPI_COMM_WORLD, &world_rank\);) s
+365 178 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 178 M
+(// Get the name of the processor) s
+/F-gs-font 7 7 SF
+365 170 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 170 M
+(char) s
+/F-gs-font 7 7 SF
+398.6 170 M
+( processor_name[MPI_MAX_PROCESSOR_NAME];) s
+365 162 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 162 M
+(int) s
+/F-gs-font 7 7 SF
+394.4 162 M
+( name_len;) s
+365 154 M
+(    MPI_Get_processor_name\(processor_name, &name_len\);) s
+365 138 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 138 M
+(//Bail if incorrect) s
+/F-gs-font 7 7 SF
+365 130 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 130 M
+(if) s
+/F-gs-font 7 7 SF
+390.2 130 M
+( \(world_size > 2\)) s
+365 122 M
+(    {) s
+365 114 M
+(        ) s
+/Courier-Bold 7 7 SUF
+398.6 114 M
+(if) s
+/F-gs-font 7 7 SF
+407 114 M
+( \(world_rank == 0\)) s
+365 106 M
+(        {) s
+365 98 M
+(            printf\() s
+/Courier-Bold 7 7 SUF
+444.8 98 M
+("World size greater than 2, exiting\\n") s
+/F-gs-font 7 7 SF
+604.4 98 M
+(\);) s
+365 90 M
+(        }) s
+365 82 M
+(        exit\(0\);) s
+365 74 M
+(    }) s
+365 66 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 66 M
+(if) s
+/F-gs-font 7 7 SF
+390.2 66 M
+( \(world_size < 2\)) s
+365 58 M
+(    {) s
+365 50 M
+(        ) s
+/Courier-Bold 7 7 SUF
+398.6 50 M
+(if) s
+/F-gs-font 7 7 SF
+407 50 M
+( \(world_rank == 0\)) s
+365 42 M
+(        {) s
+365 34 M
+(            printf\() s
+/Courier-Bold 7 7 SUF
+444.8 34 M
+("World size less than 2, exiting\\n") s
+/F-gs-font 7 7 SF
+591.8 34 M
+(\);) s
+365 26 M
+(        }) s
+365 18 M
+(        exit\(0\);) s
+365 10 M
+(    }) s
+_R
+S
+%%Page: (2) 2
+%%BeginPageSetup
+_S
+90 rotate
+36 -594 translate
+/pagenum 2 def
+/fname (hw3.1-holtat.c) def
+/fdir (.) def
+/ftail (hw3.1-holtat.c) def
+% User defined strings:
+/pagenumstr (2) def
+/moddatestr (09/22/15) def
+/modtimestr (23:22:52) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 530 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 530 M
+(if) s
+/F-gs-font 7 7 SF
+30.2 530 M
+( \(world_rank == 0 && arguments.verbose == 1\)) s
+5 522 M
+(    {) s
+5 514 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+68 514 M
+("Buffer size \(bytes\) = %d\\n") s
+/F-gs-font 7 7 SF
+185.6 514 M
+(, size\);) s
+5 506 M
+(    }) s
+5 490 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 490 M
+(//Timing variables) s
+/F-gs-font 7 7 SF
+5 482 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 482 M
+(double) s
+/F-gs-font 7 7 SF
+47 482 M
+( total_time;) s
+5 474 M
+(    total_time = 0;) s
+5 466 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 466 M
+(double) s
+/F-gs-font 7 7 SF
+47 466 M
+( starttime, endtime;) s
+5 458 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 458 M
+(double) s
+/F-gs-font 7 7 SF
+47 458 M
+( alltime[50] = {0};) s
+5 442 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 442 M
+(//Dynamically allocate arrays) s
+/F-gs-font 7 7 SF
+5 434 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 434 M
+(char) s
+/F-gs-font 7 7 SF
+38.6 434 M
+( *buffer;     ) s
+/Courier-Oblique 7 7 SUF
+97.4 434 M
+(//buffer to send) s
+/F-gs-font 7 7 SF
+5 426 M
+(    buffer = \() s
+/Courier-Bold 7 7 SUF
+63.8 426 M
+(char) s
+/F-gs-font 7 7 SF
+80.6 426 M
+(*\) malloc\(size*) s
+/Courier-Bold 7 7 SUF
+143.6 426 M
+(sizeof) s
+/F-gs-font 7 7 SF
+168.8 426 M
+(\() s
+/Courier-Bold 7 7 SUF
+173 426 M
+(char) s
+/F-gs-font 7 7 SF
+189.8 426 M
+(\)+1\);) s
+5 418 M
+(    buffer[size] = ) s
+/Courier-Bold 7 7 SUF
+84.8 418 M
+('\\0') s
+/F-gs-font 7 7 SF
+101.6 418 M
+(;) s
+5 402 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 402 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 402 M
+( j = 0;) s
+5 394 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 394 M
+(if) s
+/F-gs-font 7 7 SF
+30.2 394 M
+( \(world_rank == 0\)) s
+5 386 M
+(    {) s
+5 378 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 378 M
+(for) s
+/F-gs-font 7 7 SF
+51.2 378 M
+( \(j=0; j<size; j++\)) s
+5 370 M
+(        {) s
+5 362 M
+(            buffer[j] = \() s
+/Courier-Bold 7 7 SUF
+110 362 M
+(char) s
+/F-gs-font 7 7 SF
+126.8 362 M
+(\)11.0;) s
+5 354 M
+(        } ) s
+5 346 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 346 M
+(if) s
+/F-gs-font 7 7 SF
+47 346 M
+( \( arguments.verbose == 1\)) s
+5 338 M
+(        {) s
+5 330 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 330 M
+(for) s
+/F-gs-font 7 7 SF
+68 330 M
+( \(j=0; j<3; j++\)) s
+5 322 M
+(            {) s
+5 314 M
+(                printf\() s
+/Courier-Bold 7 7 SUF
+101.6 314 M
+("Initial data in buffer[%d]: %d ") s
+/F-gs-font 7 7 SF
+240.2 314 M
+(, j, buffer[j]\);) s
+5 306 M
+(                printf\() s
+/Courier-Bold 7 7 SUF
+101.6 306 M
+("\\n") s
+/F-gs-font 7 7 SF
+118.4 306 M
+(\);) s
+5 298 M
+(            } ) s
+5 290 M
+(        }) s
+5 282 M
+(    }) s
+5 274 M
+(    ) s
+5 266 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 266 M
+(//Timing) s
+/F-gs-font 7 7 SF
+5 258 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 258 M
+(//10 warmup, 40 test) s
+/F-gs-font 7 7 SF
+5 250 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 250 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 250 M
+( kk;) s
+5 242 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 242 M
+(for) s
+/F-gs-font 7 7 SF
+34.4 242 M
+( \(kk=0; kk<60; kk++\)) s
+5 234 M
+(    {) s
+5 226 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 226 M
+(for) s
+/F-gs-font 7 7 SF
+51.2 226 M
+( \(j=0; j<size; j++\)) s
+5 218 M
+(        {) s
+5 210 M
+(            buffer[j] = \() s
+/Courier-Bold 7 7 SUF
+110 210 M
+(char) s
+/F-gs-font 7 7 SF
+126.8 210 M
+(\)11.0;) s
+5 202 M
+(        } ) s
+5 186 M
+(        MPI_Barrier\(MPI_COMM_WORLD\);) s
+5 170 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 170 M
+(if) s
+/F-gs-font 7 7 SF
+47 170 M
+( \(kk>=10\)) s
+5 162 M
+(        {) s
+5 154 M
+(            starttime = MPI_Wtime\(\);) s
+5 146 M
+(        } ) s
+5 130 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 130 M
+(//Time bcast) s
+/F-gs-font 7 7 SF
+5 122 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 122 M
+(if) s
+/F-gs-font 7 7 SF
+47 122 M
+( \(world_size > 1\)) s
+5 114 M
+(        {) s
+5 106 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 106 M
+(if) s
+/F-gs-font 7 7 SF
+63.8 106 M
+( \(world_rank == 0\)) s
+5 98 M
+(            {) s
+5 90 M
+(                MPI_Send\(buffer, size, MPI_CHAR, 1, 0, MPI_COMM_WORLD\);) s
+5 82 M
+(                MPI_Recv\(buffer, size, MPI_CHAR, 1, 0, MPI_COMM_WORLD, ) s
+5 74 M
+(                    MPI_STATUS_IGNORE\);) s
+5 66 M
+(            }) s
+5 58 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 58 M
+(else) s
+/F-gs-font 7 7 SF
+72.2 58 M
+( ) s
+/Courier-Bold 7 7 SUF
+76.4 58 M
+(if) s
+/F-gs-font 7 7 SF
+84.8 58 M
+( \(world_rank == 1\)) s
+5 50 M
+(            {) s
+5 42 M
+(                MPI_Recv\(buffer, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD, ) s
+5 34 M
+(                    MPI_STATUS_IGNORE\);) s
+5 26 M
+(                MPI_Send\(buffer, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD\);) s
+5 18 M
+(            }) s
+5 10 M
+(        }) s
+365 530 M
+(        ) s
+/Courier-Bold 7 7 SUF
+398.6 530 M
+(if) s
+/F-gs-font 7 7 SF
+407 530 M
+( \(kk>=10\)) s
+365 522 M
+(        {) s
+365 514 M
+(            endtime = MPI_Wtime\(\);) s
+365 506 M
+(            total_time = total_time + endtime - starttime;) s
+365 498 M
+(            alltime[kk-10] = endtime - starttime;) s
+365 490 M
+(        }) s
+365 482 M
+(    }) s
+365 466 M
+(    MPI_Barrier\(MPI_COMM_WORLD\);) s
+365 458 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 458 M
+(// printf\("Data %d, world rank %d\\n", buffer[0], world_rank\);) s
+/F-gs-font 7 7 SF
+365 442 M
+(    ) s
+/Courier-Bold 7 7 SUF
+381.8 442 M
+(if) s
+/F-gs-font 7 7 SF
+390.2 442 M
+( \(world_rank == 0\)) s
+365 434 M
+(    {) s
+365 426 M
+(        ) s
+/Courier-Bold 7 7 SUF
+398.6 426 M
+(int) s
+/F-gs-font 7 7 SF
+411.2 426 M
+( i;) s
+365 418 M
+(        ) s
+/Courier-Bold 7 7 SUF
+398.6 418 M
+(for) s
+/F-gs-font 7 7 SF
+411.2 418 M
+(\(i=0; i<50; i++\)) s
+365 410 M
+(        {) s
+365 402 M
+(            ) s
+/Courier-Bold 7 7 SUF
+415.4 402 M
+(if) s
+/F-gs-font 7 7 SF
+423.8 402 M
+( \(i < 49\)) s
+365 394 M
+(            {) s
+365 386 M
+(                printf\() s
+/Courier-Bold 7 7 SUF
+461.6 386 M
+("%2.9f,") s
+/F-gs-font 7 7 SF
+495.2 386 M
+(, alltime[i]\);) s
+365 378 M
+(            }) s
+365 370 M
+(            ) s
+/Courier-Bold 7 7 SUF
+415.4 370 M
+(else) s
+/F-gs-font 7 7 SF
+365 362 M
+(            {) s
+365 354 M
+(                printf\() s
+/Courier-Bold 7 7 SUF
+461.6 354 M
+("%2.9f") s
+/F-gs-font 7 7 SF
+491 354 M
+(, alltime[i]\);) s
+365 346 M
+(            }) s
+365 338 M
+(        }) s
+365 330 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+428 330 M
+("\\n%2.9f\\n") s
+/F-gs-font 7 7 SF
+474.2 330 M
+(, total_time/100\);) s
+365 322 M
+(    }) s
+365 314 M
+(    MPI_Barrier\(MPI_COMM_WORLD\);) s
+365 290 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+381.8 290 M
+(//Free malloc'ed data) s
+/F-gs-font 7 7 SF
+365 282 M
+(    free \(buffer\);) s
+365 266 M
+(    MPI_Finalize\(\);) s
+365 258 M
+(    exit \(0\);) s
+365 250 M
+(}) s
+_R
+S
+%%Page: (1) 3
+%%BeginPageSetup
+_S
+90 rotate
+36 -594 translate
+/pagenum 1 def
+/fname (hw3.2-holtat.c) def
+/fdir (.) def
+/ftail (hw3.2-holtat.c) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (09/22/15) def
+/modtimestr (23:22:21) def
 /user_header_p false def
 /user_footer_p false def
 %%EndPageSetup
@@ -600,7 +1784,7 @@ do_header
 /F-gs-font 7 7 SF
 /Courier-Oblique 7 7 SUF
 5 450 M
-(//compile with mpicc dense_transpose.c -o dense_transpose.o) s
+(//compile with mpicc hw3.2-holtat.c -o dense_transpose.o) s
 /F-gs-font 7 7 SF
 /Courier-Oblique 7 7 SUF
 5 442 M
@@ -1263,20 +2447,20 @@ do_header
 (// Get the number of processes) s
 _R
 S
-%%Page: (2) 2
+%%Page: (2) 4
 %%BeginPageSetup
 _S
 90 rotate
 36 -594 translate
 /pagenum 2 def
-/fname (dense_transpose.c) def
+/fname (hw3.2-holtat.c) def
 /fdir (.) def
-/ftail (dense_transpose.c) def
+/ftail (hw3.2-holtat.c) def
 /Courier-Oblique 7 7 SUF
 % User defined strings:
 /pagenumstr (2) def
 /moddatestr (09/22/15) def
-/modtimestr (21:15:16) def
+/modtimestr (23:22:21) def
 /user_header_p false def
 /user_footer_p false def
 %%EndPageSetup
@@ -1552,1190 +2736,6 @@ do_header
 5 18 M
 (    exit \(0\);) s
 5 10 M
-(}) s
-_R
-S
-%%Page: (1) 3
-%%BeginPageSetup
-_S
-90 rotate
-36 -594 translate
-/pagenum 1 def
-/fname (timeit.c) def
-/fdir (.) def
-/ftail (timeit.c) def
-% User defined strings:
-/pagenumstr (1) def
-/moddatestr (09/22/15) def
-/modtimestr (21:14:21) def
-/user_header_p false def
-/user_footer_p false def
-%%EndPageSetup
-column_lines
-do_header
-5 530 M
-(#) s
-/Courier-Bold 7 7 SUF
-9.2 530 M
-(include) s
-/F-gs-font 7 7 SF
-38.6 530 M
-( ) s
-/Courier-Bold 7 7 SUF
-42.8 530 M
-(<stdlib.h>) s
-/F-gs-font 7 7 SF
-5 522 M
-(#) s
-/Courier-Bold 7 7 SUF
-9.2 522 M
-(include) s
-/F-gs-font 7 7 SF
-38.6 522 M
-( ) s
-/Courier-Bold 7 7 SUF
-42.8 522 M
-(<argp.h>) s
-/F-gs-font 7 7 SF
-5 514 M
-(#) s
-/Courier-Bold 7 7 SUF
-9.2 514 M
-(include) s
-/F-gs-font 7 7 SF
-38.6 514 M
-( ) s
-/Courier-Bold 7 7 SUF
-42.8 514 M
-("mpi.h") s
-/F-gs-font 7 7 SF
-5 506 M
-(#) s
-/Courier-Bold 7 7 SUF
-9.2 506 M
-(include) s
-/F-gs-font 7 7 SF
-38.6 506 M
-( ) s
-/Courier-Bold 7 7 SUF
-42.8 506 M
-("stdio.h") s
-/F-gs-font 7 7 SF
-5 498 M
-(#) s
-/Courier-Bold 7 7 SUF
-9.2 498 M
-(include) s
-/F-gs-font 7 7 SF
-38.6 498 M
-( ) s
-/Courier-Bold 7 7 SUF
-42.8 498 M
-("math.h") s
-/F-gs-font 7 7 SF
-5 490 M
-(#) s
-/Courier-Bold 7 7 SUF
-9.2 490 M
-(include) s
-/F-gs-font 7 7 SF
-38.6 490 M
-( ) s
-/Courier-Bold 7 7 SUF
-42.8 490 M
-("string.h") s
-/F-gs-font 7 7 SF
-/Courier-Oblique 7 7 SUF
-5 474 M
-(//Aaron Holt) s
-/F-gs-font 7 7 SF
-/Courier-Oblique 7 7 SUF
-5 466 M
-(//HPSC) s
-/F-gs-font 7 7 SF
-/Courier-Oblique 7 7 SUF
-5 458 M
-(//MPI Ping Pong) s
-/F-gs-font 7 7 SF
-/Courier-Oblique 7 7 SUF
-5 450 M
-(//compile with mpicc timeit.c -o timeit.o) s
-/F-gs-font 7 7 SF
-/Courier-Oblique 7 7 SUF
-5 442 M
-(//run with mpiexec -np 2 ./timeit.o BufferSize) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-5 426 M
-(const) s
-/F-gs-font 7 7 SF
-26 426 M
-( ) s
-/Courier-Bold 7 7 SUF
-30.2 426 M
-(char) s
-/F-gs-font 7 7 SF
-47 426 M
-( *argp_program_version =) s
-5 418 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 418 M
-("argp-ex3 1.0") s
-/F-gs-font 7 7 SF
-80.6 418 M
-(;) s
-/Courier-Bold 7 7 SUF
-5 410 M
-(const) s
-/F-gs-font 7 7 SF
-26 410 M
-( ) s
-/Courier-Bold 7 7 SUF
-30.2 410 M
-(char) s
-/F-gs-font 7 7 SF
-47 410 M
-( *argp_program_bug_address =) s
-5 402 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 402 M
-("<bug-gnu-utils@gnu.org>") s
-/F-gs-font 7 7 SF
-126.8 402 M
-(;) s
-/Courier-Oblique 7 7 SUF
-5 386 M
-(/* Program documentation. */) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-5 378 M
-(static) s
-/F-gs-font 7 7 SF
-30.2 378 M
-( ) s
-/Courier-Bold 7 7 SUF
-34.4 378 M
-(char) s
-/F-gs-font 7 7 SF
-51.2 378 M
-( doc[] =) s
-5 370 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 370 M
-("Argp example #3 -- a program with options and arguments using argp") s
-/F-gs-font 7 7 SF
-307.4 370 M
-(;) s
-/Courier-Oblique 7 7 SUF
-5 354 M
-(/* A description of the arguments we accept. */) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-5 346 M
-(static) s
-/F-gs-font 7 7 SF
-30.2 346 M
-( ) s
-/Courier-Bold 7 7 SUF
-34.4 346 M
-(char) s
-/F-gs-font 7 7 SF
-51.2 346 M
-( args_doc[] = ) s
-/Courier-Bold 7 7 SUF
-110 346 M
-("BufferSize\(bytes\)") s
-/F-gs-font 7 7 SF
-189.8 346 M
-(;) s
-/Courier-Oblique 7 7 SUF
-5 330 M
-(/* The options we understand. */) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-5 322 M
-(static) s
-/F-gs-font 7 7 SF
-30.2 322 M
-( ) s
-/Courier-Bold 7 7 SUF
-34.4 322 M
-(struct) s
-/F-gs-font 7 7 SF
-59.6 322 M
-( argp_option options[] = {) s
-5 314 M
-(    {) s
-/Courier-Bold 7 7 SUF
-26 314 M
-("verbose") s
-/F-gs-font 7 7 SF
-63.8 314 M
-(,  ) s
-/Courier-Bold 7 7 SUF
-76.4 314 M
-('v') s
-/F-gs-font 7 7 SF
-89 314 M
-(, 0,      0,  ) s
-/Courier-Bold 7 7 SUF
-147.8 314 M
-("Produce verbose output") s
-/F-gs-font 7 7 SF
-248.6 314 M
-( },) s
-5 306 M
-(    { 0 }) s
-5 298 M
-(};) s
-/Courier-Oblique 7 7 SUF
-5 282 M
-(/* Used by main to communicate with parse_opt. */) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-5 274 M
-(struct) s
-/F-gs-font 7 7 SF
-30.2 274 M
-( arguments) s
-5 266 M
-({) s
-5 258 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 258 M
-(char) s
-/F-gs-font 7 7 SF
-38.6 258 M
-( *args[1];                ) s
-/Courier-Oblique 7 7 SUF
-147.8 258 M
-(/* buffer size */) s
-/F-gs-font 7 7 SF
-5 250 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 250 M
-(int) s
-/F-gs-font 7 7 SF
-34.4 250 M
-( verbose;) s
-5 242 M
-(};) s
-/Courier-Oblique 7 7 SUF
-5 226 M
-(/* Parse a single option. */) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-5 218 M
-(static) s
-/F-gs-font 7 7 SF
-30.2 218 M
-( error_t) s
-/Courier-Bold 7 7 SUF
-5 210 M
-(parse_opt) s
-/F-gs-font 7 7 SF
-42.8 210 M
-( \() s
-/Courier-Bold 7 7 SUF
-51.2 210 M
-(int) s
-/F-gs-font 7 7 SF
-63.8 210 M
-( key, ) s
-/Courier-Bold 7 7 SUF
-89 210 M
-(char) s
-/F-gs-font 7 7 SF
-105.8 210 M
-( *arg, ) s
-/Courier-Bold 7 7 SUF
-135.2 210 M
-(struct) s
-/F-gs-font 7 7 SF
-160.4 210 M
-( argp_state *state\)) s
-5 202 M
-({) s
-5 194 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-21.8 194 M
-(/* Get the input argument from argp_parse, which we) s
-5 186 M
-(     know is a pointer to our arguments structure. */) s
-/F-gs-font 7 7 SF
-5 178 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 178 M
-(struct) s
-/F-gs-font 7 7 SF
-47 178 M
-( arguments *arguments = state->input;) s
-5 162 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 162 M
-(switch) s
-/F-gs-font 7 7 SF
-47 162 M
-( \(key\)) s
-5 154 M
-(        {) s
-5 146 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 146 M
-(case) s
-/F-gs-font 7 7 SF
-55.4 146 M
-( ) s
-/Courier-Bold 7 7 SUF
-59.6 146 M
-('v') s
-/F-gs-font 7 7 SF
-72.2 146 M
-(:) s
-5 138 M
-(            arguments->verbose = 1;) s
-5 130 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 130 M
-(break) s
-/F-gs-font 7 7 SF
-76.4 130 M
-(;) s
-5 114 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 114 M
-(case) s
-/F-gs-font 7 7 SF
-55.4 114 M
-( ) s
-/Courier-Bold 7 7 SUF
-59.6 114 M
-(ARGP_KEY_ARG) s
-/F-gs-font 7 7 SF
-110 114 M
-(:) s
-5 106 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 106 M
-(if) s
-/F-gs-font 7 7 SF
-63.8 106 M
-( \(state->arg_num >= 1\)) s
-5 98 M
-(            ) s
-/Courier-Oblique 7 7 SUF
-55.4 98 M
-(/* Too many arguments. */) s
-/F-gs-font 7 7 SF
-5 90 M
-(            argp_usage \(state\);) s
-5 74 M
-(            arguments->args[state->arg_num] = arg;) s
-5 58 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 58 M
-(break) s
-/F-gs-font 7 7 SF
-76.4 58 M
-(;) s
-5 42 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 42 M
-(case) s
-/F-gs-font 7 7 SF
-55.4 42 M
-( ) s
-/Courier-Bold 7 7 SUF
-59.6 42 M
-(ARGP_KEY_END) s
-/F-gs-font 7 7 SF
-110 42 M
-(:) s
-5 34 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 34 M
-(if) s
-/F-gs-font 7 7 SF
-63.8 34 M
-( \(state->arg_num < 1\)) s
-5 26 M
-(            ) s
-/Courier-Oblique 7 7 SUF
-55.4 26 M
-(/* Not enough arguments. */) s
-/F-gs-font 7 7 SF
-5 18 M
-(            argp_usage \(state\);) s
-5 10 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 10 M
-(break) s
-/F-gs-font 7 7 SF
-76.4 10 M
-(;) s
-365 530 M
-(        ) s
-/Courier-Bold 7 7 SUF
-398.6 530 M
-(default) s
-/F-gs-font 7 7 SF
-428 530 M
-(:) s
-365 522 M
-(            ) s
-/Courier-Bold 7 7 SUF
-415.4 522 M
-(return) s
-/F-gs-font 7 7 SF
-440.6 522 M
-( ARGP_ERR_UNKNOWN;) s
-365 514 M
-(        }) s
-365 506 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 506 M
-(return) s
-/F-gs-font 7 7 SF
-407 506 M
-( 0;) s
-365 498 M
-(}) s
-/Courier-Oblique 7 7 SUF
-365 482 M
-(/* Our argp parser. */) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-365 474 M
-(static) s
-/F-gs-font 7 7 SF
-390.2 474 M
-( ) s
-/Courier-Bold 7 7 SUF
-394.4 474 M
-(struct) s
-/F-gs-font 7 7 SF
-419.6 474 M
-( argp argp = { options, parse_opt, args_doc, doc };) s
-/Courier-Bold 7 7 SUF
-365 458 M
-(int) s
-/F-gs-font 7 7 SF
-/Courier-Bold 7 7 SUF
-365 450 M
-(main) s
-/F-gs-font 7 7 SF
-381.8 450 M
-( \() s
-/Courier-Bold 7 7 SUF
-390.2 450 M
-(int) s
-/F-gs-font 7 7 SF
-402.8 450 M
-( argc, ) s
-/Courier-Bold 7 7 SUF
-432.2 450 M
-(char) s
-/F-gs-font 7 7 SF
-449 450 M
-( **argv\)) s
-365 442 M
-({) s
-365 434 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 434 M
-(struct) s
-/F-gs-font 7 7 SF
-407 434 M
-( arguments arguments;) s
-365 418 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 418 M
-(/* Parse our arguments; every option seen by parse_opt will) s
-365 410 M
-(       be reflected in arguments. */) s
-/F-gs-font 7 7 SF
-365 402 M
-(    argp_parse \(&argp, argc, argv, 0, 0, &arguments\);) s
-365 386 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 386 M
-(// printf \("Buffer Size \(bytes\) = %s\\n") s
-/F-gs-font 7 7 SF
-365 378 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 378 M
-(//         "VERBOSE = %s\\n",) s
-/F-gs-font 7 7 SF
-365 370 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 370 M
-(//         arguments.args[0],) s
-/F-gs-font 7 7 SF
-365 362 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 362 M
-(//         arguments.verbose ? "yes" : "no"\);    ) s
-/F-gs-font 7 7 SF
-365 346 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 346 M
-(//buffer size from input char* to int) s
-/F-gs-font 7 7 SF
-365 338 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 338 M
-(int) s
-/F-gs-font 7 7 SF
-394.4 338 M
-( size;) s
-365 330 M
-(    size = 1; ) s
-/Courier-Oblique 7 7 SUF
-423.8 330 M
-(//default) s
-/F-gs-font 7 7 SF
-365 322 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 322 M
-(if) s
-/F-gs-font 7 7 SF
-390.2 322 M
-( \(sscanf \(arguments.args[0], ) s
-/Courier-Bold 7 7 SUF
-512 322 M
-("%i") s
-/F-gs-font 7 7 SF
-528.8 322 M
-(, &size\)!=1\) {}) s
-365 298 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 298 M
-(//For now, hardcode tag \(operation\)) s
-/F-gs-font 7 7 SF
-365 290 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 290 M
-(int) s
-/F-gs-font 7 7 SF
-394.4 290 M
-( tag = 0; ) s
-/Courier-Oblique 7 7 SUF
-436.4 290 M
-(//tag = 0 => addition) s
-/F-gs-font 7 7 SF
-365 274 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 274 M
-(// Initialize the MPI environment) s
-/F-gs-font 7 7 SF
-365 266 M
-(    MPI_Init\(NULL, NULL\);) s
-365 250 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 250 M
-(// Get the number of processes) s
-/F-gs-font 7 7 SF
-365 242 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 242 M
-(int) s
-/F-gs-font 7 7 SF
-394.4 242 M
-( world_size;) s
-365 234 M
-(    MPI_Comm_size\(MPI_COMM_WORLD, &world_size\);) s
-365 210 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 210 M
-(// Get the rank of the process) s
-/F-gs-font 7 7 SF
-365 202 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 202 M
-(int) s
-/F-gs-font 7 7 SF
-394.4 202 M
-( world_rank;) s
-365 194 M
-(    MPI_Comm_rank\(MPI_COMM_WORLD, &world_rank\);) s
-365 178 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 178 M
-(// Get the name of the processor) s
-/F-gs-font 7 7 SF
-365 170 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 170 M
-(char) s
-/F-gs-font 7 7 SF
-398.6 170 M
-( processor_name[MPI_MAX_PROCESSOR_NAME];) s
-365 162 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 162 M
-(int) s
-/F-gs-font 7 7 SF
-394.4 162 M
-( name_len;) s
-365 154 M
-(    MPI_Get_processor_name\(processor_name, &name_len\);) s
-365 138 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 138 M
-(//Bail if incorrect) s
-/F-gs-font 7 7 SF
-365 130 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 130 M
-(if) s
-/F-gs-font 7 7 SF
-390.2 130 M
-( \(world_size > 2\)) s
-365 122 M
-(    {) s
-365 114 M
-(        ) s
-/Courier-Bold 7 7 SUF
-398.6 114 M
-(if) s
-/F-gs-font 7 7 SF
-407 114 M
-( \(world_rank == 0\)) s
-365 106 M
-(        {) s
-365 98 M
-(            printf\() s
-/Courier-Bold 7 7 SUF
-444.8 98 M
-("World size greater than 2, exiting\\n") s
-/F-gs-font 7 7 SF
-604.4 98 M
-(\);) s
-365 90 M
-(        }) s
-365 82 M
-(        exit\(0\);) s
-365 74 M
-(    }) s
-365 66 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 66 M
-(if) s
-/F-gs-font 7 7 SF
-390.2 66 M
-( \(world_size < 2\)) s
-365 58 M
-(    {) s
-365 50 M
-(        ) s
-/Courier-Bold 7 7 SUF
-398.6 50 M
-(if) s
-/F-gs-font 7 7 SF
-407 50 M
-( \(world_rank == 0\)) s
-365 42 M
-(        {) s
-365 34 M
-(            printf\() s
-/Courier-Bold 7 7 SUF
-444.8 34 M
-("World size less than 2, exiting\\n") s
-/F-gs-font 7 7 SF
-591.8 34 M
-(\);) s
-365 26 M
-(        }) s
-365 18 M
-(        exit\(0\);) s
-365 10 M
-(    }) s
-_R
-S
-%%Page: (2) 4
-%%BeginPageSetup
-_S
-90 rotate
-36 -594 translate
-/pagenum 2 def
-/fname (timeit.c) def
-/fdir (.) def
-/ftail (timeit.c) def
-% User defined strings:
-/pagenumstr (2) def
-/moddatestr (09/22/15) def
-/modtimestr (21:14:21) def
-/user_header_p false def
-/user_footer_p false def
-%%EndPageSetup
-column_lines
-do_header
-5 530 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 530 M
-(if) s
-/F-gs-font 7 7 SF
-30.2 530 M
-( \(world_rank == 0 && arguments.verbose == 1\)) s
-5 522 M
-(    {) s
-5 514 M
-(        printf\() s
-/Courier-Bold 7 7 SUF
-68 514 M
-("Buffer size \(bytes\) = %d\\n") s
-/F-gs-font 7 7 SF
-185.6 514 M
-(, size\);) s
-5 506 M
-(    }) s
-5 490 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-21.8 490 M
-(//Timing variables) s
-/F-gs-font 7 7 SF
-5 482 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 482 M
-(double) s
-/F-gs-font 7 7 SF
-47 482 M
-( total_time;) s
-5 474 M
-(    total_time = 0;) s
-5 466 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 466 M
-(double) s
-/F-gs-font 7 7 SF
-47 466 M
-( starttime, endtime;) s
-5 458 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 458 M
-(double) s
-/F-gs-font 7 7 SF
-47 458 M
-( alltime[50] = {0};) s
-5 442 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-21.8 442 M
-(//Dynamically allocate arrays) s
-/F-gs-font 7 7 SF
-5 434 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 434 M
-(char) s
-/F-gs-font 7 7 SF
-38.6 434 M
-( *buffer;     ) s
-/Courier-Oblique 7 7 SUF
-97.4 434 M
-(//buffer to send) s
-/F-gs-font 7 7 SF
-5 426 M
-(    buffer = \() s
-/Courier-Bold 7 7 SUF
-63.8 426 M
-(char) s
-/F-gs-font 7 7 SF
-80.6 426 M
-(*\) malloc\(size*) s
-/Courier-Bold 7 7 SUF
-143.6 426 M
-(sizeof) s
-/F-gs-font 7 7 SF
-168.8 426 M
-(\() s
-/Courier-Bold 7 7 SUF
-173 426 M
-(char) s
-/F-gs-font 7 7 SF
-189.8 426 M
-(\)+1\);) s
-5 418 M
-(    buffer[size] = ) s
-/Courier-Bold 7 7 SUF
-84.8 418 M
-('\\0') s
-/F-gs-font 7 7 SF
-101.6 418 M
-(;) s
-5 402 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 402 M
-(int) s
-/F-gs-font 7 7 SF
-34.4 402 M
-( j = 0;) s
-5 394 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 394 M
-(if) s
-/F-gs-font 7 7 SF
-30.2 394 M
-( \(world_rank == 0\)) s
-5 386 M
-(    {) s
-5 378 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 378 M
-(for) s
-/F-gs-font 7 7 SF
-51.2 378 M
-( \(j=0; j<size; j++\)) s
-5 370 M
-(        {) s
-5 362 M
-(            buffer[j] = \() s
-/Courier-Bold 7 7 SUF
-110 362 M
-(char) s
-/F-gs-font 7 7 SF
-126.8 362 M
-(\)11.0;) s
-5 354 M
-(        } ) s
-5 346 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 346 M
-(if) s
-/F-gs-font 7 7 SF
-47 346 M
-( \( arguments.verbose == 1\)) s
-5 338 M
-(        {) s
-5 330 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 330 M
-(for) s
-/F-gs-font 7 7 SF
-68 330 M
-( \(j=0; j<3; j++\)) s
-5 322 M
-(            {) s
-5 314 M
-(                printf\() s
-/Courier-Bold 7 7 SUF
-101.6 314 M
-("Initial data in buffer[%d]: %d ") s
-/F-gs-font 7 7 SF
-240.2 314 M
-(, j, buffer[j]\);) s
-5 306 M
-(                printf\() s
-/Courier-Bold 7 7 SUF
-101.6 306 M
-("\\n") s
-/F-gs-font 7 7 SF
-118.4 306 M
-(\);) s
-5 298 M
-(            } ) s
-5 290 M
-(        }) s
-5 282 M
-(    }) s
-5 274 M
-(    ) s
-5 266 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-21.8 266 M
-(//Timing) s
-/F-gs-font 7 7 SF
-5 258 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-21.8 258 M
-(//10 warmup, 40 test) s
-/F-gs-font 7 7 SF
-5 250 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 250 M
-(int) s
-/F-gs-font 7 7 SF
-34.4 250 M
-( kk;) s
-5 242 M
-(    ) s
-/Courier-Bold 7 7 SUF
-21.8 242 M
-(for) s
-/F-gs-font 7 7 SF
-34.4 242 M
-( \(kk=0; kk<60; kk++\)) s
-5 234 M
-(    {) s
-5 226 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 226 M
-(for) s
-/F-gs-font 7 7 SF
-51.2 226 M
-( \(j=0; j<size; j++\)) s
-5 218 M
-(        {) s
-5 210 M
-(            buffer[j] = \() s
-/Courier-Bold 7 7 SUF
-110 210 M
-(char) s
-/F-gs-font 7 7 SF
-126.8 210 M
-(\)11.0;) s
-5 202 M
-(        } ) s
-5 186 M
-(        MPI_Barrier\(MPI_COMM_WORLD\);) s
-5 170 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 170 M
-(if) s
-/F-gs-font 7 7 SF
-47 170 M
-( \(kk>=10\)) s
-5 162 M
-(        {) s
-5 154 M
-(            starttime = MPI_Wtime\(\);) s
-5 146 M
-(        } ) s
-5 130 M
-(        ) s
-/Courier-Oblique 7 7 SUF
-38.6 130 M
-(//Time bcast) s
-/F-gs-font 7 7 SF
-5 122 M
-(        ) s
-/Courier-Bold 7 7 SUF
-38.6 122 M
-(if) s
-/F-gs-font 7 7 SF
-47 122 M
-( \(world_size > 1\)) s
-5 114 M
-(        {) s
-5 106 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 106 M
-(if) s
-/F-gs-font 7 7 SF
-63.8 106 M
-( \(world_rank == 0\)) s
-5 98 M
-(            {) s
-5 90 M
-(                MPI_Send\(buffer, size, MPI_CHAR, 1, 0, MPI_COMM_WORLD\);) s
-5 82 M
-(                MPI_Recv\(buffer, size, MPI_CHAR, 1, 0, MPI_COMM_WORLD, ) s
-5 74 M
-(                    MPI_STATUS_IGNORE\);) s
-5 66 M
-(            }) s
-5 58 M
-(            ) s
-/Courier-Bold 7 7 SUF
-55.4 58 M
-(else) s
-/F-gs-font 7 7 SF
-72.2 58 M
-( ) s
-/Courier-Bold 7 7 SUF
-76.4 58 M
-(if) s
-/F-gs-font 7 7 SF
-84.8 58 M
-( \(world_rank == 1\)) s
-5 50 M
-(            {) s
-5 42 M
-(                MPI_Recv\(buffer, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD, ) s
-5 34 M
-(                    MPI_STATUS_IGNORE\);) s
-5 26 M
-(                MPI_Send\(buffer, size, MPI_CHAR, 0, 0, MPI_COMM_WORLD\);) s
-5 18 M
-(            }) s
-5 10 M
-(        }) s
-365 530 M
-(        ) s
-/Courier-Bold 7 7 SUF
-398.6 530 M
-(if) s
-/F-gs-font 7 7 SF
-407 530 M
-( \(kk>=10\)) s
-365 522 M
-(        {) s
-365 514 M
-(            endtime = MPI_Wtime\(\);) s
-365 506 M
-(            total_time = total_time + endtime - starttime;) s
-365 498 M
-(            alltime[kk-10] = endtime - starttime;) s
-365 490 M
-(        }) s
-365 482 M
-(    }) s
-365 466 M
-(    MPI_Barrier\(MPI_COMM_WORLD\);) s
-365 458 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 458 M
-(// printf\("Data %d, world rank %d\\n", buffer[0], world_rank\);) s
-/F-gs-font 7 7 SF
-365 442 M
-(    ) s
-/Courier-Bold 7 7 SUF
-381.8 442 M
-(if) s
-/F-gs-font 7 7 SF
-390.2 442 M
-( \(world_rank == 0\)) s
-365 434 M
-(    {) s
-365 426 M
-(        ) s
-/Courier-Bold 7 7 SUF
-398.6 426 M
-(int) s
-/F-gs-font 7 7 SF
-411.2 426 M
-( i;) s
-365 418 M
-(        ) s
-/Courier-Bold 7 7 SUF
-398.6 418 M
-(for) s
-/F-gs-font 7 7 SF
-411.2 418 M
-(\(i=0; i<50; i++\)) s
-365 410 M
-(        {) s
-365 402 M
-(            ) s
-/Courier-Bold 7 7 SUF
-415.4 402 M
-(if) s
-/F-gs-font 7 7 SF
-423.8 402 M
-( \(i < 49\)) s
-365 394 M
-(            {) s
-365 386 M
-(                printf\() s
-/Courier-Bold 7 7 SUF
-461.6 386 M
-("%2.9f,") s
-/F-gs-font 7 7 SF
-495.2 386 M
-(, alltime[i]\);) s
-365 378 M
-(            }) s
-365 370 M
-(            ) s
-/Courier-Bold 7 7 SUF
-415.4 370 M
-(else) s
-/F-gs-font 7 7 SF
-365 362 M
-(            {) s
-365 354 M
-(                printf\() s
-/Courier-Bold 7 7 SUF
-461.6 354 M
-("%2.9f") s
-/F-gs-font 7 7 SF
-491 354 M
-(, alltime[i]\);) s
-365 346 M
-(            }) s
-365 338 M
-(        }) s
-365 330 M
-(        printf\() s
-/Courier-Bold 7 7 SUF
-428 330 M
-("\\n%2.9f\\n") s
-/F-gs-font 7 7 SF
-474.2 330 M
-(, total_time/100\);) s
-365 322 M
-(    }) s
-365 314 M
-(    MPI_Barrier\(MPI_COMM_WORLD\);) s
-365 290 M
-(    ) s
-/Courier-Oblique 7 7 SUF
-381.8 290 M
-(//Free malloc'ed data) s
-/F-gs-font 7 7 SF
-365 282 M
-(    free \(buffer\);) s
-365 266 M
-(    MPI_Finalize\(\);) s
-365 258 M
-(    exit \(0\);) s
-365 250 M
 (}) s
 _R
 S

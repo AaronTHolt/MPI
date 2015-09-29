@@ -97,18 +97,18 @@ int main (int argc, char **argv)
     double matrix_B[m][m];
     double matrix_C[m][m];
 
-    printf("Initial Matrices A and B: \n");
-    for(i=0;i<m;i++)
-    {
-        for(j=0;j<m;j++)
-        {
-            matrix_A[i][j] = j;
-            matrix_B[i][j] = j;
-            matrix_C[i][j] = 0;
-            printf("%d ", j);
-        }
-        printf("\n");
-    }
+    // printf("Initial Matrices A and B: \n");
+    // for(i=0;i<m;i++)
+    // {
+    //     for(j=0;j<m;j++)
+    //     {
+    //         matrix_A[i][j] = j;
+    //         matrix_B[i][j] = j;
+    //         matrix_C[i][j] = 0;
+    //         printf("%d ", j);
+    //     }
+    //     printf("\n");
+    // }
 
     //For rows
     for(i=0;i<m;i++)
@@ -125,16 +125,16 @@ int main (int argc, char **argv)
         }
     }
 
-    printf("Result Matrix C: \n");
-    for(i=0;i<m;i++)
-    {
-        for(j=0;j<m;j++)
-        {
+    // printf("Result Matrix C: \n");
+    // for(i=0;i<m;i++)
+    // {
+    //     for(j=0;j<m;j++)
+    //     {
 
-            printf("%6.2f ", matrix_C[i][j]);
-        }
-        printf("\n");
-    }     
+    //         printf("%6.2f ", matrix_C[i][j]);
+    //     }
+    //     printf("\n");
+    // }     
 
 
 

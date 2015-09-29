@@ -120,10 +120,10 @@ int main (int argc, char **argv)
     //size of data each process will send in allgather
     int size;
     size = (int)ceil( ((float)m/(float)world_size) );
-    if (world_rank == 0)
-    {
-        printf("Size = %d\n", size);
-    }
+    // if (world_rank == 0)
+    // {
+    //     printf("Size = %d\n", size);
+    // }
 
     //counters
     int a, b, i, j, k;
@@ -142,10 +142,10 @@ int main (int argc, char **argv)
     double *col;
     col = (double*) malloc(size*world_size*sizeof(double));
 
-    if (world_rank == 0)
-    {
-        printf("Initial Matrices A and B: \n");
-    }
+    // if (world_rank == 0)
+    // {
+    //     printf("Initial Matrices A and B: \n");
+    // }
     
     for(i=0;i<size;i++)
     {
@@ -160,16 +160,16 @@ int main (int argc, char **argv)
             matrix_B[i*m+j] = j;
             matrix_C[i*m+j] = 0.0;
             // col[j]=0;
-            if (world_rank == 0)
-            {
-                printf("%6.2f ", matrix_A[i*m+j]);
-            }
+            // if (world_rank == 0)
+            // {
+            //     printf("%6.2f ", matrix_A[i*m+j]);
+            // }
             
         }
-        if (world_rank == 0)
-        {
-            printf("\n");    
-        }
+        // if (world_rank == 0)
+        // {
+        //     printf("\n");    
+        // }
         
     }
 
@@ -226,15 +226,15 @@ int main (int argc, char **argv)
 
 
 
-        if (world_rank == 0)
-        {
-            printf("\nColumn %d = \n",i);
-            for(k=0;k<m;k++)
-            {
-                printf("%6.2f ", col[k]);
-            }
-            printf("\n");
-        }
+        // if (world_rank == 0)
+        // {
+        //     printf("\nColumn %d = \n",i);
+        //     for(k=0;k<m;k++)
+        //     {
+        //         printf("%6.2f ", col[k]);
+        //     }
+        //     printf("\n");
+        // }
 
 
 
@@ -267,19 +267,19 @@ int main (int argc, char **argv)
         }
     }
 
-    if (world_rank == 0)
-    {
-        printf("\nFinal Result\n");
-        for(k=0;k<m;k++)
-        {
-            for(j=0;j<m;j++)
-            {
-                printf("%6.2f ", matrix_C[k*m+j]);
-            }
-            printf("\n");
-        }
+    // if (world_rank == 0)
+    // {
+    //     printf("\nFinal Result\n");
+    //     for(k=0;k<m;k++)
+    //     {
+    //         for(j=0;j<m;j++)
+    //         {
+    //             printf("%6.2f ", matrix_C[k*m+j]);
+    //         }
+    //         printf("\n");
+    //     }
         
-    }
+    // }
 
     free(matrix_A);
     free(matrix_B);

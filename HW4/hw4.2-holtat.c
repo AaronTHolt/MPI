@@ -107,44 +107,62 @@ int main (int argc, char **argv)
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    int a, i, j, k;
-    double matrix_A[m][m];
-    double matrix_B[m][m];
-    double matrix_C[m][m];
-    // double matrix_A_t[m][m]; //recv column as row
-    double col[m];
-    double row[m];
+    // //No point in having more processes than matrix size...
+    // if (world_size>m)
+    // {
+    //     if (world_rank == 0)
+    //     {
+    //         printf("Number of processes greater than matrix size, exiting\n");
+    //     }
+    //     exit(0);
+    // }
 
-    //Create new column derived datatype for all_gather send
-    MPI_Datatype column;
-    //count, blocklength, stride, oldtype, *newtype
-    MPI_Type_hvector(m, 1, m*sizeof(double), MPI_DOUBLE, &column);
-    MPI_Type_commit(&column);
+    //size of data each process will send in allgather
+    int size;
+    size = (int)ceil( ((float)m/(float)world_size) );
+    if (world_rank == 0)
+    {
+        printf("Size = %d\n", size);
+    }
 
-    // //Create new row derived datatype for all_gather recv
-    // MPI_Datatype row;
-    // //count, blocklength, stride, oldtype, *newtype
-    // MPI_Type_hvector(m, 1, sizeof(double), MPI_DOUBLE, &row);
-    // MPI_Type_commit(&row);
+    //counters
+    int a, b, i, j, k;
+
+    //Dynamically allocate arrays
+    double *matrix_A;
+    matrix_A = (double*) malloc(m*m*sizeof(double));
+    double *matrix_B;
+    matrix_B = (double*) malloc(m*m*sizeof(double));
+    double *matrix_C;
+    matrix_C = (double*) malloc(m*m*sizeof(double));
+    // double *matrix_D;
+    // matrix_D = (double*) malloc(m*m*sizeof(double)+1);
+    double *col_chunk;
+    col_chunk = (double*) malloc(size*sizeof(double));
+    double *col;
+    col = (double*) malloc(size*world_size*sizeof(double));
 
     if (world_rank == 0)
     {
         printf("Initial Matrices A and B: \n");
     }
     
+    for(i=0;i<size;i++)
+    {
+        col[i] = -1;
+    }
+
     for(i=0;i<m;i++)
     {
         for(j=0;j<m;j++)
         {
-            matrix_A[i][j] = j;
-            matrix_B[i][j] = j;
-            matrix_C[i][j] = 0.0;
-            // matrix_A_t[i][j]=0.0;
-            col[j]=0;
-            row[j]=0;
+            matrix_A[i*m+j] = j;
+            matrix_B[i*m+j] = j;
+            matrix_C[i*m+j] = 0.0;
+            // col[j]=0;
             if (world_rank == 0)
             {
-                printf("%6.2f ", matrix_A[i][j]);
+                printf("%6.2f ", matrix_A[i*m+j]);
             }
             
         }
@@ -163,68 +181,88 @@ int main (int argc, char **argv)
     //for every column
     for(i=0;i<m;i++)
     {
-        //fill columns manually because mpi derived types don't seem to work...
+        //figure out whos sending what
         for(a=0;a<m;a++)
         {
-            col[a] = matrix_A[a][i];
-            printf("FUCK");
-            if (world_rank == 0)
+            //find which part of column process sends
+            if (a==world_rank*size)
             {
-                printf("%6.2f ", col[a]);
+                for (b=0;b<size;b++)
+                {
+                    if ((a+b)<m)
+                    {
+                        col_chunk[b] = matrix_A[(a+b)*m+i];
+                        // printf("WR = %d, col_chunk = %6.2f\n", world_rank, col_chunk[b]);
+                    }
+                    else
+                    {
+                        col_chunk[b] = -42;
+                        // printf("WR = %d, col_chunk = %6.2f\n", world_rank, col_chunk[b]);
+                    }
+                }
+                
             }
+            // if (world_rank == 0)
+            // {
+            //     printf("%6.2f ", col[a]);
+            // }
         }
-        MPI_Barrier(MPI_COMM_WORLD);
-        //*send_buf,send_count,send_type,*recv_buf,recv_count,recv_type,comm
-        MPI_Allgather(&col[0],m,MPI_DOUBLE,
-            &row[0],m,MPI_DOUBLE,MPI_COMM_WORLD);
-        // MPI_Allgather(&matrix_A[0][i],1,column,
-        //     &matrix_A_t[m][0],m,MPI_DOUBLE,MPI_COMM_WORLD);
 
-        // if(i==1 && world_rank==0)
+        // if (world_rank == 0)
         // {
-        //     printf("\nROW then COL 1 is f'd\n");
-        //     printf("%6.2f, ",matrix_B[0][0]);
-        //     printf("%6.2f, ",matrix_B[0][1]);
-        //     printf("%6.2f, \n",matrix_B[0][2]);
-        //     printf("%6.2f, ",row_recv[0]);
-        //     printf("%6.2f, ",row_recv[1]);
-        //     printf("%6.2f, \n\n",row_recv[2]);
+        //     for(k=0;k<size*world_size;k++)
+        //     {
+        //         printf("%6.1f", col[k]);
+        //     }
+        //     printf("\n");
         // }
+
+        // MPI_Barrier(MPI_COMM_WORLD);
+
+        //*send_buf,send_count,send_type,*recv_buf,recv_count,recv_type,comm
+        MPI_Allgather(col_chunk,size,MPI_DOUBLE,
+            col,size,MPI_DOUBLE,MPI_COMM_WORLD);
+
+
+
 
         if (world_rank == 0)
         {
             printf("\nColumn %d = \n",i);
             for(k=0;k<m;k++)
             {
-                printf("%6.2f->%6.2f ", matrix_A[k][i], row[k]);
+                printf("%6.2f ", col[k]);
             }
             printf("\n");
         }
 
+
+
         //for every row
         for(j=0;j<m;j++)
         {
-            matrix_C[j][i] = 0.0;
-            if (world_rank == 0)
-            {
-                printf("Row %d = \n", j);
-            }
+            matrix_C[j*m+i] = 0.0;
+        //     // if (world_rank == 0)
+        //     // {
+        //     //     printf("Row %d = \n", j);
+        //     // }
             //dot product
             // printf("%6.2f --- ", matrix_C[j][i]);
             for(k=0;k<m;k++)
             {   
 
-                matrix_C[j][i] += row[k]*matrix_B[j][k];
-                if (world_rank == 0)
-                {
-                    // printf("%6.2f*%6.2f=%6.2f,%6.2f ", row_recv[k],
-                    //     matrix_B[j][k], row_recv[k]*matrix_B[j][k],matrix_C[j][i]);
-                    // printf("%6.2f ", matrix_C[j][i]);
-                }
-            }
-            if (world_rank == 0)
-            {
-                printf("\n");
+                matrix_C[j*m+i] += col[k]*matrix_B[j*m+k];
+        //         if (world_rank == 0)
+        //         {
+        //             // printf("%6.2f*%6.2f=%6.2f,%6.2f ", row_recv[k],
+        //             //     matrix_B[j][k], row_recv[k]*matrix_B[j][k],matrix_C[j][i]);
+        //             // printf("%6.2f ", matrix_C[j][i]);
+        //         }
+        //     }
+        //     // if (world_rank == 0)
+        //     // {
+        //     //     printf("\n");
+        //     // }
             }
         }
     }
@@ -236,13 +274,18 @@ int main (int argc, char **argv)
         {
             for(j=0;j<m;j++)
             {
-                printf("%6.2f ", matrix_C[k][j]);
+                printf("%6.2f ", matrix_C[k*m+j]);
             }
             printf("\n");
         }
         
     }
 
+    free(matrix_A);
+    free(matrix_B);
+    free(matrix_C);
+    free(col);
+    free(col_chunk);
 
     MPI_Finalize();
     exit (0);

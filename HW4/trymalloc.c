@@ -281,6 +281,11 @@ int main (int argc, char **argv)
         
     }
 
+    free(matrix_A);
+    free(matrix_B);
+    free(matrix_C);
+    free(col);
+    free(col_chunk);
 
     MPI_Finalize();
     exit (0);

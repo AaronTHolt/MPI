@@ -145,6 +145,9 @@ int main (int argc, char **argv)
 
     // printf("WR=%d, Row=%d, Col=%d\n",world_rank,my_row,my_col);
 
+    //counters
+    int i, j, k;
+
     //Allocate matrices
 	//Individual Matrix Size = n/q x n/q
     int i_size = m/q;
@@ -154,15 +157,47 @@ int main (int argc, char **argv)
     }
 
     //Dynamically allocate matrix parts
-    double *m_A;
-    m_A = (double*) malloc(i_size*i_size*sizeof(double));
-    double *m_B;
-    m_B = (double*) malloc(i_size*i_size*sizeof(double));
-    double *m_C;
-    m_C = (double*) malloc(i_size*i_size*sizeof(double));
+    double **m_A = malloc(sizeof(*m_A)*i_size);
+    double **m_B = malloc(sizeof(*m_B)*i_size);
+    double **m_C = malloc(sizeof(*m_C)*i_size);
+    if (m_A)
+    {
+    	for(i=0;i<i_size;i++)
+    	{
+    		m_A[i] = malloc(sizeof(*m_A)*i_size);
+    		m_B[i] = malloc(sizeof(*m_B)*i_size);
+    		m_C[i] = malloc(sizeof(*m_C)*i_size);
+    	}
+    }
+
+    //Find distance between blocks
+    int stride = i_size*i_size*sizeof(double);
 
     //Fill matrix parts with data
-    
+    for (i=0;i<i_size;i++)
+    {
+    	for (j=0;j<i_size;j++)
+    	{
+    		m_A[i][j] = j;
+    		m_B[i][j] = j;
+    		m_C[i][j] = 0;
+    	}
+    }
+
+    //Debug: printing initial part of matrix
+    if (world_rank == 0)
+    {
+    	for (i=0;i<i_size;i++)
+	    {
+	    	for (j=0;j<i_size;j++)
+	    	{
+	    		printf("%6.2f ", m_A[i][j]);
+	    	}
+	    	printf("\n");
+    	}
+    }
+
+
 
     free(m_A);
     free(m_B);

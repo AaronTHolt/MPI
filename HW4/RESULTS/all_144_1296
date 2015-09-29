@@ -1,0 +1,13 @@
+slurmstepd: error: *** JOB 984236 CANCELLED AT 2015-09-29T17:34:03 DUE TO TIME LIMIT on node0211 ***
+[node0211:28937] [[43647,0],0]->[[43647,0],4] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 112]
+[node0211:28937] [[43647,0],0]-[[43647,0],4] mca_oob_tcp_peer_send_handler: unable to send header
+[node0211:28937] [[43647,0],0]->[[43647,0],32] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 124]
+[node0211:28937] [[43647,0],0]-[[43647,0],32] mca_oob_tcp_peer_send_handler: unable to send header
+[node0211:28937] [[43647,0],0]->[[43647,0],8] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 144]
+[node0211:28937] [[43647,0],0]-[[43647,0],8] mca_oob_tcp_peer_send_handler: unable to send header
+[node0211:28937] [[43647,0],0]->[[43647,0],1] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 148]
+[node0211:28937] [[43647,0],0]-[[43647,0],1] mca_oob_tcp_peer_send_handler: unable to send header
+[node0211:28937] [[43647,0],0]->[[43647,0],16] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 154]
+[node0211:28937] [[43647,0],0]-[[43647,0],16] mca_oob_tcp_peer_send_handler: unable to send header
+[node0211:28937] [[43647,0],0]->[[43647,0],2] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 29]
+[node0211:28937] [[43647,0],0]-[[43647,0],2] mca_oob_tcp_peer_send_handler: unable to send header

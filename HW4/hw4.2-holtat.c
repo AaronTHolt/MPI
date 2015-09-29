@@ -142,144 +142,119 @@ int main (int argc, char **argv)
     double *col;
     col = (double*) malloc(size*world_size*sizeof(double));
 
-    // if (world_rank == 0)
-    // {
-    //     printf("Initial Matrices A and B: \n");
-    // }
-    
-    for(i=0;i<size;i++)
-    {
-        col[i] = -1;
-    }
+    //Timing variables
+    double total_time;
+    total_time = 0;
+    double starttime, endtime;
+    double alltime[50] = {0};
 
-    for(i=0;i<m;i++)
+    int kk;
+    for (kk=0; kk<60; kk++)
     {
-        for(j=0;j<m;j++)
-        {
-            matrix_A[i*m+j] = j;
-            matrix_B[i*m+j] = j;
-            matrix_C[i*m+j] = 0.0;
-            // col[j]=0;
-            // if (world_rank == 0)
-            // {
-            //     printf("%6.2f ", matrix_A[i*m+j]);
-            // }
-            
-        }
-        // if (world_rank == 0)
-        // {
-        //     printf("\n");    
-        // }
+
         
-    }
-
-
-    //Loop m(column) times followed by dot products such that every process
-    //has a copy of the matrix
-    //Assume square matrix
-
-    //for every column
-    for(i=0;i<m;i++)
-    {
-        //figure out whos sending what
-        for(a=0;a<m;a++)
+    
+        for(i=0;i<size;i++)
         {
-            //find which part of column process sends
-            if (a==world_rank*size)
+            col[i] = -1;
+        }
+
+        for(i=0;i<m;i++)
+        {
+            for(j=0;j<m;j++)
             {
-                for (b=0;b<size;b++)
-                {
-                    if ((a+b)<m)
-                    {
-                        col_chunk[b] = matrix_A[(a+b)*m+i];
-                        // printf("WR = %d, col_chunk = %6.2f\n", world_rank, col_chunk[b]);
-                    }
-                    else
-                    {
-                        col_chunk[b] = -42;
-                        // printf("WR = %d, col_chunk = %6.2f\n", world_rank, col_chunk[b]);
-                    }
-                }
+                matrix_A[i*m+j] = j;
+                matrix_B[i*m+j] = j;
+                matrix_C[i*m+j] = 0.0;
                 
             }
-            // if (world_rank == 0)
-            // {
-            //     printf("%6.2f ", col[a]);
-            // }
+            
         }
 
-        // if (world_rank == 0)
-        // {
-        //     for(k=0;k<size*world_size;k++)
-        //     {
-        //         printf("%6.1f", col[k]);
-        //     }
-        //     printf("\n");
-        // }
-
-        // MPI_Barrier(MPI_COMM_WORLD);
-
-        //*send_buf,send_count,send_type,*recv_buf,recv_count,recv_type,comm
-        MPI_Allgather(col_chunk,size,MPI_DOUBLE,
-            col,size,MPI_DOUBLE,MPI_COMM_WORLD);
-
-
-
-
-        // if (world_rank == 0)
-        // {
-        //     printf("\nColumn %d = \n",i);
-        //     for(k=0;k<m;k++)
-        //     {
-        //         printf("%6.2f ", col[k]);
-        //     }
-        //     printf("\n");
-        // }
-
-
-
-        //for every row
-        for(j=0;j<m;j++)
+        if (kk>=10)
         {
-            matrix_C[j*m+i] = 0.0;
-        //     // if (world_rank == 0)
-        //     // {
-        //     //     printf("Row %d = \n", j);
-        //     // }
-            //dot product
-            // printf("%6.2f --- ", matrix_C[j][i]);
-            for(k=0;k<m;k++)
-            {   
+            starttime = MPI_Wtime();
+        } 
+        //Loop m(column) times followed by dot products such that every process
+        //has a copy of the matrix
+        //Assume square matrix
 
-                matrix_C[j*m+i] += col[k]*matrix_B[j*m+k];
-        //         if (world_rank == 0)
-        //         {
-        //             // printf("%6.2f*%6.2f=%6.2f,%6.2f ", row_recv[k],
-        //             //     matrix_B[j][k], row_recv[k]*matrix_B[j][k],matrix_C[j][i]);
-        //             // printf("%6.2f ", matrix_C[j][i]);
-        //         }
-        //     }
-        //     // if (world_rank == 0)
-        //     // {
-        //     //     printf("\n");
-        //     // }
+        //for every column
+        for(i=0;i<m;i++)
+        {
+            //figure out whos sending what
+            for(a=0;a<m;a++)
+            {
+                //find which part of column process sends
+                if (a==world_rank*size)
+                {
+                    for (b=0;b<size;b++)
+                    {
+                        if ((a+b)<m)
+                        {
+                            col_chunk[b] = matrix_A[(a+b)*m+i];
+                            // printf("WR = %d, col_chunk = %6.2f\n", world_rank, col_chunk[b]);
+                        }
+                        else
+                        {
+                            col_chunk[b] = -42;
+                            // printf("WR = %d, col_chunk = %6.2f\n", world_rank, col_chunk[b]);
+                        }
+                    }
+                    
+                }
+
             }
+
+
+            //*send_buf,send_count,send_type,*recv_buf,recv_count,recv_type,comm
+            MPI_Allgather(col_chunk,size,MPI_DOUBLE,
+                col,size,MPI_DOUBLE,MPI_COMM_WORLD);
+
+
+            //for every row
+            for(j=0;j<m;j++)
+            {
+                matrix_C[j*m+i] = 0.0;
+                //dot product
+                for(k=0;k<m;k++)
+                {   
+
+                    matrix_C[j*m+i] += col[k]*matrix_B[j*m+k];
+                }
+            }
+        }
+
+        if (kk>=10)
+        {
+            endtime = MPI_Wtime();
+            total_time = total_time + endtime - starttime;
+            alltime[kk-10] = endtime - starttime;
         }
     }
 
-    // if (world_rank == 0)
-    // {
-    //     printf("\nFinal Result\n");
-    //     for(k=0;k<m;k++)
-    //     {
-    //         for(j=0;j<m;j++)
-    //         {
-    //             printf("%6.2f ", matrix_C[k*m+j]);
-    //         }
-    //         printf("\n");
-    //     }
-        
-    // }
+
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    // printf("Data %d, world rank %d\n", buffer[0], world_rank);
+
+    if (world_rank == 0)
+    {
+        int i;
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.9f,", alltime[i]);
+            }
+            else
+            {
+                printf("%2.9f", alltime[i]);
+            }
+        }
+        printf("\n%2.9f\n", total_time/50);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
 
     free(matrix_A);
     free(matrix_B);

@@ -2,7 +2,6 @@
 #include <argp.h>
 #include "stdio.h"
 #include "math.h"
-#include "mpi.h"
 #include "string.h"
 
 //Aaron Holt
@@ -91,29 +90,7 @@ int main (int argc, char **argv)
     int verbose;
     verbose = arguments.verbose;
 
-    // Initialize the MPI environment
-    MPI_Init(NULL, NULL);
-
-    // Get the number of processes
-    int world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-    // Get the rank of the process
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-    // Get the name of the processor
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int name_len;
-    MPI_Get_processor_name(processor_name, &name_len);
-
     // printf("m x n = %d x %d\n", m, m);
-
-    //Timing variables
-    double total_time;
-    total_time = 0;
-    double starttime, endtime;
-    double alltime[50] = {0};
 
     int i, j, k;
     double matrix_A[m][m];
@@ -133,63 +110,31 @@ int main (int argc, char **argv)
     //     printf("\n");
     // }
 
-     //Timing
-    //10 warmup, 40 test
-    int kk;
-    for (kk=0; kk<60; kk++)
+    for(i=0;i<m;i++)
     {
-
-        if (kk>=10)
+        for(j=0;j<m;j++)
         {
-            starttime = MPI_Wtime();
-        } 
-
-        for(i=0;i<m;i++)
-        {
-            for(j=0;j<m;j++)
-            {
-                matrix_A[i][j] = j;
-                matrix_B[i][j] = j;
-                matrix_C[i][j] = 0;
-            }
-        }
-
-
-        //For rows
-        for(i=0;i<m;i++)
-        {
-            //for columns
-            for(j=0;j<m;j++)
-            {
-                //dot product
-                for(k=0;k<m;k++)
-                {
-                    matrix_C[i][j] = matrix_C[i][j] + 
-                        matrix_A[i][k]*matrix_B[k][j];
-                }
-            }
-        }
-
-        if (kk>=10)
-        {
-            endtime = MPI_Wtime();
-            total_time = total_time + endtime - starttime;
-            alltime[kk-10] = endtime - starttime;
+            matrix_A[i][j] = j;
+            matrix_B[i][j] = j;
+            matrix_C[i][j] = 0;
         }
     }
 
-    for(i=0; i<50; i++)
+
+    //For rows
+    for(i=0;i<m;i++)
     {
-        if (i < 49)
+        //for columns
+        for(j=0;j<m;j++)
         {
-            printf("%2.9f,", alltime[i]);
-        }
-        else
-        {
-            printf("%2.9f", alltime[i]);
+            //dot product
+            for(k=0;k<m;k++)
+            {
+                matrix_C[i][j] = matrix_C[i][j] + 
+                    matrix_A[i][k]*matrix_B[k][j];
+            }
         }
     }
-    printf("\n%2.9f\n", total_time/50);
 
     // printf("Result Matrix C: \n");
     // for(i=0;i<m;i++)

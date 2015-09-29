@@ -229,128 +229,179 @@ int main (int argc, char **argv)
     //Find distance between blocks
     int stride = i_size*i_size*sizeof(double);
 
-
-	//Timing variables
-    double total_time;
-    total_time = 0;
-    double starttime, endtime;
-    double alltime[50] = {0};
-
-    int kk;
-    for (kk=0; kk<60; kk++)
+    //Fill matrix parts with data
+    for (i=0;i<i_size;i++)
     {
-	    //Fill matrix parts with data
-	    for (i=0;i<i_size;i++)
-	    {
-	    	for (j=0;j<i_size;j++)
-	    	{
-	    		m_A[i*i_size+j] = j;
-	    		m_B[i*i_size+j] = j;
-	    		m_C[i*i_size+j] = 0;
-	    		t_A[i*i_size+j] = 0;
-	    		t_B[i*i_size+j] = 0;
-	    	}
-	    }
-
-	    if (kk>=10)
-        {
-            starttime = MPI_Wtime();
-        } 
-
-	    // //Debug: printing initial part of matrix
-	    // if (world_rank == 0)
-	    // {
-	    // 	printf("Initial matrix part for each process:\n");
-	    // 	print_matrix(i_size, m_A);
-	    // }
-
-	    int dest;
-	    dest = (my_row + q - 1) % q;
-
-	    int source;
-	    source = (my_row + 1) % q; 
-
-	    int stage;
-	    int k_bar;
-	    int bcast_root;
-	    MPI_Status status;
-
-
-	    for (stage=0;stage<q;stage++)
-	    {
-	    	k_bar = (my_row + stage) % q;
-	    	bcast_root = (my_row + stage) % q;
-
-	    	if (bcast_root == my_col)
-	    	{
-	    		//int MPI_Bcast( void *buffer, int count, MPI_Datatype datatype,  
-	            //  	int root, MPI_Comm comm )
-	    		MPI_Bcast(m_A, i_size*i_size, MPI_DOUBLE, bcast_root,
-	    					my_row_comm);
-
-	    		//local matrix multiply
-	    		lmm(i_size, m_A, m_B, m_C);
-	    	}
-	    	else
-	    	{
-	    		MPI_Bcast(t_A, i_size*i_size, MPI_DOUBLE, bcast_root,
-	    					my_row_comm);
-
-	    		// //debug printing matrices
-	    		// if (world_rank == 1)
-	    		// {	
-	    		// 	print_matrix(i_size, t_A);
-	    		// }
-
-	    		// if (world_rank == 1)
-	    		// {
-	    		// 	print_matrix(i_size, m_C);
-	    		// }
-
-	    		//local matrix multiply
-	    		lmm(i_size, t_A, m_B, m_C);
-
-	    		// if (world_rank == 1)
-	    		// {
-	    		// 	print_matrix(i_size, m_C);
-	    		// }
-	    	}
-
-	    	MPI_Sendrecv_replace(m_B, i_size*i_size, MPI_DOUBLE, dest, 0,
-	    					source, 0, my_col_comm, &status);
-
-	    }
-
-        if (kk>=10)
-        {
-            endtime = MPI_Wtime();
-            total_time = total_time + endtime - starttime;
-            alltime[kk-10] = endtime - starttime;
-        }
+    	for (j=0;j<i_size;j++)
+    	{
+    		m_A[i*i_size+j] = j;
+    		m_B[i*i_size+j] = j;
+    		m_C[i*i_size+j] = 0;
+    		t_A[i*i_size+j] = 0;
+    		t_B[i*i_size+j] = 0;
+    	}
     }
 
+    // //Debug: printing initial part of matrix
+    // if (world_rank == 0)
+    // {
+    // 	printf("Initial matrix part for each process:\n");
+    // 	print_matrix(i_size, m_A);
+    // }
+
+    int dest;
+    dest = (my_row + q - 1) % q;
+
+    int source;
+    source = (my_row + 1) % q; 
+
+    int stage;
+    int k_bar;
+    int bcast_root;
+    MPI_Status status;
 
 
-    MPI_Barrier(MPI_COMM_WORLD);
-    // printf("Data %d, world rank %d\n", buffer[0], world_rank);
-
-    if (world_rank == 0)
+    for (stage=0;stage<q;stage++)
     {
-        int i;
-        for(i=0; i<50; i++)
-        {
-            if (i < 49)
-            {
-                printf("%2.9f,", alltime[i]);
-            }
-            else
-            {
-                printf("%2.9f", alltime[i]);
-            }
-        }
-        printf("\n%2.9f\n", total_time/50);
+    	k_bar = (my_row + stage) % q;
+    	bcast_root = (my_row + stage) % q;
+
+    	if (bcast_root == my_col)
+    	{
+    		//int MPI_Bcast( void *buffer, int count, MPI_Datatype datatype,  
+            //  	int root, MPI_Comm comm )
+    		MPI_Bcast(m_A, i_size*i_size, MPI_DOUBLE, bcast_root,
+    					my_row_comm);
+
+    		//local matrix multiply
+    		lmm(i_size, m_A, m_B, m_C);
+    	}
+    	else
+    	{
+    		MPI_Bcast(t_A, i_size*i_size, MPI_DOUBLE, bcast_root,
+    					my_row_comm);
+
+    		// //debug printing matrices
+    		// if (world_rank == 1)
+    		// {	
+    		// 	print_matrix(i_size, t_A);
+    		// }
+
+    		// if (world_rank == 1)
+    		// {
+    		// 	print_matrix(i_size, m_C);
+    		// }
+
+    		//local matrix multiply
+    		lmm(i_size, t_A, m_B, m_C);
+
+    		// if (world_rank == 1)
+    		// {
+    		// 	print_matrix(i_size, m_C);
+    		// }
+    	}
+
+    	MPI_Sendrecv_replace(m_B, i_size*i_size, MPI_DOUBLE, dest, 0,
+    					source, 0, my_col_comm, &status);
+
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // if (world_rank == 1)
+    // {
+    // 	printf("Final results for each process:\n");
+    // }
+    // MPI_Barrier(MPI_COMM_WORLD);
+    // for (i=0;i<world_size;i++)
+    // {
+    // 	if (world_rank == i)
+    // 	{
+    // 		printf("WorldRank=%d, Row=%d, Col=%d\n",world_rank,my_row,my_col);
+    // 		print_matrix(i_size, m_C);
+    // 		// printf("\n");
+    // 	}
+    // 	MPI_Barrier(MPI_COMM_WORLD);
+    // }
+    
+
+  //   /////////////VERIFY////////////////////
+  //   //Only works on smaller matrices, seg faults around 600x600
+
+  //   sleep(1);
+  //   MPI_Barrier(MPI_COMM_WORLD);
+  //   //verify with serial mult
+  //   if (world_rank == 0)
+  //   {
+		// double matrix_A[m][m];
+	 //    double matrix_B[m][m];
+	 //    double matrix_C[m][m];
+
+	 //    // printf("Initial Matrices A and B: \n");
+	 //    for(i=0;i<i_size*q;i++)
+	 //    {
+	 //        for(j=0;j<i_size*q;j++)
+	 //        {
+	 //            matrix_A[i][j] = j%i_size;
+	 //            matrix_B[i][j] = j%i_size;
+	 //            matrix_C[i][j] = 0;
+	 //            // printf("%d ", j%i_size);
+	 //        }
+	 //        // printf("\n");
+	 //    }
+	 //    // printf("\n");
+
+	 //    //For rows
+	 //    for(i=0;i<m;i++)
+	 //    {
+	 //        //for columns
+	 //        for(j=0;j<m;j++)
+	 //        {
+	 //            //dot product
+	 //            for(k=0;k<m;k++)
+	 //            {
+	 //                matrix_C[i][j] = matrix_C[i][j] + 
+	 //                    matrix_A[i][k]*matrix_B[k][j];
+	 //            }
+	 //        }
+	 //    }
+
+	 //    // printf("Serial Results:\n");
+	 //    // for(i=0;i<m;i++)
+	 //    // {
+	 //    //     for(j=0;j<m;j++)
+	 //    //     {
+	 //    //         printf("%6.2f ", matrix_C[i][j]);
+	 //    //     }
+	 //    //     printf("\n");
+	 //    // }
+
+	 //    // Test if it works for process 0.
+	 //    // printf("Result Matrix C (on proc 0): \n");
+	 //    int t = 1;
+	 //    for(i=0;i<i_size;i++)
+	 //    {
+	 //        for(j=0;j<i_size;j++)
+	 //        {
+	 //        	if (matrix_C[i][j] != m_C[i*i_size+j])
+	 //        	{
+	 //        		printf("NOT EQUAL\n");
+	 //        		int t = 0;
+	 //        		break;
+	 //        	}
+	 //            // printf("%6.2f ", matrix_C[i][j]);
+	 //        }
+	 //        // printf("\n");
+	 //    }
+	 //    if (t == 1)
+	 //    {
+	 //    	printf("Proccess 0 has same data as serial result\n");
+	 //    }
+  //   }
+
+    //////////////////////////////
+    //// end verify //////////////
+
+
 
 
     free(m_A);

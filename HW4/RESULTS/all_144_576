@@ -150,3 +150,16 @@ CMA: unable to open RDMA device
 [node1704][[41681,1],124][btl_tcp_endpoint.c:792:mca_btl_tcp_endpoint_complete_connect] connect() to 172.28.11.78 failed: No route to host (113)
 [node1720][[41681,1],140][btl_tcp_endpoint.c:792:mca_btl_tcp_endpoint_complete_connect] connect() to 172.28.11.78 failed: No route to host (113)
 [node0426][[41681,1],28][btl_tcp_endpoint.c:792:mca_btl_tcp_endpoint_complete_connect] connect() to 172.28.11.78 failed: No route to host (113)
+slurmstepd: error: *** JOB 984338 CANCELLED AT 2015-09-29T22:09:23 DUE TO TIME LIMIT on node0243 ***
+[node0243:03223] [[41681,0],0]->[[41681,0],1] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 28]
+[node0243:03223] [[41681,0],0]-[[41681,0],1] mca_oob_tcp_peer_send_handler: unable to send header
+[node0243:03223] [[41681,0],0]->[[41681,0],2] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 79]
+[node0243:03223] [[41681,0],0]-[[41681,0],2] mca_oob_tcp_peer_send_handler: unable to send header
+[node0243:03223] [[41681,0],0]->[[41681,0],32] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 83]
+[node0243:03223] [[41681,0],0]-[[41681,0],32] mca_oob_tcp_peer_send_handler: unable to send header
+[node0243:03223] [[41681,0],0]->[[41681,0],16] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 86]
+[node0243:03223] [[41681,0],0]-[[41681,0],16] mca_oob_tcp_peer_send_handler: unable to send header
+[node0243:03223] [[41681,0],0]->[[41681,0],4] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 131]
+[node0243:03223] [[41681,0],0]-[[41681,0],4] mca_oob_tcp_peer_send_handler: unable to send header
+[node0243:03223] [[41681,0],0]->[[41681,0],8] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 135]
+[node0243:03223] [[41681,0],0]-[[41681,0],8] mca_oob_tcp_peer_send_handler: unable to send header

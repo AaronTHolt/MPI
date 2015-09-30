@@ -4,7 +4,7 @@
 #SBATCH --qos janus
 #SBATCH --nodes 144
 #SBATCH --ntasks-per-node 1
-#SBATCH --time 00:45:00
+#SBATCH --time 03:45:00
 #SBATCH --output RESULTS/all_144_2304
 
 module load slurm

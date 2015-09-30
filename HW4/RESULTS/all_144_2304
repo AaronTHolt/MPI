@@ -1,13 +1,2 @@
-[node0261:04451] [[7543,0],0]->[[7543,0],2] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 96]
-[node0261:04451] [[7543,0],0]-[[7543,0],2] mca_oob_tcp_peer_send_handler: unable to send header
-[node0261:04451] [[7543,0],0]->[[7543,0],8] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 103]
-[node0261:04451] [[7543,0],0]-[[7543,0],8] mca_oob_tcp_peer_send_handler: unable to send header
-[node0261:04451] [[7543,0],0]->[[7543,0],32] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 109]
-[node0261:04451] [[7543,0],0]-[[7543,0],32] mca_oob_tcp_peer_send_handler: unable to send header
-[node0261:04451] [[7543,0],0]->[[7543,0],16] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 147]
-[node0261:04451] [[7543,0],0]-[[7543,0],16] mca_oob_tcp_peer_send_handler: unable to send header
-[node0261:04451] [[7543,0],0]->[[7543,0],1] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 149]
-[node0261:04451] [[7543,0],0]-[[7543,0],1] mca_oob_tcp_peer_send_handler: unable to send header
-[node0261:04451] [[7543,0],0]->[[7543,0],4] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 36]
-[node0261:04451] [[7543,0],0]-[[7543,0],4] mca_oob_tcp_peer_send_handler: unable to send header
-slurmstepd: error: *** JOB 984237 CANCELLED AT 2015-09-29T17:37:03 DUE TO TIME LIMIT on node0261 ***
+123.220854044,123.188149214,123.192456007,123.196232080,123.190803051,123.193025112,123.192360878,123.188634157,123.213590145,123.193719149,123.186993122,123.205206156,123.188355923,123.191941023,123.193428993,123.194046974,123.208017826,123.199915886,123.198845148,123.195270061,123.192579985,123.195595026,123.201508045,123.201218128,123.214483976,123.198733807,123.190130949,123.198302984,123.202865124,123.206224918,123.192413807,123.215018034,123.224027872,123.204771042,123.198263168,123.203131914,123.198838949,123.197143078,123.198374033,123.190894127,123.199193954,123.199003220,123.195370913,123.208427906,123.204676867,123.194833994,123.200598955,123.193856001,123.215775967,123.209239006
+123.199546814

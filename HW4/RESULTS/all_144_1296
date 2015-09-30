@@ -1,13 +1,2 @@
-slurmstepd: error: *** JOB 984236 CANCELLED AT 2015-09-29T17:34:03 DUE TO TIME LIMIT on node0211 ***
-[node0211:28937] [[43647,0],0]->[[43647,0],4] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 112]
-[node0211:28937] [[43647,0],0]-[[43647,0],4] mca_oob_tcp_peer_send_handler: unable to send header
-[node0211:28937] [[43647,0],0]->[[43647,0],32] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 124]
-[node0211:28937] [[43647,0],0]-[[43647,0],32] mca_oob_tcp_peer_send_handler: unable to send header
-[node0211:28937] [[43647,0],0]->[[43647,0],8] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 144]
-[node0211:28937] [[43647,0],0]-[[43647,0],8] mca_oob_tcp_peer_send_handler: unable to send header
-[node0211:28937] [[43647,0],0]->[[43647,0],1] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 148]
-[node0211:28937] [[43647,0],0]-[[43647,0],1] mca_oob_tcp_peer_send_handler: unable to send header
-[node0211:28937] [[43647,0],0]->[[43647,0],16] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 154]
-[node0211:28937] [[43647,0],0]-[[43647,0],16] mca_oob_tcp_peer_send_handler: unable to send header
-[node0211:28937] [[43647,0],0]->[[43647,0],2] mca_oob_tcp_msg_send_bytes: write failed: Broken pipe (32) [sd = 29]
-[node0211:28937] [[43647,0],0]-[[43647,0],2] mca_oob_tcp_peer_send_handler: unable to send header
+15.907441139,15.902273178,15.942157984,15.903035879,15.899071932,15.901908875,15.904862165,15.929163933,15.916698933,15.904680967,15.900148869,15.904109955,15.903062820,15.957401037,15.906250954,15.896797180,15.905902863,15.904633999,15.898113012,15.948853016,15.900526047,15.900667906,15.911178112,15.905573845,15.940955877,15.914749861,15.900591850,15.899717093,15.899544001,15.901929855,15.948802948,15.908257008,15.905153990,15.899660110,15.898336887,15.902842999,15.952829838,15.900682926,15.900002003,15.898084879,15.907788038,15.941143990,15.905986786,15.894496918,15.897830009,15.900961876,15.897156000,15.941742182,15.897290945,15.897453070
+15.910170131

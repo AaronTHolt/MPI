@@ -1,0 +1,20 @@
+README
+
+
+
+
+
+compile with:
+
+	./compile.sh
+
+run with:
+
+	mpiexec -np [NP] [prog].c [MATRIX_SIZE]
+
+FOR PROGRAM 4.1 (serial):
+still run with mpiexec (i used wtime to time still), use NP=1
+
+FOR PROGRAM 4.3 (fox):
+Matrix size should be square.
+Assume that the number of processors is a square number, and that sqrt(processors) evenly divides MATRIX_SIZE.

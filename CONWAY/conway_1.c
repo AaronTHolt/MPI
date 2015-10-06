@@ -84,12 +84,25 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 //Takes in current cell location, and all neighboring data
 //outputs integer of alive neighbor cells
-int count_neighbors(int i, int j, int* section, int msize,
-            int* top, int* bot, int* left, int* right, 
-            int topleft, int topright, int botleft, int botright)
+int count_neighbors(int info[9], int* section, 
+            int* top, int* bot, int* left, int* right)
+            // int topleft, int topright, int botleft, int botright)
 {
+    int i,j,wr,rsize,csize,topleft,topright,botright,botleft;
+    i = info[0];
+    j = info[1];
+    wr = info[2];
+    rsize = info[3];
+    csize = info[4];
+    topleft = info[5];
+    topright = info[6];
+    botleft = info[7];
+    botright = info[8];
+    
     int total_around = 0;
-
+    // printf("wr=%d, i=%d,j=%d\n",wr,i,j);
+    // printf("wr=%d, top[j]=%d\n",wr,top[j]);
+    
     //top center//
     //on top edge?
     if (i == 0)
@@ -99,37 +112,39 @@ int count_neighbors(int i, int j, int* section, int msize,
         {
             total_around += 1;
         }
+        // printf("HERE@\n");
     }
     //in middle somewhere
-    else if (section[(i-1)*msize + j] == 0)
+    else if (section[(i-1)*rsize + j] == 0)
     {
         total_around += 1;
     }
+    
 
     //bottom center//
     //on bot edge?
-    if (i == (msize-1))
+    if (i == (csize-1))
     {
         if (bot[j] == 0)
         {
             total_around += 1;
         }
     }
-    else if (section[(i+1)*msize + j] == 0)
+    else if (section[(i+1)*rsize + j] == 0)
     {
         total_around += 1;
     }
 
     //right//
     //on right edge?
-    if(j == (msize-1))
+    if(j == (rsize-1))
     {
         if(right[i] == 0)
         {
             total_around += 1;
         }
     }
-    else if (section[i*msize+j+1] == 0)
+    else if (section[i*rsize+j+1] == 0)
     {
         total_around += 1;
     }
@@ -143,7 +158,7 @@ int count_neighbors(int i, int j, int* section, int msize,
             total_around += 1;
         }
     }
-    else if (section[i*msize+j-1] == 0)
+    else if (section[i*rsize+j-1] == 0)
     {
         total_around += 1;
     }
@@ -174,14 +189,14 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //in center?
-    else if (section[(i-1)*msize+j-1] == 0)
+    else if (section[(i-1)*rsize+j-1] == 0)
     {
         total_around += 1;
     }
 
     //topright//
     //topright corner?
-    if (i==0 && j==msize-1)
+    if (i==0 && j==rsize-1)
     {
         if (topright == 0)
         {
@@ -197,7 +212,7 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //on right edge?
-    else if (j == msize-1)
+    else if (j == rsize-1)
     {
         if (right[i-1] == 0)
         {
@@ -205,14 +220,14 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //in center?
-    else if (section[(i-1)*msize+j+1] == 0)
+    else if (section[(i-1)*rsize+j+1] == 0)
     {
         total_around += 1;
     }
 
     //botright//
     //botright corner?
-    if (i==msize-1 && j==msize-1)
+    if (i==csize-1 && j==rsize-1)
     {
         if (botright == 0)
         {
@@ -220,7 +235,7 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //on bot row?
-    else if (i == msize-1)
+    else if (i == csize-1)
     {
         if (bot[j+1] == 0)
         {
@@ -228,7 +243,7 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //on right edge?
-    else if (j == msize-1)
+    else if (j == rsize-1)
     {
         if (right[i+1] == 0)
         {
@@ -236,14 +251,14 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //in center?
-    else if (section[(i+1)*msize+j+1] == 0)
+    else if (section[(i+1)*rsize+j+1] == 0)
     {
         total_around += 1;
     }
 
     //botleft//
     //botleft corner?
-    if (i==msize-1 && j==0)
+    if (i==csize-1 && j==0)
     {
         if (botleft == 0)
         {
@@ -251,7 +266,7 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //on bot row?
-    else if (i == msize-1)
+    else if (i == csize-1)
     {
         if (bot[j-1] == 0)
         {
@@ -267,7 +282,7 @@ int count_neighbors(int i, int j, int* section, int msize,
         }
     }
     //in center?
-    else if (section[(i+1)*msize+j-1] == 0)
+    else if (section[(i+1)*rsize+j-1] == 0)
     {
         total_around += 1;
     }
@@ -275,15 +290,15 @@ int count_neighbors(int i, int j, int* section, int msize,
     return total_around;
 }
 
-void print_matrix(int i_size, int* matrix)
+void print_matrix(int rsize, int csize, int* matrix)
 {
 	int i,j;
-	for (i=0;i<i_size;i++)
+	for (i=0;i<csize;i++)
     {
-    	for (j=0;j<i_size;j++)
+    	for (j=0;j<rsize;j++)
     	{
     		// printf("so %d\n", (int)sizeof(t_A));
-    		printf("%6.2d ", matrix[i*i_size+j]);
+    		printf("%3d ", matrix[i*rsize+j]);
     	}
     	printf("\n");
 	}
@@ -307,11 +322,14 @@ int main (int argc, char **argv)
     iterations = 0; //default is serial
     if (sscanf (arguments.args[1], "%i", &iterations)!=1) {}
 
-    printf("Type,Iterations=%d,%d\n\n",run_type, iterations);
-
     //verbose?
     int verbose;
     verbose = arguments.verbose;
+
+    //Row and column size per processor
+    int rsize, csize; 
+    rsize = 20;
+    csize = 5;
 
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
@@ -329,20 +347,10 @@ int main (int argc, char **argv)
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    // //Create new column derived datatype
-    // MPI_Datatype column;
-    // //count, blocklength, stride, oldtype, *newtype
-    // MPI_Type_hvector(m, 1, m*sizeof(double), MPI_DOUBLE, &column);
-    // MPI_Type_commit(&column);
-
-    // //Create new row derived datatype
-    // MPI_Datatype row;
-    // //count, blocklength, stride, oldtype, *newtype
-    // MPI_Type_hvector(m, 1, sizeof(double), MPI_DOUBLE, &row);
-    // MPI_Type_commit(&row);
-
-    
-
+    if (world_rank == 0)
+    {
+        printf("Type,Iterations=%d,%d\n",run_type, iterations);
+    }
     // // Check constraints
     // if (run_type == 2)
     // {
@@ -373,106 +381,344 @@ int main (int argc, char **argv)
 
     // printf("WR=%d, Row=%d, Col=%d\n",world_rank,my_row,my_col);
 
+    if (world_rank == 0)
+    {
+        printf("rsize,csize = %d, %d\n",rsize,csize);
+    }
+    
 
-    //Dynamically allocate arrays
-    //Serial
-    int msize; 
+    //serial
+    if (world_size == 1 && run_type == 0)
+    {
+        rsize = 7; //for now hardcode matrix size
+        csize = 3;
+    }
+    // //Blocked
+    // else if (world_size>1 && run_type == 1)
+    // {
+    //     rsize = 40;
+    //     csize = 40;
+    //     if (csize%world_size>0 || world_size>csize)
+    //     {
+    //         if (world_rank == 0)
+    //         {
+    //             printf("Number of processors must evenly divide\n"
+    //              "the number of rows\n");
+    //         }
+    //         exit(0);
+    //     }
+    //     csize = csize/world_size;
+    //     
+    // }
+    
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // //Create new column derived datatype
+    // MPI_Datatype column;
+    // //count, blocklength, stride, oldtype, *newtype
+    // MPI_Type_hvector(csize, 1, rsize*sizeof(int), MPI_INT, &column);
+    // MPI_Type_commit(&column);
+
+    //Create new row derived datatype
+    MPI_Datatype row;
+    //count, blocklength, stride, oldtype, *newtype
+    MPI_Type_hvector(rsize, 1, sizeof(int), MPI_INT, &row);
+    MPI_Type_commit(&row);
+
+    //allocate arrays and corner storage
     int *section;
     int *neighbors;
+    //to use
     int *top;
     int *bot;
     int *left;
     int *right;
+    //to send
+    int *ttop;
+    int *tbot;
+    int *tleft;
+    int *tright;
+    section = (int*)malloc(rsize*csize*sizeof(int)+1);
+    neighbors = (int*)malloc(rsize*csize*sizeof(int)+1);
+    top = (int*)malloc(rsize*sizeof(int)+1);
+    bot = (int*)malloc(rsize*sizeof(int)+1);
+    left = (int*)malloc(csize*sizeof(int)+1);
+    right = (int*)malloc(csize*sizeof(int)+1);
+    ttop = (int*)malloc(rsize*sizeof(int)+1);
+    tbot = (int*)malloc(rsize*sizeof(int)+1);
+    tleft = (int*)malloc(csize*sizeof(int)+1);
+    tright = (int*)malloc(csize*sizeof(int)+1);
     int topleft,topright,botleft,botright;
-
-    if (world_size == 1 && run_type == 0)
-    {
-        msize = 3; //for now hardcode matrix size
-        
-        section = (int*) malloc(msize*msize*sizeof(int));
-        neighbors = (int*) malloc(msize*msize*sizeof(int));
-        top = (int*) malloc(msize*sizeof(int));
-        bot = (int*) malloc(msize*sizeof(int));
-        left = (int*) malloc(msize*sizeof(int));
-        right = (int*) malloc(msize*sizeof(int));
-        
-        topleft = 255;
-        topright = 255;
-        botleft = 255;
-        botright = 255;
-    }
-    //Blocked
-    //Checkerboard
+    
+    
+    topleft = 255;
+    topright = 255;
+    botleft = 255;
+    botright = 255;
 
     int i,j,k;
-    for (i=0;i<msize;i++)
+    //Serial
+    if (world_size == 1 && run_type == 0)
     {
-        for (j=0;j<msize;j++)
+        for (i=0;i<csize;i++)
         {
-            section[i*msize + j] = 255;
+            for (j=0;j<rsize;j++)
+            {
+                section[i*rsize + j] = 255;
+                top[j] = 255;
+                bot[j] = 255;
+                ttop[j] = 255;
+                tbot[j] = 255;
+            }
+            right[i] = 255;
+            left[i] = 255;
+            tright[i] = 255;
+            tleft[i] = 255;
         }
-        top[i] = 255;
-        bot[i] = 255;
-        right[i] = 255;
-        left[i] = 255;
     }
+    //Blocked
+    else if (world_size > 1 && run_type == 1)
+    {
+        //initialize
+        for (i=0;i<csize;i++)
+        {
+            for (j=0;j<rsize;j++)
+            {
+                section[i*rsize + j] = 255;
+                top[j] = 255;
+                bot[j] = 255;
+                ttop[j] = 255;
+                tbot[j] = 255;
+            }
+            right[i] = 255;
+            left[i] = 255;
+            tright[i] = 255;
+            tleft[i] = 255;
+        }
+    }
+    
+            // //*data,count,type,from,tag,comm,mpi_status
+            // MPI_Recv(&matrix[i][0], m, MPI_DOUBLE, from, 0, MPI_COMM_WORLD, 
+            //     MPI_STATUS_IGNORE);
+            // //*data,count,type,to,tag,comm
+            // MPI_Send(&matrix[0][i], 1, column, to, 0, MPI_COMM_WORLD);
 
-    //blinker
-    section[3] = 0;
-    section[4] = 0;
-    section[5] = 0;
+    if (world_size == 0 && run_type == 0)
+    {
+        //blinker
+        int offset = 0;
+        section[rsize+offset] = 0;
+        section[rsize+1+offset] = 0;
+        section[rsize+2+offset] = 0;
+        
+        //block
+        int offset2 = 5;
+        section[offset2] = 0;
+        section[offset2+1] = 0;
+        section[rsize+offset2] = 0;
+        section[rsize+offset2+1] = 0;
+    }
+    else if (world_size>0 && run_type == 1)
+    {
+        //blinker 
+        int offset = 0;
+        if (world_rank == 2)
+        {
+            section[offset] = 0;
+            section[offset+1] = 0;
+            section[offset+2] = 0;
+        }
 
-    printf("STARTING\n");
-    print_matrix(msize, section);
-    printf("\n");
+        //block
+        int offset2 = 5;
+        if (world_rank == 1)
+        {
+            section[rsize*(csize-1)+offset2] = 0;
+            section[rsize*(csize-1)+offset2+1] = 0;
+        }
+        if (world_rank == 2)
+        {
+            section[offset2] = 0;
+            section[offset2+1] = 0;
+        }
+        
+    }
+    
+
+    
+
+    // if (world_rank > 0){
+    //     printf("STARTING\n");
+    //     print_matrix(rsize, 1, top);
+    //     print_matrix(rsize, csize, section);
+    //     print_matrix(rsize, 1, bot);
+    //     printf("\n");
+    // }
+    
+    int send_to;
+    int receive_from;
+    int info[9];
+    info[2] = world_rank;
+    info[3] = rsize;
+    info[4] = csize;
+    info[5] = topleft;
+    info[6] = topright;
+    info[7] = botleft;
+    info[8] = botright;
 
     //Gameplay
     for (k=0;k<iterations;k++)
     {
-        //count neighbor
-        for (i=0;i<msize;i++)
+        //BLOCKED
+        if (run_type == 1)
         {
-            for (j=0; j<msize; j++)
+            //change bot (send top) to account for middle area
+            //alternate to avoid locking
+            send_to = world_rank - 1;
+            receive_from = world_rank + 1;
+
+            //figure out what to send
+            //top and bottom
+            for (i=0;i<rsize;i++)
             {
-                neighbors[i*msize+j] = count_neighbors(i, j, section, msize,
-                         top, bot, left, right,
-                         topleft, topright, botleft, botright);
+                ttop[i] = section[i];
+                tbot[i] = section[rsize*(csize-1)+i];
+            }
+            if (world_rank == 1)
+            {
+                print_matrix(rsize,1,top);
+            }
+            //left n right
+            for (i=0;i<csize;i++)
+            {
+                tleft[i] = section[0 + rsize*i];
+                tright[i] = section[rsize-1 + rsize*i];
+            }
+
+            if (world_rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0)
+                {
+                    MPI_Send(ttop, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from >= 0)
+                {
+                    MPI_Recv(bot, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (world_rank%2==1)
+            {
+
+                if (receive_from<world_size && receive_from >= 0)
+                {
+                    MPI_Recv(bot, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0)
+                {
+                    MPI_Send(ttop, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            //change top to account for middle area
+            //alternate to avoid locking
+            send_to = world_rank + 1;
+            receive_from = world_rank - 1;
+
+
+            if (world_rank%2==0)
+            {
+                // printf("%d, %d, %d\n", world_rank, send_to, receive_from);
+                if (send_to<world_size && send_to>=0)
+                {
+                    MPI_Send(tbot, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+                
+                if (receive_from<world_size && receive_from >= 0)
+                {
+                    MPI_Recv(top, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (world_rank%2==1)
+            {
+                // printf("%d, %d, %d\n", world_rank, send_to, receive_from);
+                if (receive_from<world_size && receive_from >= 0)
+                {
+                    //*data,count,type,from,tag,comm,mpi_status
+                    MPI_Recv(top, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+
+                if (send_to<world_size && send_to>=0)
+                {
+                    //*data,count,type,to,tag,comm
+                    MPI_Send(tbot, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
             }
         }
 
-        //update cells
-        for (i=0;i<msize;i++)
+ 
+        if (world_rank == 1){
+            print_matrix(rsize, 1, top);
+            print_matrix(rsize, csize, section);
+            print_matrix(rsize, 1, bot);
+            printf("\n");
+        }
+        // printf("wr=%d,iteration=%d,maxval=%d, 11\n", world_rank, k,(csize-1)*rsize-1+rsize);
+        
+        //count neighbor
+        for (i=0;i<csize;i++)
         {
-            for (j=0; j<msize; j++)
+            for (j=0; j<rsize; j++)
+            {
+                info[0] = i;
+                info[1] = j;
+                neighbors[i*rsize+j] = count_neighbors(info, section, 
+                                    top, bot, left, right);
+            }
+        }
+        // printf("wr=%d,iteration=%d, 22\n", world_rank, k);
+        //update cells
+        for (i=0;i<csize;i++)
+        {
+            for (j=0; j<rsize; j++)
             {
                 //cell currently alive
-                if (section[i*msize+j] == 0)
+                if (section[i*rsize+j] == 0)
                 {
                     //2 or 3 neighbors lives, else die
-                    if (neighbors[i*msize+j] < 2 || 
-                        neighbors[i*msize+j] > 3)
+                    if (neighbors[i*rsize+j] < 2 || 
+                        neighbors[i*rsize+j] > 3)
                     {
-                        section[i*msize+j] = 255;
+                        section[i*rsize+j] = 255;
                     }
                 }
                 else
                 {
                     //Exactly 3 neighbors spawns new life
-                    if (neighbors[i*msize+j] == 3)
+                    if (neighbors[i*rsize+j] == 3)
                     {
-                        section[i*msize+j] = 0;
+                        section[i*rsize+j] = 0;
                     }
                 }
             }
         }
-        printf("Neighbors\n");
-        print_matrix(msize, neighbors);
-        printf("Update\n");
-        print_matrix(msize, section);
-        printf("\n");
+        // printf("wr=%d,iteration=%d, 33\n", world_rank, k);
+        
+
+        // printf("Neighbors\n");
+        // print_matrix(rsize, csize, neighbors);
+        // printf("\n");
+        // printf("Iteration %d\n", k);
+        // print_matrix(rsize, csize, section);
+        
     }
 
-
+    // printf("HERE\n");
+    MPI_Barrier(MPI_COMM_WORLD);
+    sleep(0.5);
     //free malloc stuff
     free(section);
     free(neighbors);
@@ -480,7 +726,10 @@ int main (int argc, char **argv)
     free(bot);
     free(left);
     free(right);
+    // printf("HERE\n");
 
     MPI_Finalize();
+
+    // printf("HERE\n");
     exit (0);
 }    

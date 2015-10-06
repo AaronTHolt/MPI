@@ -3,7 +3,8 @@
 ########################################################################### 
 
 CC = mpicc
-CCFLAGS = -g -Wall -std=c99
+CCFLAGS = -g -Wall -lm
+LDFLAGS= -lm
 ifeq ($(DEBUG),on)
 	CCFLAGS += -DDEBUG
 endif
@@ -12,23 +13,23 @@ endif
 # Files
 ########################################################################### 
 
-C_FILES = conways_base.c pgm.c pprintf.c
-O_FILES = conways_base.o pgm.o pprintf.o
+C_FILES = hw5.1-holtat.c pgm.c pprintf.c
+O_FILES = hw5.1-holtat.o pgm.o pprintf.o
 
 ########################################################################### 
 # Targets
 ########################################################################### 
 
-all: conways_base
+all: hw5.1-holtat
 
-conways_base: $(O_FILES)
-	$(CC) -o conways_base $(O_FILES) $(LDFLAGS)
+hw5.1-holtat: $(O_FILES)
+	$(CC) -o hw5.1-holtat $(O_FILES) $(LDFLAGS)
 
 .PHONY: clean
 clean:		
-	/bin/rm -f core $(O_FILES) conways_base
+	/bin/rm -f core $(O_FILES) hw5.1-holtat
 
-conways_base.o: pgm.o pprintf.o
+hw5.1-holtat.o: pgm.o pprintf.o
 
 .c.o:		
 	$(CC) $(CCFLAGS) -c -o $*.o $*.c
@@ -48,4 +49,4 @@ conways_base.o: pgm.o pprintf.o
 *.o: pprintf.h
 
 # Conway depends on PGM utilities
-conways_base.o: pgm.h pprintf.h
+hw5.1-holtat.o: pgm.h pprintf.h

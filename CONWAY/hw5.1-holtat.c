@@ -88,10 +88,10 @@ int count_neighbors(int info[9], int* section,
             int* top, int* bot, int* left, int* right)
             // int topleft, int topright, int botleft, int botright)
 {
-    int i,j,wr,rsize,csize,topleft,topright,botright,botleft;
+    int i,j,rsize,csize,topleft,topright,botright,botleft;
     i = info[0];
     j = info[1];
-    wr = info[2];
+    // wr = info[2];
     rsize = info[3];
     csize = info[4];
     topleft = info[5];
@@ -290,6 +290,23 @@ int count_neighbors(int info[9], int* section,
     return total_around;
 }
 
+int count_buggies(int rsize, int csize, int* matrix)
+{
+    int i,j,count;
+    count = 0;
+    for (i=0;i<csize;i++)
+    {
+        for (j=0;j<rsize;j++)
+        {
+            if (matrix[i*rsize+j]>0)
+            {
+                count += 1;
+            }
+        }
+    }
+    return count;
+}
+
 void print_matrix(int rsize, int csize, int* matrix)
 {
 	int i,j;
@@ -300,7 +317,8 @@ void print_matrix(int rsize, int csize, int* matrix)
     		// printf("so %d\n", (int)sizeof(t_A));
     		printf("%3d ", matrix[i*rsize+j]);
     	}
-    	printf("\n");
+    	// printf("\nROW=%d\n",i);
+        printf("\n");
 	}
 	// printf("\n");
 }
@@ -328,6 +346,7 @@ int main (int argc, char **argv)
     //verbose?
     int verbose;
     verbose = arguments.verbose;
+    // printf("VERBOSE = %i",verbose);
 
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
@@ -337,29 +356,70 @@ int main (int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
     // Get the rank of the process
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     // Get the name of the processor
     char processor_name[MPI_MAX_PROCESSOR_NAME];
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    if (world_rank == 0)
+    // if (rank == 0)
+    // {
+    //     printf("Type,Iterations=%d,%d\n",run_type, iterations);
+    // }
+    if (world_size>1 && run_type ==0)
     {
-        printf("Type,Iterations=%d,%d\n",run_type, iterations);
+        printf("Runtype and processors count not consistant\n");
+        exit(0);
+    }
+    if (world_size==1 && run_type>0)
+    {
+        printf("Runtype and processors count not consistant\n");
+        exit(0);
     }
 
+     //serial
+    if (world_size == 1 && run_type == 0)
+    {
+
+        ncols=1;
+        nrows=1;
+    }
+    //Blocked
+    else if (world_size>1 && run_type == 1)
+    {
+        ncols = 1;
+        nrows = world_size;
+        my_col = 0;
+        my_row = rank;
+    }
+    //Checker
+    else if (world_size>1 && run_type == 2)
+    {
+        ncols = (int)sqrt(world_size);
+        nrows = (int)sqrt(world_size);
+
+        // my_col = 
+        // my_row = 
+    }
+
+    
+    //////////////////////READ IN INITIAL PGM////////////////////////////////
     if(!readpgm("life.pgm"))
     {
+        printf("WR=%d,HERE2\n",rank);
         if( rank==0 )
-          pprintf( "An error occured while reading the pgm file\n" );
+        {
+            pprintf( "An error occured while reading the pgm file\n" );
+        }
         MPI_Finalize();
         return 1;
     }
 
     // Count the life forms. Note that we count from [1,1] - [height+1,width+1];
     // we need to ignore the ghost row!
+    i = 0;
     for(y=1; y<local_height+1; y++ )
     {
         for(x=1; x<local_width+1; x++ )
@@ -370,96 +430,95 @@ int main (int argc, char **argv)
             }
         }
     }
-    pprintf( "%i local buggies\n", i );
+    // pprintf( "%i local buggies\n", i );
 
-  int total;
-  MPI_Allreduce( &i, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
-  if( rank==0 )
-    pprintf( "%i total buggies\n", total );
-  
-  // Free the fields
-  if( field_a != NULL ) free( field_a );
-  if( field_b != NULL ) free( field_b );
-    // // Check constraints
-    // if (run_type == 2)
-    // {
-    //     int q; //q^2=p
-    //     q = (int)sqrt(world_size);
-    //     if (m%q!=0 || q*q!=world_size)
-    //     {
-    //         if (world_rank == 0)
-    //         {
-    //             printf("Assume that P=q2, where q is an integer s.t. q evenly divides n.\n");
-    //         }
-    //         exit(0);
-    //     }        
-    // }
+    int total;
+    MPI_Allreduce( &i, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
+    if( rank==0 )
+    {
+        pprintf( "%i total buggies\n", total );
+        // total = count_buggies(local_width+2,local_height+2,field_a);
+        // printf("COUNT 2 = %d\n", total);
+        // total = count_buggies(local_width,local_height,field_a);
+        // printf("COUNT 3 = %d\n", total);
+    }
     
 
     // //row communicator
     // MPI_Comm my_row_comm;
     // int my_row1;
-    // my_row1 = world_rank/q;
-    // MPI_Comm_split(MPI_COMM_WORLD, my_row, world_rank, &my_row_comm);
+    // my_row1 = rank/q;
+    // MPI_Comm_split(MPI_COMM_WORLD, my_row, rank, &my_row_comm);
 
     // //column communicator
     // MPI_Comm my_col_comm;
     // int my_col1;
-    // my_col1 = world_rank%q;
-    // MPI_Comm_split(MPI_COMM_WORLD, my_col, world_rank, &my_col_comm);
+    // my_col1 = rank%q;
+    // MPI_Comm_split(MPI_COMM_WORLD, my_col, rank, &my_col_comm);
 
-    // printf("WR=%d, Row=%d, Col=%d\n",world_rank,my_row,my_col);
+    // printf("WR=%d, Row=%d, Col=%d\n",rank,my_row,my_col);
+
     //Row and column size per processor
     int rsize, csize; 
-    rsize = 20;
-    csize = 20;
-    if (world_rank == 0)
+    rsize = local_width;
+    csize = local_height;
+
+
+    if (rank == 0 && verbose == 2)
     {
-        printf("rsize,csize = %d, %d\n",rsize,csize);
+        printf("rsize,csize,NP = %d, %d, %d\n",rsize,csize,world_size);
     }
     
 
-    //serial
-    if (world_size == 1 && run_type == 0)
-    {
-        rsize = 7; //for now hardcode matrix size
-        csize = 3;
-    }
-    //Blocked
-    else if (world_size>1 && run_type == 1)
-    {
-        rsize = 40;
-        csize = 40;
-        if (csize%world_size>0 || world_size>csize)
-        {
-            if (world_rank == 0)
-            {
-                printf("Number of processors must evenly divide\n"
-                 "the number of rows\n");
-            }
-            exit(0);
-        }
-        csize = csize/world_size;
-    }
-    //Checker
-    else if (world_size>1 && run_type == 2)
-    {
-        rsize = 40;
-        csize = 40;
-        if (csize%world_size>0 || world_size>csize)
-        {
-            if (world_rank == 0)
-            {
-                printf("Number of processors must evenly divide\n"
-                 "the number of rows\n");
-            }
-            exit(0);
-        }
-        csize = csize/world_size;
-        rsize = rsize/world_size;
-    }
+    // //serial
+    // if (world_size == 1 && run_type == 0)
+    // {
+
+    // }
+    // //Blocked
+    // else if (world_size>1 && run_type == 1)
+    // {
+
+    //     if (csize%world_size>0 || world_size>csize)
+    //     {
+    //         if (rank == 0)
+    //         {
+    //             printf("Number of processors must evenly divide\n"
+    //              "the number of rows\n");
+    //         }
+    //         exit(0);
+    //     }
+    // }
+    // //Checker
+    // else if (world_size>1 && run_type == 2)
+    // {
+
+    //     if (csize%world_size>0 || world_size>csize)
+    //     {
+    //         if (rank == 0)
+    //         {
+    //             printf("Number of processors must evenly divide\n"
+    //              "the number of rows\n");
+    //         }
+    //         exit(0);
+    //     }
+    // }
+
+    // printf("Myrow=%d,Mycol=%d\n",my_row,my_col);
+
+
     
+
+    // if (rank == 0)
+    // {
+    //     print_matrix(900,225,field_a);
+    // }
+    
+
     MPI_Barrier(MPI_COMM_WORLD);
+
+
+    //////////////////ALLOCATE ARRAYS, CREATE DATATYPES/////////////////////
 
     // //Create new column derived datatype
     // MPI_Datatype column;
@@ -505,7 +564,10 @@ int main (int argc, char **argv)
     botright = 255;
 
     
+    // printf("Rsize,Lsize,Fsize=%i %i %i,Csize,Lsize,Fsize=%i %i %i\n",rsize,local_width,field_width,csize,local_height,field_height);
+
     //Serial
+    int count = 0;
     if (world_size == 1 && run_type == 0)
     {
         for (i=0;i<csize;i++)
@@ -513,6 +575,17 @@ int main (int argc, char **argv)
             for (j=0;j<rsize;j++)
             {
                 section[i*rsize + j] = 255;
+                
+                if (field_a[(i+1)*(2+rsize) + j + 1])
+                {
+                    section[i*rsize + j] = 0;
+                    count += 1;
+                }
+                else
+                {
+                    section[i*rsize + j] = 255;
+                }
+
                 top[j] = 255;
                 bot[j] = 255;
                 ttop[j] = 255;
@@ -523,7 +596,9 @@ int main (int argc, char **argv)
             tright[i] = 255;
             tleft[i] = 255;
         }
+        // printf("COUNT 4 = %d\n", count);
     }
+
     //Blocked
     else if (world_size > 1 && run_type == 1)
     {
@@ -533,6 +608,17 @@ int main (int argc, char **argv)
             for (j=0;j<rsize;j++)
             {
                 section[i*rsize + j] = 255;
+                
+                if (field_a[(i+1)*(2+rsize) + j + 1])
+                {
+                    section[i*rsize + j] = 0;
+                    count += 1;
+                }
+                else
+                {
+                    section[i*rsize + j] = 255;
+                }
+
                 top[j] = 255;
                 bot[j] = 255;
                 ttop[j] = 255;
@@ -543,7 +629,24 @@ int main (int argc, char **argv)
             tright[i] = 255;
             tleft[i] = 255;
         }
+
+        // MPI_Allreduce( &count, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
+        // if (rank == 0)
+        // {
+        //     printf("COUNT 4 = %d\n", total);
+        // }
+        
     }
+
+    ////////////CHECK IF EQUAl//////////////////////
+    for (i=0;i<csize;i++)
+    {
+        for (j=0;j<rsize;j++)
+        {
+
+        }
+    }
+    
     
             // //*data,count,type,from,tag,comm,mpi_status
             // MPI_Recv(&matrix[i][0], m, MPI_DOUBLE, from, 0, MPI_COMM_WORLD, 
@@ -551,51 +654,53 @@ int main (int argc, char **argv)
             // //*data,count,type,to,tag,comm
             // MPI_Send(&matrix[0][i], 1, column, to, 0, MPI_COMM_WORLD);
 
-    if (world_size == 0 && run_type == 0)
-    {
-        //blinker
-        int offset = 0;
-        section[rsize+offset] = 0;
-        section[rsize+1+offset] = 0;
-        section[rsize+2+offset] = 0;
-        
-        //block
-        int offset2 = 5;
-        section[offset2] = 0;
-        section[offset2+1] = 0;
-        section[rsize+offset2] = 0;
-        section[rsize+offset2+1] = 0;
-    }
-    else if (world_size>0 && run_type == 1)
-    {
-        //blinker 
-        int offset = 0;
-        if (world_rank == 2)
-        {
-            section[offset] = 0;
-            section[offset+1] = 0;
-            section[offset+2] = 0;
-        }
 
-        //block
-        int offset2 = 5;
-        if (world_rank == 1)
-        {
-            section[rsize*(csize-1)+offset2] = 0;
-            section[rsize*(csize-1)+offset2+1] = 0;
-        }
-        if (world_rank == 2)
-        {
-            section[offset2] = 0;
-            section[offset2+1] = 0;
-        }
+    ///////// CUSTOM INPUITS //////////////////
+    // if (world_size == 0 && run_type == 0)
+    // {
+    //     //blinker
+    //     int offset = 0;
+    //     section[rsize+offset] = 0;
+    //     section[rsize+1+offset] = 0;
+    //     section[rsize+2+offset] = 0;
         
-    }
+    //     //block
+    //     int offset2 = 5;
+    //     section[offset2] = 0;
+    //     section[offset2+1] = 0;
+    //     section[rsize+offset2] = 0;
+    //     section[rsize+offset2+1] = 0;
+    // }
+    // else if (world_size>0 && run_type == 1)
+    // {
+    //     //blinker 
+    //     int offset = 0;
+    //     if (rank == 2)
+    //     {
+    //         section[offset] = 0;
+    //         section[offset+1] = 0;
+    //         section[offset+2] = 0;
+    //     }
+
+    //     //block
+    //     int offset2 = 5;
+    //     if (rank == 1)
+    //     {
+    //         section[rsize*(csize-1)+offset2] = 0;
+    //         section[rsize*(csize-1)+offset2+1] = 0;
+    //     }
+    //     if (rank == 2)
+    //     {
+    //         section[offset2] = 0;
+    //         section[offset2+1] = 0;
+    //     }
+        
+    // }
     
 
     
 
-    // if (world_rank > 0){
+    // if (rank > 0){
     //     printf("STARTING\n");
     //     print_matrix(rsize, 1, top);
     //     print_matrix(rsize, csize, section);
@@ -606,7 +711,7 @@ int main (int argc, char **argv)
     int send_to;
     int receive_from;
     int info[9];
-    info[2] = world_rank;
+    info[2] = rank;
     info[3] = rsize;
     info[4] = csize;
     info[5] = topleft;
@@ -614,16 +719,31 @@ int main (int argc, char **argv)
     info[7] = botleft;
     info[8] = botright;
 
+    int current_count;
+
     //Gameplay
     for (k=0;k<iterations;k++)
     {
+        if (k%100==0)
+        {
+            if (verbose == 2)
+            {
+                current_count = rsize*csize-count_buggies(rsize,csize,section);
+                MPI_Allreduce( &current_count, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
+                if (rank == 0)
+                {
+                    printf("Iteration=%5d,Count=%6d\n", k,total);
+                }
+            }
+        }
+
         //BLOCKED
         if (run_type == 1)
         {
             //change bot (send top) to account for middle area
             //alternate to avoid locking
-            send_to = world_rank - 1;
-            receive_from = world_rank + 1;
+            send_to = rank - 1;
+            receive_from = rank + 1;
 
             //figure out what to send
             //top and bottom
@@ -632,10 +752,10 @@ int main (int argc, char **argv)
                 ttop[i] = section[i];
                 tbot[i] = section[rsize*(csize-1)+i];
             }
-            if (world_rank == 1)
-            {
-                print_matrix(rsize,1,top);
-            }
+            // if (rank == 1)
+            // {
+            //     print_matrix(rsize,1,top);
+            // }
             //left n right
             for (i=0;i<csize;i++)
             {
@@ -643,7 +763,7 @@ int main (int argc, char **argv)
                 tright[i] = section[rsize-1 + rsize*i];
             }
 
-            if (world_rank%2==0)
+            if (rank%2==0)
             {
                 if (send_to<world_size && send_to>=0)
                 {
@@ -655,7 +775,7 @@ int main (int argc, char **argv)
                         MPI_STATUS_IGNORE);
                 }
             }
-            else if (world_rank%2==1)
+            else if (rank%2==1)
             {
 
                 if (receive_from<world_size && receive_from >= 0)
@@ -671,13 +791,13 @@ int main (int argc, char **argv)
 
             //change top to account for middle area
             //alternate to avoid locking
-            send_to = world_rank + 1;
-            receive_from = world_rank - 1;
+            send_to = rank + 1;
+            receive_from = rank - 1;
 
 
-            if (world_rank%2==0)
+            if (rank%2==0)
             {
-                // printf("%d, %d, %d\n", world_rank, send_to, receive_from);
+                // printf("%d, %d, %d\n", rank, send_to, receive_from);
                 if (send_to<world_size && send_to>=0)
                 {
                     MPI_Send(tbot, 1, row, send_to, 0, MPI_COMM_WORLD);
@@ -689,9 +809,9 @@ int main (int argc, char **argv)
                         MPI_STATUS_IGNORE);
                 }
             }
-            else if (world_rank%2==1)
+            else if (rank%2==1)
             {
-                // printf("%d, %d, %d\n", world_rank, send_to, receive_from);
+                // printf("%d, %d, %d\n", rank, send_to, receive_from);
                 if (receive_from<world_size && receive_from >= 0)
                 {
                     //*data,count,type,from,tag,comm,mpi_status
@@ -708,13 +828,13 @@ int main (int argc, char **argv)
         }
 
  
-        if (world_rank == 1){
-            print_matrix(rsize, 1, top);
-            print_matrix(rsize, csize, section);
-            print_matrix(rsize, 1, bot);
-            printf("\n");
-        }
-        // printf("wr=%d,iteration=%d,maxval=%d, 11\n", world_rank, k,(csize-1)*rsize-1+rsize);
+        // if (rank == 1){
+        //     print_matrix(rsize, 1, top);
+        //     print_matrix(rsize, csize, section);
+        //     print_matrix(rsize, 1, bot);
+        //     printf("\n");
+        // }
+        // printf("wr=%d,iteration=%d,maxval=%d, 11\n", rank, k,(csize-1)*rsize-1+rsize);
         
         //count neighbor
         for (i=0;i<csize;i++)
@@ -727,8 +847,9 @@ int main (int argc, char **argv)
                                     top, bot, left, right);
             }
         }
-        // printf("wr=%d,iteration=%d, 22\n", world_rank, k);
+        // printf("wr=%d,iteration=%d, 22\n", rank, k);
         //update cells
+        current_count = 0;
         for (i=0;i<csize;i++)
         {
             for (j=0; j<rsize; j++)
@@ -753,7 +874,7 @@ int main (int argc, char **argv)
                 }
             }
         }
-        // printf("wr=%d,iteration=%d, 33\n", world_rank, k);
+        // printf("wr=%d,iteration=%d, 33\n", rank, k);
         
 
         // printf("Neighbors\n");
@@ -761,6 +882,8 @@ int main (int argc, char **argv)
         // printf("\n");
         // printf("Iteration %d\n", k);
         // print_matrix(rsize, csize, section);
+
+        
         
     }
 
@@ -768,6 +891,8 @@ int main (int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     sleep(0.5);
     //free malloc stuff
+    if( field_a != NULL ) free( field_a );
+    if( field_b != NULL ) free( field_b );
     free(section);
     free(neighbors);
     free(top);

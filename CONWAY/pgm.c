@@ -54,6 +54,8 @@ bool readpgm( char *filename )
   if( rank==0 )
     pprintf( "%s: %s %i %i %i\n", filename, header, width, height, depth );
 
+
+
   // Make sure the header is valid
   if( strcmp( header, "P5") )
   {
@@ -69,9 +71,11 @@ bool readpgm( char *filename )
     return false;
   }
 
+
+
   // Make sure that the width and height are divisible by the number of
   // processors in x and y directions
-
+  // printf("WR=%d,%d,%d,HERE1\n",rank,width,ncols);
   if( width % ncols )
   {
     if( rank==0 )
@@ -79,6 +83,8 @@ bool readpgm( char *filename )
           width, ncols );
     return false;
   }
+
+  // printf("WR=%d,HERE3\n",rank);
   if( height % nrows )
   {
     if( rank==0 )
@@ -86,6 +92,8 @@ bool readpgm( char *filename )
           height, nrows );
     return false;
   }
+  // printf("WR=%d,PAST\n",rank);
+
 
   // Divide the total image among the local processors
   local_width = width / ncols;
@@ -106,10 +114,10 @@ bool readpgm( char *filename )
   field_b = (int *)malloc( field_width * field_height * sizeof(int));
 
   // Read the data from the file. Save the local data to the local array.
-  int b, ll, lx, ly;
-  for( int y=0; y<height; y++ )
+  int b, ll, lx, ly, y, x;
+  for( y=0; y<height; y++ )
   {
-    for( int x=0; x<width; x++ )
+    for( x=0; x<width; x++ )
     {
       // Read the next character
       b = fgetc( fp );

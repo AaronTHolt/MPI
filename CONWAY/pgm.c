@@ -25,11 +25,11 @@ bool readpgm( char *filename )
   //  * sets global variables field_width, field_height to local field size
   //  * allocates global variables field_a and field_b
 
-  pp_set_banner( "pgm:readpgm" );
+  // pp_set_banner( "pgm:readpgm" );
 
   // Open the file
-  if( rank==0 )
-    pprintf( "Opening file %s\n", filename );
+  // if( rank==0 )
+  //   pprintf( "Opening file %s\n", filename );
   FILE *fp = fopen( filename, "r" );
   if( !fp )
   {
@@ -51,8 +51,8 @@ bool readpgm( char *filename )
         filename );
     return false;
   }
-  if( rank==0 )
-    pprintf( "%s: %s %i %i %i\n", filename, header, width, height, depth );
+  // if( rank==0 )
+  //   pprintf( "%s: %s %i %i %i\n", filename, header, width, height, depth );
 
 
 
@@ -103,9 +103,9 @@ bool readpgm( char *filename )
   int start_x = local_width * my_col;
   int start_y = local_height * my_row;
 
-  pprintf( "Hosting data for x:%03i-%03i y:%03i-%03i\n", 
-      start_x, start_x + local_width,
-      start_y, start_y + local_height );
+  // pprintf( "Hosting data for x:%03i-%03i y:%03i-%03i\n", 
+  //     start_x, start_x + local_width,
+  //     start_y, start_y + local_height );
 
   // Create the array!
   field_width = local_width + 2;
@@ -156,6 +156,6 @@ bool readpgm( char *filename )
 
   fclose( fp );
 
-  pp_reset_banner();
+  // pp_reset_banner();
   return true;
 }

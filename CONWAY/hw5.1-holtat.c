@@ -32,7 +32,7 @@ static char doc[] =
     "A program with options and arguments using argp";
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "0=Serial,1=Block,2=Checker Iterations";
+static char args_doc[] = "0=Serial,1=Block,2=Checker  Iterations  CountOnMultipleOfN";
 
 /* The options we understand. */
 static struct argp_option options[] = {
@@ -43,7 +43,7 @@ static struct argp_option options[] = {
 /* Used by main to communicate with parse_opt. */
 struct arguments
 {
-    char *args[2];                
+    char *args[3];                
     int verbose;
 };
 
@@ -57,18 +57,18 @@ parse_opt (int key, char *arg, struct argp_state *state)
     switch (key)
         {
         case 'v':
-            arguments->verbose = 2;
+            arguments->verbose = 3;
             break;
 
         case ARGP_KEY_ARG:
-            if (state->arg_num >= 2)
+            if (state->arg_num >= 3)
             /* Too many arguments. */
             argp_usage (state);
             arguments->args[state->arg_num] = arg;
             break;
 
         case ARGP_KEY_END:
-            if (state->arg_num < 2)
+            if (state->arg_num < 3)
             /* Not enough arguments. */
             argp_usage (state);
             break;
@@ -340,6 +340,10 @@ int main (int argc, char **argv)
     iterations = 0; //default is serial
     if (sscanf (arguments.args[1], "%i", &iterations)!=1) {}
 
+    int count_when;
+    count_when = 1000;
+    if (sscanf (arguments.args[2], "%i", &count_when)!=1) {}
+
     //counters
     int i,j,k,x,y;
 
@@ -364,10 +368,11 @@ int main (int argc, char **argv)
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
-    // if (rank == 0)
-    // {
-    //     printf("Type,Iterations=%d,%d\n",run_type, iterations);
-    // }
+    if (rank == 0)
+    {
+        printf("Verbose=%i, RunType=%i, Iterations=%i, CountWhen=%i\n",
+            verbose,run_type,iterations,count_when);
+    }
     if (world_size>1 && run_type ==0)
     {
         printf("Runtype and processors count not consistant\n");
@@ -400,15 +405,20 @@ int main (int argc, char **argv)
         ncols = (int)sqrt(world_size);
         nrows = (int)sqrt(world_size);
 
-        // my_col = 
-        // my_row = 
+        my_row = rank/nrows;
+        my_col = rank-my_row*nrows;
     }
+
+    // if (verbose == 3)
+    // {
+    //     printf("WR,row,col=%i,%i,%i\n",rank,my_row,my_col);
+    // }
 
     
     //////////////////////READ IN INITIAL PGM////////////////////////////////
     if(!readpgm("life.pgm"))
     {
-        printf("WR=%d,HERE2\n",rank);
+        // printf("WR=%d,HERE2\n",rank);
         if( rank==0 )
         {
             pprintf( "An error occured while reading the pgm file\n" );
@@ -444,17 +454,14 @@ int main (int argc, char **argv)
     }
     
 
-    // //row communicator
-    // MPI_Comm my_row_comm;
-    // int my_row1;
-    // my_row1 = rank/q;
-    // MPI_Comm_split(MPI_COMM_WORLD, my_row, rank, &my_row_comm);
+    //Communicators used in checkered
+    //row communicator
+    MPI_Comm my_row_comm;
+    MPI_Comm_split(MPI_COMM_WORLD, my_row, rank, &my_row_comm);
 
-    // //column communicator
-    // MPI_Comm my_col_comm;
-    // int my_col1;
-    // my_col1 = rank%q;
-    // MPI_Comm_split(MPI_COMM_WORLD, my_col, rank, &my_col_comm);
+    //column communicator
+    MPI_Comm my_col_comm;
+    MPI_Comm_split(MPI_COMM_WORLD, my_col, rank, &my_col_comm);
 
     // printf("WR=%d, Row=%d, Col=%d\n",rank,my_row,my_col);
 
@@ -464,7 +471,7 @@ int main (int argc, char **argv)
     csize = local_height;
 
 
-    if (rank == 0 && verbose == 2)
+    if (rank == 0 && verbose == 3)
     {
         printf("rsize,csize,NP = %d, %d, %d\n",rsize,csize,world_size);
     }
@@ -520,11 +527,11 @@ int main (int argc, char **argv)
 
     //////////////////ALLOCATE ARRAYS, CREATE DATATYPES/////////////////////
 
-    // //Create new column derived datatype
-    // MPI_Datatype column;
-    // //count, blocklength, stride, oldtype, *newtype
-    // MPI_Type_hvector(csize, 1, rsize*sizeof(int), MPI_INT, &column);
-    // MPI_Type_commit(&column);
+    //Create new column derived datatype
+    MPI_Datatype column;
+    //count, blocklength, stride, oldtype, *newtype
+    MPI_Type_hvector(csize, 1, rsize*sizeof(int), MPI_INT, &column);
+    MPI_Type_commit(&column);
 
     //Create new row derived datatype
     MPI_Datatype row;
@@ -545,6 +552,7 @@ int main (int argc, char **argv)
     int *tbot;
     int *tleft;
     int *tright;
+    //MALLOC!!
     section = (int*)malloc(rsize*csize*sizeof(int)+1);
     neighbors = (int*)malloc(rsize*csize*sizeof(int)+1);
     top = (int*)malloc(rsize*sizeof(int)+1);
@@ -555,7 +563,9 @@ int main (int argc, char **argv)
     tbot = (int*)malloc(rsize*sizeof(int)+1);
     tleft = (int*)malloc(csize*sizeof(int)+1);
     tright = (int*)malloc(csize*sizeof(int)+1);
-    int topleft,topright,botleft,botright;
+    //corners
+    int topleft,topright,botleft,botright; //used in calculations
+    // int ttopleft,ttopright,tbotleft,tbotright; //used to send
     
     
     topleft = 255;
@@ -566,7 +576,7 @@ int main (int argc, char **argv)
     
     // printf("Rsize,Lsize,Fsize=%i %i %i,Csize,Lsize,Fsize=%i %i %i\n",rsize,local_width,field_width,csize,local_height,field_height);
 
-    //Serial
+    //Serial initialize vars
     int count = 0;
     if (world_size == 1 && run_type == 0)
     {
@@ -599,8 +609,8 @@ int main (int argc, char **argv)
         // printf("COUNT 4 = %d\n", count);
     }
 
-    //Blocked
-    else if (world_size > 1 && run_type == 1)
+    //Blocked/Checkered initializing variables
+    else if (world_size > 1 && (run_type == 1 || run_type == 2))
     {
         //initialize
         for (i=0;i<csize;i++)
@@ -638,14 +648,7 @@ int main (int argc, char **argv)
         
     }
 
-    ////////////CHECK IF EQUAl//////////////////////
-    for (i=0;i<csize;i++)
-    {
-        for (j=0;j<rsize;j++)
-        {
 
-        }
-    }
     
     
             // //*data,count,type,from,tag,comm,mpi_status
@@ -724,9 +727,10 @@ int main (int argc, char **argv)
     //Gameplay
     for (k=0;k<iterations;k++)
     {
-        if (k%100==0)
+        //Count buggies
+        if (k%count_when==0)
         {
-            if (verbose == 2)
+            if (verbose == 3)
             {
                 current_count = rsize*csize-count_buggies(rsize,csize,section);
                 MPI_Allreduce( &current_count, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
@@ -737,7 +741,7 @@ int main (int argc, char **argv)
             }
         }
 
-        //BLOCKED
+        // BLOCKED COMMUNITATION //
         if (run_type == 1)
         {
             //change bot (send top) to account for middle area
@@ -827,6 +831,118 @@ int main (int argc, char **argv)
             }
         }
 
+        // CHECKERED COMMUNITATION //
+        else if (run_type == 2)
+        {
+            //figure out what to send
+            //top and bottom
+            for (i=0;i<rsize;i++)
+            {
+                ttop[i] = section[i];
+                tbot[i] = section[rsize*(csize-1)+i];
+            }
+
+            //left n right
+            for (i=0;i<csize;i++)
+            {
+                tleft[i] = section[0 + rsize*i];
+                tright[i] = section[rsize-1 + rsize*i];
+            }
+
+            // //corners
+            // ttopleft = section[0];
+            // tbotleft = section[rsize*(csize-1)];
+            // ttopright = section[rsize-1];
+            // tbotright = section[rsize*csize-1];
+
+            //Send top, receive bot
+            send_to = rank - nrows;
+            receive_from = rank + nrows;
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0)
+                {
+                    MPI_Send(ttop, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0)
+                {
+                    MPI_Recv(bot, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+
+                if (receive_from<world_size && receive_from>=0)
+                {
+                    MPI_Recv(bot, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0)
+                {
+                    MPI_Send(ttop, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            //Send bot, receive top
+            send_to = rank + nrows;
+            receive_from = rank - nrows;
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0)
+                {
+                    MPI_Send(tbot, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0)
+                {
+                    MPI_Recv(top, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+
+                if (receive_from<world_size && receive_from>=0)
+                {
+                    MPI_Recv(top, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0)
+                {
+                    MPI_Send(tbot, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            //Send left, receive right
+            send_to = rank + 1;
+            receive_from = rank - 1;
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row)
+                {
+                    MPI_Send(tleft, 1, column, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row)
+                {
+                    MPI_Recv(right, 1, column, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row)
+                {
+                    MPI_Recv(right, 1, column, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row)
+                {
+                    MPI_Send(tleft, 1, column, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+        }
  
         // if (rank == 1){
         //     print_matrix(rsize, 1, top);

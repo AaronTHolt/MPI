@@ -376,12 +376,24 @@ int main (int argc, char **argv)
     if (world_size>1 && run_type ==0)
     {
         printf("Runtype and processors count not consistant\n");
+        MPI_Finalize();
         exit(0);
     }
     if (world_size==1 && run_type>0)
     {
         printf("Runtype and processors count not consistant\n");
+        MPI_Finalize();
         exit(0);
+    }
+    if (count_when <= 0)
+    {
+        if (rank == 0)
+        {
+            printf("Invalid count interval, positive integers only\n");
+        }
+        MPI_Finalize();
+        exit(0);
+        
     }
 
      //serial
@@ -530,7 +542,7 @@ int main (int argc, char **argv)
     //Create new column derived datatype
     MPI_Datatype column;
     //count, blocklength, stride, oldtype, *newtype
-    MPI_Type_hvector(csize, 1, rsize*sizeof(int), MPI_INT, &column);
+    MPI_Type_hvector(csize, 1, sizeof(int), MPI_INT, &column);
     MPI_Type_commit(&column);
 
     //Create new row derived datatype
@@ -553,19 +565,19 @@ int main (int argc, char **argv)
     int *tleft;
     int *tright;
     //MALLOC!!
-    section = (int*)malloc(rsize*csize*sizeof(int)+1);
-    neighbors = (int*)malloc(rsize*csize*sizeof(int)+1);
-    top = (int*)malloc(rsize*sizeof(int)+1);
-    bot = (int*)malloc(rsize*sizeof(int)+1);
-    left = (int*)malloc(csize*sizeof(int)+1);
-    right = (int*)malloc(csize*sizeof(int)+1);
-    ttop = (int*)malloc(rsize*sizeof(int)+1);
-    tbot = (int*)malloc(rsize*sizeof(int)+1);
-    tleft = (int*)malloc(csize*sizeof(int)+1);
-    tright = (int*)malloc(csize*sizeof(int)+1);
+    section = (int*)malloc(rsize*csize*sizeof(int));
+    neighbors = (int*)malloc(rsize*csize*sizeof(int));
+    top = (int*)malloc(rsize*sizeof(int));
+    bot = (int*)malloc(rsize*sizeof(int));
+    left = (int*)malloc(csize*sizeof(int));
+    right = (int*)malloc(csize*sizeof(int));
+    ttop = (int*)malloc(rsize*sizeof(int));
+    tbot = (int*)malloc(rsize*sizeof(int));
+    tleft = (int*)malloc(csize*sizeof(int));
+    tright = (int*)malloc(csize*sizeof(int));
     //corners
     int topleft,topright,botleft,botright; //used in calculations
-    // int ttopleft,ttopright,tbotleft,tbotright; //used to send
+    int ttopleft,ttopright,tbotleft,tbotright; 
     
     
     topleft = 255;
@@ -651,14 +663,10 @@ int main (int argc, char **argv)
 
     
     
-            // //*data,count,type,from,tag,comm,mpi_status
-            // MPI_Recv(&matrix[i][0], m, MPI_DOUBLE, from, 0, MPI_COMM_WORLD, 
-            //     MPI_STATUS_IGNORE);
-            // //*data,count,type,to,tag,comm
-            // MPI_Send(&matrix[0][i], 1, column, to, 0, MPI_COMM_WORLD);
+            
 
 
-    ///////// CUSTOM INPUITS //////////////////
+    // /////// CUSTOM INPUITS //////////////////
     // if (world_size == 0 && run_type == 0)
     // {
     //     //blinker
@@ -699,6 +707,39 @@ int main (int argc, char **argv)
     //     }
         
     // }
+    // else if (world_size>0 && run_type == 2)
+    // {
+    //     //corners for np=4
+    //     if (rank == 0)
+    //     {
+    //         section[rsize*csize-1] = 0;
+    //     }
+    //     else if (rank == 1)
+    //     {
+    //         section[rsize*(csize-1)] = 0;
+    //     }
+    //     else if (rank == 2)
+    //     {
+    //         section[rsize-1] = 0;
+    //     }
+    //     else if (rank == 3)
+    //     {
+    //         section[0] = 0;
+    //     }
+
+        
+    //     //left/right debug
+    //     if (rank == 2)
+    //     {
+    //         section[rsize*3+rsize-1] = 0;
+    //         section[rsize*4+rsize-1] = 0;
+    //     }
+    //     else if (rank == 3)
+    //     {
+    //         section[0+rsize*3] = 0;
+    //         section[0+rsize*4] = 0;
+    //     }
+    // }
     
 
     
@@ -736,10 +777,14 @@ int main (int argc, char **argv)
                 MPI_Allreduce( &current_count, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
                 if (rank == 0)
                 {
-                    printf("Iteration=%5d,Count=%6d\n", k,total);
+                    printf("Iteration=%5d,  Count=%6d\n", k,total);
                 }
+                ////corner debug
+                // printf("WR,tl,tr,bl,br = %d %d %d %d %d\n", rank, topleft, topright, botleft, botright);
             }
         }
+
+
 
         // BLOCKED COMMUNITATION //
         if (run_type == 1)
@@ -849,7 +894,11 @@ int main (int argc, char **argv)
                 tright[i] = section[rsize-1 + rsize*i];
             }
 
-            // //corners
+            //corners
+            ttopleft = tleft[0];
+            tbotleft = tleft[csize-1];
+            ttopright = tright[0];
+            tbotright = tright[csize-1];
             // ttopleft = section[0];
             // tbotleft = section[rsize*(csize-1)];
             // ttopright = section[rsize-1];
@@ -914,8 +963,9 @@ int main (int argc, char **argv)
             }
 
             //Send left, receive right
-            send_to = rank + 1;
-            receive_from = rank - 1;
+            send_to = rank - 1;
+            receive_from = rank + 1;
+
             if (rank%2==0)
             {
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row)
@@ -930,7 +980,6 @@ int main (int argc, char **argv)
             }
             else if (rank%2==1)
             {
-
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row)
                 {
                     MPI_Recv(right, 1, column, receive_from, 0, MPI_COMM_WORLD,
@@ -942,6 +991,157 @@ int main (int argc, char **argv)
                 }
             }
 
+            //Send right, receive left
+            send_to = rank + 1;
+            receive_from = rank - 1;
+
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row)
+                {
+                    MPI_Send(tright, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row)
+                {
+                    MPI_Recv(left, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row)
+                {
+                    MPI_Recv(left, 1, row, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row)
+                {
+                    MPI_Send(tright, 1, row, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            //Send topright, receive botleft
+            send_to = rank - ncols + 1;
+            receive_from = rank + ncols - 1;
+
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
+                {
+                    MPI_Send(&ttopright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
+                {
+                    MPI_Recv(&botleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
+                {
+                    MPI_Recv(&botleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
+                {
+                    MPI_Send(&ttopright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            //Send topleft, receive botright
+            send_to = rank - ncols - 1;
+            receive_from = rank + ncols + 1;
+
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
+                {
+                    MPI_Send(&ttopleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
+                {
+                    MPI_Recv(&botright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
+                {
+                    MPI_Recv(&botright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
+                {
+                    MPI_Send(&ttopleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            //Send botleft, receive topright
+            send_to = rank + ncols - 1;
+            receive_from = rank - ncols + 1;
+
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
+                {
+                    MPI_Send(&tbotleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
+                {
+                    MPI_Recv(&topright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
+                {
+                    MPI_Recv(&topright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
+                {
+                    MPI_Send(&tbotleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+            //Send botright, receive topleft
+            send_to = rank + ncols + 1;
+            receive_from = rank - ncols - 1;
+
+            if (rank%2==0)
+            {
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
+                {
+                    MPI_Send(&tbotright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
+                {
+                    MPI_Recv(&topleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+            }
+            else if (rank%2==1)
+            {
+                if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
+                {
+                    MPI_Recv(&topleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+                }
+                if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
+                {
+                    MPI_Send(&tbotright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                }
+            }
+
+
+            info[5] = topleft;
+            info[6] = topright;
+            info[7] = botleft;
+            info[8] = botright;
+
         }
  
         // if (rank == 1){
@@ -952,6 +1152,9 @@ int main (int argc, char **argv)
         // }
         // printf("wr=%d,iteration=%d,maxval=%d, 11\n", rank, k,(csize-1)*rsize-1+rsize);
         
+
+
+        /////////// CELL UPDATES /////////////////
         //count neighbor
         for (i=0;i<csize;i++)
         {

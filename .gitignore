@@ -30,3 +30,7 @@
 
 # Debug files
 *.dSYM/
+
+#images/gifs
+*.pgm
+*.gif

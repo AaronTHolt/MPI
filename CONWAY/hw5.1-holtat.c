@@ -37,6 +37,7 @@ static char args_doc[] = "0=Serial,1=Block,2=Checker  Iterations  CountOnMultipl
 /* The options we understand. */
 static struct argp_option options[] = {
     {"verbose",  'v', 0,      0,  "Produce verbose output" },
+    {"animation",  'a', 0,      0,  "Save an animation" },
     { 0 }
 };
 
@@ -45,6 +46,7 @@ struct arguments
 {
     char *args[3];                
     int verbose;
+    int animation;
 };
 
 /* Parse a single option. */
@@ -57,18 +59,21 @@ parse_opt (int key, char *arg, struct argp_state *state)
     switch (key)
         {
         case 'v':
-            arguments->verbose = 3;
+            arguments->verbose = 1;
+            break;
+        case 'a':
+            arguments->animation = 1;
             break;
 
         case ARGP_KEY_ARG:
-            if (state->arg_num >= 3)
+            if (state->arg_num >= 4)
             /* Too many arguments. */
             argp_usage (state);
             arguments->args[state->arg_num] = arg;
             break;
 
         case ARGP_KEY_END:
-            if (state->arg_num < 3)
+            if (state->arg_num < 2)
             /* Not enough arguments. */
             argp_usage (state);
             break;
@@ -81,6 +86,44 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 /* Our argp parser. */
 static struct argp argp = { options, parse_opt, args_doc, doc };
+
+//Takes in current frame number and matrix
+void write_matrix_to_pgm(int frame, int rsize, int csize,
+                 int* full_matrix)
+{
+    int i,j;
+
+    // printf("rsize,csize = %d, %d\n ", rsize, csize);
+
+    //dynamic filename with leading zeroes for easy conversion to gif
+    char buffer[128];
+    snprintf(buffer, sizeof(char)*128, "Animation/frame%04d.pgm", frame);
+
+    //open
+    FILE *fp;
+    fp = fopen(buffer, "wb");
+
+    //header
+    fprintf(fp, "P2\n");
+    fprintf(fp, "%4d %4d\n", rsize, csize);
+    fprintf(fp, "255\n");
+
+    //data
+    for (i=0;i<csize;i++)
+    {
+        for (j=0;j<rsize;j++)
+        {
+            fprintf(fp, "%3d ", full_matrix[i*rsize+j]);
+        }
+        //newline after every row
+        fprintf(fp, "\n");
+    }
+    //trailing newline
+    fprintf(fp, "\n");
+
+    //close file
+    fclose(fp);
+}
 
 //Takes in current cell location, and all neighboring data
 //outputs integer of alive neighbor cells
@@ -290,6 +333,7 @@ int count_neighbors(int info[9], int* section,
     return total_around;
 }
 
+//counts number of buggies in a given matrix
 int count_buggies(int rsize, int csize, int* matrix)
 {
     int i,j,count;
@@ -344,13 +388,23 @@ int main (int argc, char **argv)
     count_when = 1000;
     if (sscanf (arguments.args[2], "%i", &count_when)!=1) {}
 
-    //counters
-    int i,j,k,x,y;
+    //should an animation be generated
+    //prints a bunch of .pgm files, have to hand
+    //make the gif...
+    int animation;
+    animation = arguments.animation;
 
     //verbose?
     int verbose;
     verbose = arguments.verbose;
     // printf("VERBOSE = %i",verbose);
+    if (verbose>=0 && verbose<=10)
+    {
+        verbose = 1;
+    }
+
+    //counters
+    int i,j,k,x,y;
 
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
@@ -368,10 +422,11 @@ int main (int argc, char **argv)
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
+    //Print run information, exit on bad command line input
     if (rank == 0)
     {
-        printf("Verbose=%i, RunType=%i, Iterations=%i, CountWhen=%i\n",
-            verbose,run_type,iterations,count_when);
+        printf("Verbose=%i, RunType=%i, Iterations=%i, CountWhen=%i, Animation=%i\n",
+            verbose,run_type,iterations,count_when, animation);
     }
     if (world_size>1 && run_type ==0)
     {
@@ -393,7 +448,6 @@ int main (int argc, char **argv)
         }
         MPI_Finalize();
         exit(0);
-        
     }
 
      //serial
@@ -419,9 +473,19 @@ int main (int argc, char **argv)
 
         my_row = rank/nrows;
         my_col = rank-my_row*nrows;
+
+        if (ncols*nrows!=world_size)
+        {
+            if (rank == 0)
+            {
+                printf("Number of processors must be square, Exiting\n");
+            }
+            MPI_Finalize();
+            exit(0);
+        }
     }
 
-    // if (verbose == 3)
+    // if (verbose == 1)
     // {
     //     printf("WR,row,col=%i,%i,%i\n",rank,my_row,my_col);
     // }
@@ -459,10 +523,6 @@ int main (int argc, char **argv)
     if( rank==0 )
     {
         pprintf( "%i total buggies\n", total );
-        // total = count_buggies(local_width+2,local_height+2,field_a);
-        // printf("COUNT 2 = %d\n", total);
-        // total = count_buggies(local_width,local_height,field_a);
-        // printf("COUNT 3 = %d\n", total);
     }
     
 
@@ -483,55 +543,10 @@ int main (int argc, char **argv)
     csize = local_height;
 
 
-    if (rank == 0 && verbose == 3)
+    if (rank == 0 && verbose == 1)
     {
         printf("rsize,csize,NP = %d, %d, %d\n",rsize,csize,world_size);
     }
-    
-
-    // //serial
-    // if (world_size == 1 && run_type == 0)
-    // {
-
-    // }
-    // //Blocked
-    // else if (world_size>1 && run_type == 1)
-    // {
-
-    //     if (csize%world_size>0 || world_size>csize)
-    //     {
-    //         if (rank == 0)
-    //         {
-    //             printf("Number of processors must evenly divide\n"
-    //              "the number of rows\n");
-    //         }
-    //         exit(0);
-    //     }
-    // }
-    // //Checker
-    // else if (world_size>1 && run_type == 2)
-    // {
-
-    //     if (csize%world_size>0 || world_size>csize)
-    //     {
-    //         if (rank == 0)
-    //         {
-    //             printf("Number of processors must evenly divide\n"
-    //              "the number of rows\n");
-    //         }
-    //         exit(0);
-    //     }
-    // }
-
-    // printf("Myrow=%d,Mycol=%d\n",my_row,my_col);
-
-
-    
-
-    // if (rank == 0)
-    // {
-    //     print_matrix(900,225,field_a);
-    // }
     
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -575,15 +590,30 @@ int main (int argc, char **argv)
     tbot = (int*)malloc(rsize*sizeof(int));
     tleft = (int*)malloc(csize*sizeof(int));
     tright = (int*)malloc(csize*sizeof(int));
+
     //corners
     int topleft,topright,botleft,botright; //used in calculations
     int ttopleft,ttopright,tbotleft,tbotright; 
-    
-    
     topleft = 255;
     topright = 255;
     botleft = 255;
     botright = 255;
+
+    //used for animation, each process will put there own result in and then
+    //each will send to process 1 which will add them up
+    int* full_matrix;
+    int* full_matrix_buffer;
+    if (animation == 1)
+    {
+        int msize1 = rsize*ncols*csize*nrows;
+        full_matrix = (int*)malloc(msize1*sizeof(int));
+        full_matrix_buffer = (int*)malloc(msize1*sizeof(int));
+        for (i=0; i<msize1; i++)
+        {
+            full_matrix[i] = 0;
+            full_matrix_buffer[i] = 0;
+        }
+    }
 
     
     // printf("Rsize,Lsize,Fsize=%i %i %i,Csize,Lsize,Fsize=%i %i %i\n",rsize,local_width,field_width,csize,local_height,field_height);
@@ -659,11 +689,6 @@ int main (int argc, char **argv)
         // }
         
     }
-
-
-    
-    
-            
 
 
     // /////// CUSTOM INPUITS //////////////////
@@ -742,15 +767,7 @@ int main (int argc, char **argv)
     // }
     
 
-    
 
-    // if (rank > 0){
-    //     printf("STARTING\n");
-    //     print_matrix(rsize, 1, top);
-    //     print_matrix(rsize, csize, section);
-    //     print_matrix(rsize, 1, bot);
-    //     printf("\n");
-    // }
     
     int send_to;
     int receive_from;
@@ -764,6 +781,7 @@ int main (int argc, char **argv)
     info[8] = botright;
 
     int current_count;
+    int location;
 
     //Gameplay
     for (k=0;k<iterations;k++)
@@ -771,7 +789,7 @@ int main (int argc, char **argv)
         //Count buggies
         if (k%count_when==0)
         {
-            if (verbose == 3)
+            if (verbose == 1)
             {
                 current_count = rsize*csize-count_buggies(rsize,csize,section);
                 MPI_Allreduce( &current_count, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
@@ -784,6 +802,37 @@ int main (int argc, char **argv)
             }
         }
 
+        
+        
+        //If animation is requested
+        if (animation == 1)
+        {
+            //Put smaller matrix part into larger matrix
+            for (i=0; i<csize; i++)
+            {
+                for (j=0; j<rsize; j++)
+                {
+                    location = (my_row*csize*rsize*ncols + my_col*rsize + 
+                                    i*rsize*ncols + j);
+
+                    full_matrix_buffer[location] = section[i*rsize+j];
+                }
+                // if (rank == 0)
+                // {
+                //     printf("Location = %d\n", location);
+                // }
+            }
+
+            //Gather matrix
+            MPI_Reduce(full_matrix_buffer, full_matrix, rsize*ncols*csize*nrows, MPI_INT,
+                MPI_SUM, 0, MPI_COMM_WORLD);
+
+            //Write to file
+            if (rank == 0)
+            {
+                write_matrix_to_pgm(k, rsize*ncols, csize*nrows, full_matrix);
+            }
+        }
 
 
         // BLOCKED COMMUNITATION //
@@ -801,10 +850,7 @@ int main (int argc, char **argv)
                 ttop[i] = section[i];
                 tbot[i] = section[rsize*(csize-1)+i];
             }
-            // if (rank == 1)
-            // {
-            //     print_matrix(rsize,1,top);
-            // }
+
             //left n right
             for (i=0;i<csize;i++)
             {
@@ -899,10 +945,6 @@ int main (int argc, char **argv)
             tbotleft = tleft[csize-1];
             ttopright = tright[0];
             tbotright = tright[csize-1];
-            // ttopleft = section[0];
-            // tbotleft = section[rsize*(csize-1)];
-            // ttopright = section[rsize-1];
-            // tbotright = section[rsize*csize-1];
 
             //Send top, receive bot
             send_to = rank - nrows;
@@ -1166,7 +1208,7 @@ int main (int argc, char **argv)
                                     top, bot, left, right);
             }
         }
-        // printf("wr=%d,iteration=%d, 22\n", rank, k);
+
         //update cells
         current_count = 0;
         for (i=0;i<csize;i++)
@@ -1192,21 +1234,9 @@ int main (int argc, char **argv)
                     }
                 }
             }
-        }
-        // printf("wr=%d,iteration=%d, 33\n", rank, k);
-        
-
-        // printf("Neighbors\n");
-        // print_matrix(rsize, csize, neighbors);
-        // printf("\n");
-        // printf("Iteration %d\n", k);
-        // print_matrix(rsize, csize, section);
-
-        
-        
+        } 
     }
 
-    // printf("HERE\n");
     MPI_Barrier(MPI_COMM_WORLD);
     sleep(0.5);
     //free malloc stuff
@@ -1218,10 +1248,7 @@ int main (int argc, char **argv)
     free(bot);
     free(left);
     free(right);
-    // printf("HERE\n");
 
     MPI_Finalize();
-
-    // printf("HERE\n");
     exit (0);
 }    

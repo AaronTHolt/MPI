@@ -858,6 +858,7 @@ int main (int argc, char **argv)
                 tright[i] = section[rsize-1 + rsize*i];
             }
 
+            //send top, receive bot
             if (rank%2==0)
             {
                 if (send_to<world_size && send_to>=0)
@@ -889,7 +890,7 @@ int main (int argc, char **argv)
             send_to = rank + 1;
             receive_from = rank - 1;
 
-
+            //send bot, receive top
             if (rank%2==0)
             {
                 // printf("%d, %d, %d\n", rank, send_to, receive_from);

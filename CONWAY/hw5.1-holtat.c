@@ -17,8 +17,17 @@
 
 //Aaron Holt
 //HPSC
-//MPI Fox'
-//Assume that P=q2, where q is an integer s.t. q evenly divides n.
+//Conways 1
+// compile instructions: $ make
+// run instructions:
+/*
+$ mpiexec -np NP ./hw5.1-holtat -v -a run_type iterations printwhen
+-v for verbose (print out buggie counts etc)
+-a to generate animation
+runtype 0=serial, 1=blocked, 2=checkered
+iterations = number of iterations desired
+printwhen = print buggie count at printwhen interval
+*/
 
 
 

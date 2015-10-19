@@ -68,48 +68,50 @@ int main (int argc, char **argv)
 
      /* open the file, and set the view */
     MPI_File file;
-    MPI_File_open(MPI_COMM_WORLD, "test_mpio", 
+    MPI_File_open(MPI_COMM_WORLD, "test_mpio.pgm", 
                   MPI_MODE_CREATE|MPI_MODE_WRONLY,
                   MPI_INFO_NULL, &file);
 
-    MPI_File_set_view(file, 0,  MPI_UNSIGNED_CHAR, submatrix, 
+    MPI_File_set_view(file, 0,  MPI_UNSIGNED_CHAR, MPI_UNSIGNED_CHAR, 
                            "native", MPI_INFO_NULL);
 
     // //header
     // fprintf(fp, "P2\n");
     // fprintf(fp, "%4d %4d\n", rsize, csize);
     // fprintf(fp, "255\n");
-    // char *header1[2];
-    // header1[0] = "P2";
-    // header1[1] = "///n";
-    // header1[0] = "P";
-    // header1[1] = "2";
-    // header1[2] = "\\";
-    // header1[3] = "n";
+    char header1[15];
+    header1[0] = 0x50;
+    header1[1] = 0x35;
+    header1[2] = 0x0a;
+    header1[3] = 0x30;
+    header1[4] = 0x30;
+    header1[5] = 0x34;
+    header1[6] = 0x20;
+    header1[7] = 0x30;
+    header1[8] = 0x30;
+    header1[9] = 0x34;
+    header1[10] = 0x0a;
+    header1[11] = 0x32;
+    header1[12] = 0x35;
+    header1[13] = 0x35;
+    header1[14] = 0x0a;
 
-    // unsigned char header2[3];
-    // header2[0] = "0";
-    // header2[1] = "0";
-    // header2[2] = "0";
-    // header2[3] = "4";
-    // header2[4] = " ";
-    // header2[5] = "0";
-    // header2[6] = "0";
-    // header2[7] = "0";
-    // header2[8] = "4";
-    // header2[9] = "\\";
-    // header2[10] = "n";
+ 
+    MPI_File_write(file, &header1, 15, MPI_CHAR, MPI_STATUS_IGNORE);
 
-    // unsigned char header3[5];
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    MPI_File_set_view(file, 15,  MPI_UNSIGNED_CHAR, submatrix, 
+                           "native", MPI_INFO_NULL);
+
+    MPI_File_write_all(file, section, section_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // if (rank == 0)
     // {
     //     MPI_File_write(file, &header1, 5, MPI_CHAR, MPI_STATUS_IGNORE);
     // }
-
-    // MPI_Barrier(MPI_COMM_WORLD);
-
-    MPI_File_write_all(file, section, section_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
 
     MPI_Type_free(&submatrix);
 

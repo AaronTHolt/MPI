@@ -53,10 +53,10 @@ int main (int argc, char **argv)
     //Create new derived datatype
     MPI_Datatype submatrix;
 
-    int array_of_gsizes[2] = {4, 4};
+    int array_of_gsizes[2] = {6, 6};
     int array_of_distribs[2] = { MPI_DISTRIBUTE_BLOCK, MPI_DISTRIBUTE_BLOCK };
     int array_of_dargs[2] = { MPI_DISTRIBUTE_DFLT_DARG, MPI_DISTRIBUTE_DFLT_DARG };
-    int array_of_psize[2] = {2, 2};
+    int array_of_psize[2] = {3, 3};
     // int order = MPI_ORDER_C;
 
     //size,rank,ndims,array_gsizes,array_distribs,array_args,array_psizes
@@ -85,22 +85,26 @@ int main (int argc, char **argv)
     header1[2] = 0x0a;
     header1[3] = 0x30;
     header1[4] = 0x30;
-    header1[5] = 0x34;
+    header1[5] = 0x36;
     header1[6] = 0x20;
     header1[7] = 0x30;
     header1[8] = 0x30;
-    header1[9] = 0x34;
+    header1[9] = 0x36;
     header1[10] = 0x0a;
     header1[11] = 0x32;
     header1[12] = 0x35;
     header1[13] = 0x35;
     header1[14] = 0x0a;
 
- 
+    char footer;
+    footer = 0x0a;
+
+    //write header
     MPI_File_write(file, &header1, 15, MPI_CHAR, MPI_STATUS_IGNORE);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
+    //write matrix
     MPI_File_set_view(file, 15,  MPI_UNSIGNED_CHAR, submatrix, 
                            "native", MPI_INFO_NULL);
 
@@ -108,12 +112,14 @@ int main (int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // if (rank == 0)
-    // {
-    //     MPI_File_write(file, &header1, 5, MPI_CHAR, MPI_STATUS_IGNORE);
-    // }
+    //write footer (trailing newline)
+    MPI_File_set_view(file, 15+section_size*world_size,  MPI_UNSIGNED_CHAR, MPI_UNSIGNED_CHAR, 
+                           "native", MPI_INFO_NULL);
+
+    MPI_File_write(file, &footer, 1, MPI_CHAR, MPI_STATUS_IGNORE);
 
     MPI_Type_free(&submatrix);
+    free(section);
 
     MPI_Finalize();
 }

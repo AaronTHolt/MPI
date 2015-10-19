@@ -1,15 +1,11 @@
 #!/bin/bash
 #
-#SBATCH --job-name=mpi_bfly_128_l
+#SBATCH --job-name=sleep
 #SBATCH --qos janus
-#SBATCH --nodes 128
+#SBATCH --nodes 1
 #SBATCH --ntasks-per-node 1
-#SBATCH --time 00:3:00
-#SBATCH --output results_128_l_1.out
+#SBATCH --time 00:10:00
+#SBATCH --output results_sleep.out
 
-module load slurm
-module load gcc
-module load openmpi/1.8.5
-
-mpirun -np 128 ./bfly.out -l 1
+sleep 450
 	

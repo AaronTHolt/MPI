@@ -1,10 +1,10 @@
 #include "stdlib.h"
-#include "argp.h"
-#include "mpi.h"
 #include "stdio.h"
-#include "math.h"
 #include "string.h"
 #include "unistd.h"
+#include "mpi.h"
+// #include "mpio.h"
+// #include "mpe.h"
 
 int main (int argc, char **argv)
 {
@@ -13,6 +13,8 @@ int main (int argc, char **argv)
 
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
+
+    // MPE_Init_log();
 
     // Get the number of processes
     int world_size;
@@ -27,36 +29,49 @@ int main (int argc, char **argv)
     int name_len;
     MPI_Get_processor_name(processor_name, &name_len);
 
+    
+    int event1a, event1b;
+
+    // event1a = MPE_Log_get_event_number(); 
+    // event1b = MPE_Log_get_event_number(); 
+
+
+    // MPE_Describe_state(event1a, event1b, "Everything", "red");
+
     int section_size = 4;
 
     unsigned char *section;
     section = (unsigned char*)malloc(sizeof(unsigned char)*section_size);
 
-    unsigned short ii;
+    int ii;
     for (ii=0;ii<section_size;ii++)
     {
-        if (rank%2 == 0)
+        if ((rank+1)%2 == 0)
         {
             section[ii] = 255;
         }
         else
         {
             section[ii] = 0;
-        }
-
-        if (rank == 0)
-        {
-            printf("%i ", section[ii]);
-        }
+        } 
     }
 
+    if (rank == 0)
+    {
+         printf("I'm ALIVE\n");
+    }
+    
+
+    // MPE_Stop_log();
+    
+    // MPE_Log_event(event1a, 0, "start");
     //Create new derived datatype
     MPI_Datatype submatrix;
 
-    int array_of_gsizes[2] = {6, 6};
+    int array_of_gsizes[2] = {4, 4};
     int array_of_distribs[2] = { MPI_DISTRIBUTE_BLOCK, MPI_DISTRIBUTE_BLOCK };
     int array_of_dargs[2] = { MPI_DISTRIBUTE_DFLT_DARG, MPI_DISTRIBUTE_DFLT_DARG };
-    int array_of_psize[2] = {3, 3};
+    int array_of_psize[2] = {2, 2};
     // int order = MPI_ORDER_C;
 
     //size,rank,ndims,array_gsizes,array_distribs,array_args,array_psizes
@@ -65,6 +80,14 @@ int main (int argc, char **argv)
             array_of_dargs, array_of_psize, MPI_ORDER_C, MPI_UNSIGNED_CHAR, &submatrix);
     MPI_Type_commit(&submatrix);
 
+
+    // MPE_Log_event(event1b, 0, "end");
+    if (rank == 0)
+    {
+         printf("Num2\n");
+    }
+
+    
 
      /* open the file, and set the view */
     MPI_File file;
@@ -85,11 +108,11 @@ int main (int argc, char **argv)
     header1[2] = 0x0a;
     header1[3] = 0x30;
     header1[4] = 0x30;
-    header1[5] = 0x36;
+    header1[5] = 0x34;
     header1[6] = 0x20;
     header1[7] = 0x30;
     header1[8] = 0x30;
-    header1[9] = 0x36;
+    header1[9] = 0x34;
     header1[10] = 0x0a;
     header1[11] = 0x32;
     header1[12] = 0x35;
@@ -99,27 +122,42 @@ int main (int argc, char **argv)
     char footer;
     footer = 0x0a;
 
+    // if (rank == 0)
+    // {
+    //      printf("Num3\n");
+    // }
+
+
+
     //write header
     MPI_File_write(file, &header1, 15, MPI_CHAR, MPI_STATUS_IGNORE);
 
-    MPI_Barrier(MPI_COMM_WORLD);
 
     //write matrix
     MPI_File_set_view(file, 15,  MPI_UNSIGNED_CHAR, submatrix, 
                            "native", MPI_INFO_NULL);
 
+    
     MPI_File_write_all(file, section, section_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
 
-    MPI_Barrier(MPI_COMM_WORLD);
 
+    
     //write footer (trailing newline)
     MPI_File_set_view(file, 15+section_size*world_size,  MPI_UNSIGNED_CHAR, MPI_UNSIGNED_CHAR, 
                            "native", MPI_INFO_NULL);
+    
+    
 
     MPI_File_write(file, &footer, 1, MPI_CHAR, MPI_STATUS_IGNORE);
+
+    MPI_File_close(&file);
+        
 
     MPI_Type_free(&submatrix);
     free(section);
 
+
+    // MPE_Finish_log("BBBBBBB");
     MPI_Finalize();
+    return(0);
 }

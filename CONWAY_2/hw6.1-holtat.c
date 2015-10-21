@@ -32,7 +32,7 @@ PrintPgmWhen = create pgm file on iterations. specify with csv list like the fol
    1,4,5,6-9,20-50,100
 
 example run
-$mpiexec -np 1 ./hw6.1-holtat -v 0 11 10 1,2,4-8
+$mpiexec -np 1 ./hw6.1-holtat -v -a 0 11 10 1,2,4-8
 */
 
 
@@ -104,7 +104,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 //Takes in current frame number and matrix
 void write_matrix_to_pgm(int frame, int rsize, int csize,
-                 int* full_matrix)
+                 unsigned char* full_matrix)
 {
     int i,j;
 
@@ -142,8 +142,9 @@ void write_matrix_to_pgm(int frame, int rsize, int csize,
 
 //Takes in current cell location, and all neighboring data
 //outputs integer of alive neighbor cells
-int count_neighbors(int info[9], int* section, 
-            int* top, int* bot, int* left, int* right)
+int count_neighbors(int info[5], unsigned char info2[4], unsigned char* section, 
+            unsigned char* top, unsigned char* bot, 
+            unsigned char* left, unsigned char* right)
             // int topleft, int topright, int botleft, int botright)
 {
     int i,j,rsize,csize,topleft,topright,botright,botleft;
@@ -152,10 +153,10 @@ int count_neighbors(int info[9], int* section,
     // wr = info[2];
     rsize = info[3];
     csize = info[4];
-    topleft = info[5];
-    topright = info[6];
-    botleft = info[7];
-    botright = info[8];
+    topleft = info2[0];
+    topright = info2[1];
+    botleft = info2[2];
+    botright = info2[3];
     
     int total_around = 0;
     // printf("wr=%d, i=%d,j=%d\n",wr,i,j);
@@ -349,7 +350,7 @@ int count_neighbors(int info[9], int* section,
 }
 
 //counts number of buggies in a given matrix
-int count_buggies(int rsize, int csize, int* matrix)
+int count_buggies(int rsize, int csize, unsigned char* matrix)
 {
     int i,j,count;
     count = 0;
@@ -366,7 +367,7 @@ int count_buggies(int rsize, int csize, int* matrix)
     return count;
 }
 
-void print_matrix(int rsize, int csize, int* matrix)
+void print_matrix(int rsize, int csize, unsigned char* matrix)
 {
 	int i,j;
 	for (i=0;i<csize;i++)
@@ -406,7 +407,7 @@ int main (int argc, char **argv)
     char print_list[200]; //used for input list
     if (sscanf (arguments.args[3], "%s", &print_list)!=1) {}
 
-    printf("Print list = %s\n", print_list);
+    // printf("Print list = %s\n", print_list);
 
     //Extract animation list from arguments
     char char_array[20][12] = { NULL };   //seperated input list
@@ -453,7 +454,12 @@ int main (int argc, char **argv)
             animation_list[ii][1] = stop - animation_list[ii][0];
         }
 
-        printf("Animation_list = %i, %i\n", animation_list[ii][0], animation_list[ii][1]);
+        // if (rank == 0)
+        // {
+        //     printf("Animation_list = %i, %i\n", 
+        //         animation_list[ii][0], animation_list[ii][1]);
+
+        // }
     }
     
     
@@ -562,7 +568,7 @@ int main (int argc, char **argv)
 
     
     //////////////////////READ IN INITIAL PGM////////////////////////////////
-    if(!readpgm("life.pgm"))
+    if(!readpgm("cool.pgm"))
     {
         // printf("WR=%d,HERE2\n",rank);
         if( rank==0 )
@@ -596,15 +602,7 @@ int main (int argc, char **argv)
     }
     
 
-    //Communicators used in checkered
-    //row communicator
-    MPI_Comm my_row_comm;
-    MPI_Comm_split(MPI_COMM_WORLD, my_row, rank, &my_row_comm);
-
-    //column communicator
-    MPI_Comm my_col_comm;
-    MPI_Comm_split(MPI_COMM_WORLD, my_col, rank, &my_col_comm);
-
+    
     // printf("WR=%d, Row=%d, Col=%d\n",rank,my_row,my_col);
 
     //Row and column size per processor
@@ -618,52 +616,107 @@ int main (int argc, char **argv)
         printf("rsize,csize,NP = %d, %d, %d\n",rsize,csize,world_size);
     }
     
+    //Create new derived datatype for writing to files
+    MPI_Datatype submatrix;
+
+    int array_of_gsizes[2];
+    int array_of_distribs[2];
+    int array_of_dargs[2];
+    int array_of_psize[2];
+
+    if (run_type == 1)
+    {
+        if (rank == 0)
+        {
+            printf("g0,g1 = %i,%i\n", local_height*ncols, local_width);
+            printf("p0,p1 = %i,%i\n", nrows, ncols);
+        }
+        array_of_gsizes[0] = local_height*ncols;
+        array_of_gsizes[1] = local_width;
+        array_of_distribs[0] = MPI_DISTRIBUTE_BLOCK;
+        array_of_distribs[1] = MPI_DISTRIBUTE_BLOCK;
+        array_of_dargs[0] = MPI_DISTRIBUTE_DFLT_DARG;
+        array_of_dargs[1] = MPI_DISTRIBUTE_DFLT_DARG;
+        array_of_psize[0] = nrows;
+        array_of_psize[1] = ncols;
+        // int order = MPI_ORDER_C;
+
+        //size,rank,ndims,array_gsizes,array_distribs,array_args,array_psizes
+        //order,oldtype,*newtype
+        MPI_Type_create_darray(world_size, rank, 2, array_of_gsizes, array_of_distribs,
+                array_of_dargs, array_of_psize, MPI_ORDER_C, MPI_UNSIGNED_CHAR, &submatrix);
+        MPI_Type_commit(&submatrix);
+    }
+    else if (run_type == 2)
+    {
+        if (rank == 0)
+        {
+            printf("g0,g1 = %i,%i\n", local_height*ncols, local_width*nrows);
+            printf("p0,p1 = %i,%i\n", nrows, ncols);
+        }
+        array_of_gsizes[0] = local_height*ncols;
+        array_of_gsizes[1] = local_width*nrows;
+        array_of_distribs[0] = MPI_DISTRIBUTE_BLOCK;
+        array_of_distribs[1] = MPI_DISTRIBUTE_BLOCK;
+        array_of_dargs[0] = MPI_DISTRIBUTE_DFLT_DARG;
+        array_of_dargs[1] = MPI_DISTRIBUTE_DFLT_DARG;
+        array_of_psize[0] = nrows;
+        array_of_psize[1] = ncols;
+        // int order = MPI_ORDER_C;
+
+        //size,rank,ndims,array_gsizes,array_distribs,array_args,array_psizes
+        //order,oldtype,*newtype
+        MPI_Type_create_darray(world_size, rank, 2, array_of_gsizes, array_of_distribs,
+                array_of_dargs, array_of_psize, MPI_ORDER_C, MPI_UNSIGNED_CHAR, &submatrix);
+        MPI_Type_commit(&submatrix);
+    }
+
+
 
     MPI_Barrier(MPI_COMM_WORLD);
-
 
     //////////////////ALLOCATE ARRAYS, CREATE DATATYPES/////////////////////
 
     //Create new column derived datatype
     MPI_Datatype column;
     //count, blocklength, stride, oldtype, *newtype
-    MPI_Type_hvector(csize, 1, sizeof(int), MPI_INT, &column);
+    MPI_Type_hvector(csize, 1, sizeof(unsigned char), MPI_UNSIGNED_CHAR, &column);
     MPI_Type_commit(&column);
 
     //Create new row derived datatype
     MPI_Datatype row;
     //count, blocklength, stride, oldtype, *newtype
-    MPI_Type_hvector(rsize, 1, sizeof(int), MPI_INT, &row);
+    MPI_Type_hvector(rsize, 1, sizeof(unsigned char), MPI_UNSIGNED_CHAR, &row);
     MPI_Type_commit(&row);
 
     //allocate arrays and corner storage
-    int *section;
-    int *neighbors;
+    unsigned char *section;
+    unsigned char *neighbors;
     //to use
-    int *top;
-    int *bot;
-    int *left;
-    int *right;
+    unsigned char *top;
+    unsigned char *bot;
+    unsigned char *left;
+    unsigned char *right;
     //to send
-    int *ttop;
-    int *tbot;
-    int *tleft;
-    int *tright;
+    unsigned char *ttop;
+    unsigned char *tbot;
+    unsigned char *tleft;
+    unsigned char *tright;
     //MALLOC!!
-    section = (int*)malloc(rsize*csize*sizeof(int));
-    neighbors = (int*)malloc(rsize*csize*sizeof(int));
-    top = (int*)malloc(rsize*sizeof(int));
-    bot = (int*)malloc(rsize*sizeof(int));
-    left = (int*)malloc(csize*sizeof(int));
-    right = (int*)malloc(csize*sizeof(int));
-    ttop = (int*)malloc(rsize*sizeof(int));
-    tbot = (int*)malloc(rsize*sizeof(int));
-    tleft = (int*)malloc(csize*sizeof(int));
-    tright = (int*)malloc(csize*sizeof(int));
+    section = (unsigned char*)malloc(rsize*csize*sizeof(unsigned char));
+    neighbors = (unsigned char*)malloc(rsize*csize*sizeof(unsigned char));
+    top = (unsigned char*)malloc(rsize*sizeof(unsigned char));
+    bot = (unsigned char*)malloc(rsize*sizeof(unsigned char));
+    left = (unsigned char*)malloc(csize*sizeof(unsigned char));
+    right = (unsigned char*)malloc(csize*sizeof(unsigned char));
+    ttop = (unsigned char*)malloc(rsize*sizeof(unsigned char));
+    tbot = (unsigned char*)malloc(rsize*sizeof(unsigned char));
+    tleft = (unsigned char*)malloc(csize*sizeof(unsigned char));
+    tright = (unsigned char*)malloc(csize*sizeof(unsigned char));
 
     //corners
-    int topleft,topright,botleft,botright; //used in calculations
-    int ttopleft,ttopright,tbotleft,tbotright; 
+    unsigned char topleft,topright,botleft,botright; //used in calculations
+    unsigned char ttopleft,ttopright,tbotleft,tbotright; 
     topleft = 255;
     topright = 255;
     botleft = 255;
@@ -671,13 +724,13 @@ int main (int argc, char **argv)
 
     //used for animation, each process will put there own result in and then
     //each will send to process 1 which will add them up
-    int* full_matrix;
-    int* full_matrix_buffer;
+    unsigned char* full_matrix;
+    unsigned char* full_matrix_buffer;
     if (animation == 1)
     {
         int msize1 = rsize*ncols*csize*nrows;
-        full_matrix = (int*)malloc(msize1*sizeof(int));
-        full_matrix_buffer = (int*)malloc(msize1*sizeof(int));
+        full_matrix = (unsigned char*)malloc(msize1*sizeof(unsigned char));
+        full_matrix_buffer = (unsigned char*)malloc(msize1*sizeof(unsigned char));
         for (i=0; i<msize1; i++)
         {
             full_matrix[i] = 0;
@@ -752,7 +805,7 @@ int main (int argc, char **argv)
             tleft[i] = 255;
         }
 
-        // MPI_Allreduce( &count, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
+        // MPI_Allreduce( &count, &total, 1, MPI_UNSIGNED_CHAR, MPI_SUM, MPI_COMM_WORLD );
         // if (rank == 0)
         // {
         //     printf("COUNT 4 = %d\n", total);
@@ -761,94 +814,42 @@ int main (int argc, char **argv)
     }
 
 
-    // /////// CUSTOM INPUITS //////////////////
-    // if (world_size == 0 && run_type == 0)
-    // {
-    //     //blinker
-    //     int offset = 0;
-    //     section[rsize+offset] = 0;
-    //     section[rsize+1+offset] = 0;
-    //     section[rsize+2+offset] = 0;
-        
-    //     //block
-    //     int offset2 = 5;
-    //     section[offset2] = 0;
-    //     section[offset2+1] = 0;
-    //     section[rsize+offset2] = 0;
-    //     section[rsize+offset2+1] = 0;
-    // }
-    // else if (world_size>0 && run_type == 1)
-    // {
-    //     //blinker 
-    //     int offset = 0;
-    //     if (rank == 2)
-    //     {
-    //         section[offset] = 0;
-    //         section[offset+1] = 0;
-    //         section[offset+2] = 0;
-    //     }
+    //header/footer for mpio writes
+    char header1[15];
+    header1[0] = 0x50;
+    header1[1] = 0x35;
+    header1[2] = 0x0a;
+    header1[3] = 0x35;
+    header1[4] = 0x31;
+    header1[5] = 0x32;
+    header1[6] = 0x20;
+    header1[7] = 0x35;
+    header1[8] = 0x31;
+    header1[9] = 0x32;
+    header1[10] = 0x0a;
+    header1[11] = 0x32;
+    header1[12] = 0x35;
+    header1[13] = 0x35;
+    header1[14] = 0x0a;
 
-    //     //block
-    //     int offset2 = 5;
-    //     if (rank == 1)
-    //     {
-    //         section[rsize*(csize-1)+offset2] = 0;
-    //         section[rsize*(csize-1)+offset2+1] = 0;
-    //     }
-    //     if (rank == 2)
-    //     {
-    //         section[offset2] = 0;
-    //         section[offset2+1] = 0;
-    //     }
-        
-    // }
-    // else if (world_size>0 && run_type == 2)
-    // {
-    //     //corners for np=4
-    //     if (rank == 0)
-    //     {
-    //         section[rsize*csize-1] = 0;
-    //     }
-    //     else if (rank == 1)
-    //     {
-    //         section[rsize*(csize-1)] = 0;
-    //     }
-    //     else if (rank == 2)
-    //     {
-    //         section[rsize-1] = 0;
-    //     }
-    //     else if (rank == 3)
-    //     {
-    //         section[0] = 0;
-    //     }
+    char footer;
+    footer = 0x0a;
 
-        
-    //     //left/right debug
-    //     if (rank == 2)
-    //     {
-    //         section[rsize*3+rsize-1] = 0;
-    //         section[rsize*4+rsize-1] = 0;
-    //     }
-    //     else if (rank == 3)
-    //     {
-    //         section[0+rsize*3] = 0;
-    //         section[0+rsize*4] = 0;
-    //     }
-    // }
-    
+    //make a frame or not?
+    int create_frame = 0;
 
-
-    
+    //send to 
     int send_to;
     int receive_from;
-    int info[9];
+    int info[5];
     info[2] = rank;
     info[3] = rsize;
     info[4] = csize;
-    info[5] = topleft;
-    info[6] = topright;
-    info[7] = botleft;
-    info[8] = botright;
+    unsigned char info2[4];
+    info2[0] = topleft;
+    info2[1] = topright;
+    info2[2] = botleft;
+    info2[3] = botright;
 
     int current_count;
     int location;
@@ -873,9 +874,9 @@ int main (int argc, char **argv)
         }
 
         
-        
+        //Write to file serially for comparison
         //If animation is requested
-        if (animation == 1)
+        if (animation == 1 && run_type == 0)
         {
             //Put smaller matrix part into larger matrix
             for (i=0; i<csize; i++)
@@ -894,14 +895,70 @@ int main (int argc, char **argv)
             }
 
             //Gather matrix
-            MPI_Reduce(full_matrix_buffer, full_matrix, rsize*ncols*csize*nrows, MPI_INT,
-                MPI_SUM, 0, MPI_COMM_WORLD);
+            MPI_Reduce(full_matrix_buffer, full_matrix, rsize*ncols*csize*nrows, 
+                MPI_UNSIGNED_CHAR, MPI_SUM, 0, MPI_COMM_WORLD);
 
-            //Write to file
-            if (rank == 0)
+            
+            if (rank == 0 && run_type == 0)
             {
                 write_matrix_to_pgm(k, rsize*ncols, csize*nrows, full_matrix);
             }
+        }
+        //mpio write pgm
+        else if (animation == 1 && (run_type == 1 || run_type == 2))
+        {
+            //default is no frame
+            create_frame = 0;
+            for (ii=0;ii<20;ii++)
+            {
+                for (jj=0;jj<animation_list[ii][1]+1;jj++)
+                {
+                    // if (rank == 0)
+                    // {
+                    //     printf("a,ii,j,k= %i,%i,%i,%i, Frame? = %i\n",
+                    //         animation_list[ii][0],ii,jj,k,(animation_list[ii][0]+jj-k)==0);
+                    // }
+                    if ((animation_list[ii][0] + jj - k) == 0)
+                    {
+
+                        create_frame = 1;
+                        break;
+                    }
+                }
+            }
+
+            if (create_frame == 1)
+            {
+               //dynamic filename with leading zeroes for easy conversion to gif
+                char buffer[128];
+                snprintf(buffer, sizeof(char)*128, "Animation/frame%04d.pgm", k);
+
+                /* open the file, and set the view */
+                MPI_File file;
+                MPI_File_open(MPI_COMM_WORLD, buffer, 
+                              MPI_MODE_CREATE|MPI_MODE_WRONLY,
+                              MPI_INFO_NULL, &file);
+
+                MPI_File_set_view(file, 0,  MPI_UNSIGNED_CHAR, MPI_UNSIGNED_CHAR, 
+                                       "native", MPI_INFO_NULL);
+
+                //write header
+                MPI_File_write(file, &header1, 15, MPI_CHAR, MPI_STATUS_IGNORE);
+
+                //write matrix
+                MPI_File_set_view(file, 15,  MPI_UNSIGNED_CHAR, submatrix, 
+                                       "native", MPI_INFO_NULL);
+
+                MPI_File_write_all(file, section, rsize*csize, 
+                        MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+
+                //write footer (trailing newline)
+                MPI_File_set_view(file, 15+rsize*ncols*csize*nrows,  
+                        MPI_UNSIGNED_CHAR, MPI_UNSIGNED_CHAR, 
+                        "native", MPI_INFO_NULL);
+
+                MPI_File_write(file, &footer, 1, MPI_CHAR, MPI_STATUS_IGNORE); 
+            } 
         }
 
 
@@ -1141,11 +1198,11 @@ int main (int argc, char **argv)
             {
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
                 {
-                    MPI_Send(&ttopright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&ttopright, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
                 {
-                    MPI_Recv(&botleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&botleft, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
             }
@@ -1153,12 +1210,12 @@ int main (int argc, char **argv)
             {
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
                 {
-                    MPI_Recv(&botleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&botleft, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
                 {
-                    MPI_Send(&ttopright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&ttopright, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
             }
 
@@ -1170,11 +1227,11 @@ int main (int argc, char **argv)
             {
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
                 {
-                    MPI_Send(&ttopleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&ttopleft, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
                 {
-                    MPI_Recv(&botright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&botright, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
             }
@@ -1182,12 +1239,12 @@ int main (int argc, char **argv)
             {
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row+1)
                 {
-                    MPI_Recv(&botright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&botright, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row-1)
                 {
-                    MPI_Send(&ttopleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&ttopleft, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
             }
 
@@ -1199,11 +1256,11 @@ int main (int argc, char **argv)
             {
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
                 {
-                    MPI_Send(&tbotleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&tbotleft, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
                 {
-                    MPI_Recv(&topright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&topright, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
             }
@@ -1211,12 +1268,12 @@ int main (int argc, char **argv)
             {
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
                 {
-                    MPI_Recv(&topright, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&topright, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
                 {
-                    MPI_Send(&tbotleft, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&tbotleft, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
             }
 
@@ -1228,11 +1285,11 @@ int main (int argc, char **argv)
             {
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
                 {
-                    MPI_Send(&tbotright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&tbotright, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
                 {
-                    MPI_Recv(&topleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&topleft, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
             }
@@ -1240,20 +1297,20 @@ int main (int argc, char **argv)
             {
                 if (receive_from<world_size && receive_from>=0 && receive_from/nrows==my_row-1)
                 {
-                    MPI_Recv(&topleft, 1, MPI_INT, receive_from, 0, MPI_COMM_WORLD,
+                    MPI_Recv(&topleft, 1, MPI_UNSIGNED_CHAR, receive_from, 0, MPI_COMM_WORLD,
                         MPI_STATUS_IGNORE);
                 }
                 if (send_to<world_size && send_to>=0 && send_to/nrows==my_row+1)
                 {
-                    MPI_Send(&tbotright, 1, MPI_INT, send_to, 0, MPI_COMM_WORLD);
+                    MPI_Send(&tbotright, 1, MPI_UNSIGNED_CHAR, send_to, 0, MPI_COMM_WORLD);
                 }
             }
 
 
-            info[5] = topleft;
-            info[6] = topright;
-            info[7] = botleft;
-            info[8] = botright;
+            info2[0] = topleft;
+            info2[1] = topright;
+            info2[2] = botleft;
+            info2[3] = botright;
 
         }
  
@@ -1275,7 +1332,7 @@ int main (int argc, char **argv)
             {
                 info[0] = i;
                 info[1] = j;
-                neighbors[i*rsize+j] = count_neighbors(info, section, 
+                neighbors[i*rsize+j] = count_neighbors(info, info2, section, 
                                     top, bot, left, right);
             }
         }

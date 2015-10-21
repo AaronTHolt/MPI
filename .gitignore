@@ -33,4 +33,4 @@
 
 #images/gifs
 *.pgm
-
+*.map

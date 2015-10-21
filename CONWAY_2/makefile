@@ -3,7 +3,7 @@
 ########################################################################### 
 
 CC = mpicc
-CCFLAGS = -g -lm
+CCFLAGS = -g -lm -lmpi
 LDFLAGS= -lm
 ifeq ($(DEBUG),on)
 	CCFLAGS += -DDEBUG

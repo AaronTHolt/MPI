@@ -1,0 +1,11 @@
+Verbose=1, RunType=2, Iterations=501, CountWhen=100, Animation=1
+[ -1:000]                : 7788 total buggies
+rsize,csize,NP = 128, 128, 16
+g0,g1 = 512,512
+p0,p1 = 4,4
+Iteration=    0,  Count=  7788
+Iteration=  100,  Count=  6428
+Iteration=  200,  Count=  6017
+Iteration=  300,  Count=  5731
+Iteration=  400,  Count=  5646
+Iteration=  500,  Count=  5714

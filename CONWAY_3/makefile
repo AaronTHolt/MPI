@@ -13,8 +13,8 @@ endif
 # Files
 ########################################################################### 
 
-C_FILES = hw6.1-holtat.c pgm.c pprintf.c
-O_FILES = hw6.1-holtat.o pgm.o pprintf.o
+C_FILES = hw7.1-holtat.c pgm.c pprintf.c
+O_FILES = hw7.1-holtat.o pgm.o pprintf.o
 
 ########################################################################### 
 # Targets
@@ -23,7 +23,7 @@ O_FILES = hw6.1-holtat.o pgm.o pprintf.o
 all: hw5.1-holtat
 
 hw5.1-holtat: $(O_FILES)
-	$(CC) -o hw6.1-holtat $(O_FILES) $(LDFLAGS)
+	$(CC) -o hw7.1-holtat $(O_FILES) $(LDFLAGS)
 
 .PHONY: clean
 clean:		

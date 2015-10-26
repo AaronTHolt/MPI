@@ -1,16 +1,5 @@
-Verbose=1, RunType=1, Iterations=1001, CountWhen=100, Animation=0
-[ -1:000]                : 25301 total buggies
-rsize,csize,NP = 900, 100, 9
-g0,g1 = 100,900
-p0,p1 = 9,1
-Iteration=    0,  Count= 25301
-Iteration=  100,  Count= 23284
-Iteration=  200,  Count= 22557
-Iteration=  300,  Count= 22241
-Iteration=  400,  Count= 21197
-Iteration=  500,  Count= 20932
-Iteration=  600,  Count= 20341
-Iteration=  700,  Count= 19792
-Iteration=  800,  Count= 19402
-Iteration=  900,  Count= 19261
-Iteration= 1000,  Count= 18340
+Verbose=1, RunType=1, Iterations=1001, CountWhen=1000, Animation=0
+[ -1:000]                : 7788 total buggies
+rsize,csize,NP = 512, 32, 16
+Iteration=    0,  Count=  7788
+Iteration= 1000,  Count=  5526

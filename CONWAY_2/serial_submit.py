@@ -2,27 +2,22 @@ import subprocess
 import os
 from time import sleep
 
-# cmd2 = 'mpirun -np 16 ./hw6.1-holtat -v -a 1 51 50 1-50'
-# cmd2 = 'mpirun -np 16 ./hw6.1-holtat -v -a 1 1001 1000 1,2,3,4-6'
-cmd2 = 'mpirun -np 16 ./hw6.1-holtat -v 1 1001 1000'
+cmd2 = 'mpirun -np 1 psrun -f ./hw6.1-holtat 0 1 1000 0-10'
 
 script = '''#!/bin/bash
 #
-#SBATCH --job-name=blocked
+#SBATCH --job-name=serial
 #SBATCH --qos janus
-#SBATCH --nodes 16
+#SBATCH --nodes 1
 #SBATCH --ntasks-per-node 1
 #SBATCH --time 00:10:00
-#SBATCH --output RESULTS/blocked.txt
+#SBATCH --output RESULTS/serial.txt
 
-module load slurm
-module load gcc
-module load openmpi
 
 {cc}
 '''.format(cc=cmd2)
 
-f = open('SCRIPTS/blocked.sh', 'w')
+f = open('SCRIPTS/serial.sh', 'w')
 for line in script:
 	f.write(line)
 f.close
@@ -32,7 +27,7 @@ for line in script:
 	f.write(line)
 f.close
 
-cmd = 'sbatch SCRIPTS/blocked.sh'
+cmd = 'sbatch SCRIPTS/serial.sh'
 print cmd
 print cmd2
 

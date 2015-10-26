@@ -18,7 +18,7 @@
 
 //Aaron Holt
 //HPSC
-//Conways 2
+//Conways 3
 // compile instructions: $ make
 // run instructions:
 /*
@@ -479,7 +479,7 @@ int main (int argc, char **argv)
     {
         verbose = 1;
     }
-
+    verbose = 0;
     
 
     // Initialize the MPI environment
@@ -568,7 +568,7 @@ int main (int argc, char **argv)
 
     
     //////////////////////READ IN INITIAL PGM////////////////////////////////
-    if(!readpgm("cool.pgm"))
+    if(!readpgm("life.pgm"))
     {
         // printf("WR=%d,HERE2\n",rank);
         if( rank==0 )
@@ -626,11 +626,11 @@ int main (int argc, char **argv)
 
     if (run_type == 1)
     {
-        if (rank == 0)
-        {
-            printf("g0,g1 = %i,%i\n", local_height*ncols, local_width);
-            printf("p0,p1 = %i,%i\n", nrows, ncols);
-        }
+        // if (rank == 0)
+        // {
+        //     printf("g0,g1 = %i,%i\n", local_height*ncols, local_width);
+        //     printf("p0,p1 = %i,%i\n", nrows, ncols);
+        // }
         array_of_gsizes[0] = local_height*ncols;
         array_of_gsizes[1] = local_width;
         array_of_distribs[0] = MPI_DISTRIBUTE_BLOCK;
@@ -649,11 +649,11 @@ int main (int argc, char **argv)
     }
     else if (run_type == 2)
     {
-        if (rank == 0)
-        {
-            printf("g0,g1 = %i,%i\n", local_height*ncols, local_width*nrows);
-            printf("p0,p1 = %i,%i\n", nrows, ncols);
-        }
+        // if (rank == 0)
+        // {
+        //     printf("g0,g1 = %i,%i\n", local_height*ncols, local_width*nrows);
+        //     printf("p0,p1 = %i,%i\n", nrows, ncols);
+        // }
         array_of_gsizes[0] = local_height*ncols;
         array_of_gsizes[1] = local_width*nrows;
         array_of_distribs[0] = MPI_DISTRIBUTE_BLOCK;
@@ -854,6 +854,15 @@ int main (int argc, char **argv)
     int current_count;
     int location;
 
+
+
+    //Timing variables
+    //comm = communication, comp=computation, total=comm+comp
+    double start_comm, end_comm, start_comp, end_comp;
+    double alltime_comm[50] = {0};
+    double alltime_comp[50] = {0};
+    double total_time[50] = {0};
+
     //Gameplay
     for (k=0;k<iterations;k++)
     {
@@ -873,7 +882,6 @@ int main (int argc, char **argv)
             }
         }
 
-        
         //Write to file serially for comparison
         //If animation is requested
         if (animation == 1 && run_type == 0)
@@ -961,6 +969,11 @@ int main (int argc, char **argv)
             } 
         }
 
+
+        if (k>=10)
+        {
+            start_comm = MPI_Wtime();
+        } 
 
         // BLOCKED COMMUNITATION //
         if (run_type == 1)
@@ -1314,15 +1327,13 @@ int main (int argc, char **argv)
 
         }
  
-        // if (rank == 1){
-        //     print_matrix(rsize, 1, top);
-        //     print_matrix(rsize, csize, section);
-        //     print_matrix(rsize, 1, bot);
-        //     printf("\n");
-        // }
-        // printf("wr=%d,iteration=%d,maxval=%d, 11\n", rank, k,(csize-1)*rsize-1+rsize);
-        
+        if (k>=10)
+        {
+            end_comm = MPI_Wtime();
+            alltime_comm[k-10] = end_comm-start_comm;
 
+            start_comp = MPI_Wtime();
+        } 
 
         /////////// CELL UPDATES /////////////////
         //count neighbor
@@ -1361,6 +1372,60 @@ int main (int argc, char **argv)
                         section[i*rsize+j] = 0;
                     }
                 }
+            }
+        }
+
+        if (k>=10)
+        {
+            end_comp = MPI_Wtime();
+            alltime_comp[k-10] = end_comp-start_comp;
+        } 
+    }
+
+    //calculate total iteration time:
+    for(i=0;i<50;i++)
+    {
+        total_time[i] = alltime_comp[i] + alltime_comm[i];
+    }
+
+    //print data to outfile
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (rank == 0)
+    {
+        //comm time
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.9f,", alltime_comm[i]);
+            }
+            else
+            {
+                printf("%2.9f\n", alltime_comm[i]);
+            }
+        }
+        //comp time
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.9f,", alltime_comp[i]);
+            }
+            else
+            {
+                printf("%2.9f\n", alltime_comp[i]);
+            }
+        }
+        //total time
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.9f,", total_time[i]);
+            }
+            else
+            {
+                printf("%2.9f\n", total_time[i]);
             }
         }
     }

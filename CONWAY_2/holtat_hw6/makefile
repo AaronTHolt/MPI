@@ -3,8 +3,8 @@
 ########################################################################### 
 
 CC = mpicc
-CCFLAGS =-lm -g -O2
-LDFLAGS= -lm -g
+CCFLAGS = -g -lm -lmpi
+LDFLAGS= -lm
 ifeq ($(DEBUG),on)
 	CCFLAGS += -DDEBUG
 endif
@@ -13,24 +13,23 @@ endif
 # Files
 ########################################################################### 
 
-C_FILES = hw7.2-holtat.c pgm.c pprintf.c
-O_FILES = hw7.2-holtat.o pgm.o pprintf.o
+C_FILES = hw6.1-holtat.c pgm.c pprintf.c
+O_FILES = hw6.1-holtat.o pgm.o pprintf.o
 
 ########################################################################### 
 # Targets
 ########################################################################### 
 
-all: hw7.2-holtat
+all: hw5.1-holtat
 
-hw7.2-holtat: $(O_FILES)
-	$(CC) -o hw7.2-holtat $(O_FILES) $(LDFLAGS)
-
+hw5.1-holtat: $(O_FILES)
+	$(CC) -o hw6.1-holtat $(O_FILES) $(LDFLAGS)
 
 .PHONY: clean
 clean:		
-	/bin/rm -f core $(O_FILES) hw7.2-holtat 
+	/bin/rm -f core $(O_FILES) hw5.1-holtat
 
-hw7.2-holtat.o: pgm.o pprintf.o
+hw5.1-holtat.o: pgm.o pprintf.o
 
 .c.o:		
 	$(CC) $(CCFLAGS) -c -o $*.o $*.c
@@ -50,4 +49,4 @@ hw7.2-holtat.o: pgm.o pprintf.o
 *.o: pprintf.h
 
 # Conway depends on PGM utilities
-hw7.2-holtat.o: pgm.h pprintf.h
+hw5.1-holtat.o: pgm.h pprintf.h

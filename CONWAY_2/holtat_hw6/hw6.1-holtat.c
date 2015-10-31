@@ -475,7 +475,7 @@ int main (int argc, char **argv)
     int verbose;
     verbose = arguments.verbose;
     // printf("VERBOSE = %i",verbose);
-    if (verbose>0 && verbose<=10)
+    if (verbose>=0 && verbose<=10)
     {
         verbose = 1;
     }
@@ -499,7 +499,7 @@ int main (int argc, char **argv)
     MPI_Get_processor_name(processor_name, &name_len);
 
     //Print run information, exit on bad command line input
-    if (rank == 0 && verbose == 1)
+    if (rank == 0)
     {
         printf("Verbose=%i, RunType=%i, Iterations=%i, CountWhen=%i, Animation=%i\n",
             verbose,run_type,iterations,count_when, animation);
@@ -568,7 +568,7 @@ int main (int argc, char **argv)
 
     
     //////////////////////READ IN INITIAL PGM////////////////////////////////
-    if(!readpgm("life.pgm"))
+    if(!readpgm("cool.pgm"))
     {
         // printf("WR=%d,HERE2\n",rank);
         if( rank==0 )
@@ -596,7 +596,7 @@ int main (int argc, char **argv)
 
     int total;
     MPI_Allreduce( &i, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
-    if( rank==0  && verbose == 1 )
+    if( rank==0 )
     {
         pprintf( "%i total buggies\n", total );
     }
@@ -1334,9 +1334,7 @@ int main (int argc, char **argv)
                 info[1] = j;
                 neighbors[i*rsize+j] = count_neighbors(info, info2, section, 
                                     top, bot, left, right);
-                // printf("%i",neighbors[i*rsize+j]);
             }
-            // printf("\n");
         }
 
         //update cells
@@ -1364,7 +1362,7 @@ int main (int argc, char **argv)
                     }
                 }
             }
-        }
+        } 
     }
 
     MPI_Barrier(MPI_COMM_WORLD);

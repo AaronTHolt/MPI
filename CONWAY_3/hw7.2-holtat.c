@@ -140,214 +140,6 @@ void write_matrix_to_pgm(int frame, int rsize, int csize,
     fclose(fp);
 }
 
-//Takes in current cell location, and all neighboring data
-//outputs integer of alive neighbor cells
-int count_neighbors(int info[5], unsigned char info2[4], unsigned char* section, 
-            unsigned char* top, unsigned char* bot, 
-            unsigned char* left, unsigned char* right)
-            // int topleft, int topright, int botleft, int botright)
-{
-    int i,j,rsize,csize,topleft,topright,botright,botleft;
-    i = info[0];
-    j = info[1];
-    // wr = info[2];
-    rsize = info[3];
-    csize = info[4];
-    topleft = info2[0];
-    topright = info2[1];
-    botleft = info2[2];
-    botright = info2[3];
-    
-    int total_around = 0;
-    // printf("wr=%d, i=%d,j=%d\n",wr,i,j);
-    // printf("wr=%d, top[j]=%d\n",wr,top[j]);
-    
-    //top center//
-    //on top edge?
-    if (i == 0)
-    {
-        //alive?
-        if (top[j] == 0)
-        {
-            total_around += 1;
-        }
-        // printf("HERE@\n");
-    }
-    //in middle somewhere
-    else if (section[(i-1)*rsize + j] == 0)
-    {
-        total_around += 1;
-    }
-    
-
-    //bottom center//
-    //on bot edge?
-    if (i == (csize-1))
-    {
-        if (bot[j] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    else if (section[(i+1)*rsize + j] == 0)
-    {
-        total_around += 1;
-    }
-
-    //right//
-    //on right edge?
-    if(j == (rsize-1))
-    {
-        if(right[i] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    else if (section[i*rsize+j+1] == 0)
-    {
-        total_around += 1;
-    }
-
-    //left//
-    //on left edge?
-    if(j == 0)
-    {
-        if(left[i] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    else if (section[i*rsize+j-1] == 0)
-    {
-        total_around += 1;
-    }
-
-    //topleft//
-    //on topleft corner?
-    if (i==0 && j==0)
-    {
-        if (topleft == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on top row?
-    else if (i == 0)
-    {
-        if (top[j-1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on left edge?
-    else if (j == 0)
-    {
-        if (left[i-1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //in center?
-    else if (section[(i-1)*rsize+j-1] == 0)
-    {
-        total_around += 1;
-    }
-
-    //topright//
-    //topright corner?
-    if (i==0 && j==rsize-1)
-    {
-        if (topright == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on top row?
-    else if (i == 0)
-    {
-        if (top[j+1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on right edge?
-    else if (j == rsize-1)
-    {
-        if (right[i-1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //in center?
-    else if (section[(i-1)*rsize+j+1] == 0)
-    {
-        total_around += 1;
-    }
-
-    //botright//
-    //botright corner?
-    if (i==csize-1 && j==rsize-1)
-    {
-        if (botright == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on bot row?
-    else if (i == csize-1)
-    {
-        if (bot[j+1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on right edge?
-    else if (j == rsize-1)
-    {
-        if (right[i+1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //in center?
-    else if (section[(i+1)*rsize+j+1] == 0)
-    {
-        total_around += 1;
-    }
-
-    //botleft//
-    //botleft corner?
-    if (i==csize-1 && j==0)
-    {
-        if (botleft == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on bot row?
-    else if (i == csize-1)
-    {
-        if (bot[j-1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //on left edge?
-    else if (j == 0)
-    {
-        if (left[i+1] == 0)
-        {
-            total_around += 1;
-        }
-    }
-    //in center?
-    else if (section[(i+1)*rsize+j-1] == 0)
-    {
-        total_around += 1;
-    }
-
-    return total_around;
-}
 
 //counts number of buggies in a given matrix
 int count_buggies(int rsize, int csize, unsigned char* matrix)
@@ -358,7 +150,7 @@ int count_buggies(int rsize, int csize, unsigned char* matrix)
     {
         for (j=0;j<rsize;j++)
         {
-            if (matrix[i*rsize+j]>0)
+            if (matrix[i*rsize+j]!=0)
             {
                 count += 1;
             }
@@ -717,10 +509,10 @@ int main (int argc, char **argv)
     //corners
     unsigned char topleft,topright,botleft,botright; //used in calculations
     unsigned char ttopleft,ttopright,tbotleft,tbotright; 
-    topleft = 255;
-    topright = 255;
-    botleft = 255;
-    botright = 255;
+    topleft = 0;
+    topright = 0;
+    botleft = 0;
+    botright = 0;
 
     //used for animation, each process will put there own result in and then
     //each will send to process 1 which will add them up
@@ -749,29 +541,29 @@ int main (int argc, char **argv)
         {
             for (j=0;j<rsize;j++)
             {
-                section[i*rsize + j] = 255;
+                section[i*rsize + j] = 0;
                 
                 if (field_a[(i+1)*(2+rsize) + j + 1])
                 {
-                    section[i*rsize + j] = 0;
+                    section[i*rsize + j] = 1;
                     count += 1;
                 }
                 else
                 {
-                    section[i*rsize + j] = 255;
+                    section[i*rsize + j] = 0;
                 }
-
-                top[j] = 255;
-                bot[j] = 255;
-                ttop[j] = 255;
-                tbot[j] = 255;
+                top[j] = 0;
+                bot[j] = 0;
+                ttop[j] = 0;
+                tbot[j] = 0;
             }
-            right[i] = 255;
-            left[i] = 255;
-            tright[i] = 255;
-            tleft[i] = 255;
+            right[i] = 0;
+            left[i] = 0;
+            tright[i] = 0;
+            tleft[i] = 0;
         }
         // printf("COUNT 4 = %d\n", count);
+
     }
 
     //Blocked/Checkered initializing variables
@@ -782,34 +574,34 @@ int main (int argc, char **argv)
         {
             for (j=0;j<rsize;j++)
             {
-                section[i*rsize + j] = 255;
+                section[i*rsize + j] = 0;
                 
                 if (field_a[(i+1)*(2+rsize) + j + 1])
                 {
-                    section[i*rsize + j] = 0;
+                    section[i*rsize + j] = 1;
                     count += 1;
                 }
                 else
                 {
-                    section[i*rsize + j] = 255;
+                    section[i*rsize + j] = 0;
                 }
 
-                top[j] = 255;
-                bot[j] = 255;
-                ttop[j] = 255;
-                tbot[j] = 255;
+                top[j] = 0;
+                bot[j] = 0;
+                ttop[j] = 0;
+                tbot[j] = 0;
             }
-            right[i] = 255;
-            left[i] = 255;
-            tright[i] = 255;
-            tleft[i] = 255;
+            right[i] = 0;
+            left[i] = 0;
+            tright[i] = 0;
+            tleft[i] = 0;
         }
 
         // MPI_Allreduce( &count, &total, 1, MPI_UNSIGNED_CHAR, MPI_SUM, MPI_COMM_WORLD );
-        // if (rank == 0)
-        // {
-        //     printf("COUNT 4 = %d\n", total);
-        // }
+        if (rank == 0)
+        {
+            printf("COUNT 4 = %d\n", total);
+        }
         
     }
 
@@ -827,9 +619,9 @@ int main (int argc, char **argv)
     header1[8] = 0x31;
     header1[9] = 0x32;
     header1[10] = 0x0a;
-    header1[11] = 0x32;
-    header1[12] = 0x35;
-    header1[13] = 0x35;
+    header1[11] = 0x30;
+    header1[12] = 0x30;
+    header1[13] = 0x31;
     header1[14] = 0x0a;
 
     char footer;
@@ -862,7 +654,7 @@ int main (int argc, char **argv)
         {
             if (verbose == 1)
             {
-                current_count = rsize*csize-count_buggies(rsize,csize,section);
+                current_count = count_buggies(rsize,csize,section);
                 MPI_Allreduce( &current_count, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );
                 if (rank == 0)
                 {
@@ -1314,15 +1106,6 @@ int main (int argc, char **argv)
 
         }
  
-        // if (rank == 1){
-        //     print_matrix(rsize, 1, top);
-        //     print_matrix(rsize, csize, section);
-        //     print_matrix(rsize, 1, bot);
-        //     printf("\n");
-        // }
-        // printf("wr=%d,iteration=%d,maxval=%d, 11\n", rank, k,(csize-1)*rsize-1+rsize);
-        
-
 
         /////////// CELL UPDATES /////////////////
         //count neighbor
@@ -1332,11 +1115,148 @@ int main (int argc, char **argv)
             {
                 info[0] = i;
                 info[1] = j;
-                neighbors[i*rsize+j] = count_neighbors(info, info2, section, 
-                                    top, bot, left, right);
-                // printf("%i",neighbors[i*rsize+j]);
+                // neighbors[i*rsize+j] = count_neighbors(info, info2, section, 
+                //                     top, bot, left, right);
+                int total_around = 0;
+   
+    
+                //topleft//
+                //on topleft corner?
+                if (i==0 && j==0)
+                {
+                    total_around += topleft;
+                }
+                //on top row?
+                else if (i == 0)
+                {
+                    total_around += top[j-1];
+                }
+                //on left edge?
+                else if (j == 0)
+                {
+                    total_around += left[i-1];
+                }
+                //in center?
+                else
+                {
+                    total_around += section[(i-1)*rsize+j-1];
+                }
+
+                //top center//
+                //on top edge?
+                if (i == 0)
+                {
+                    //alive?
+                    total_around += top[j];
+                }
+                //in middle somewhere
+                else
+                {
+                    total_around += section[(i-1)*rsize + j];
+                }
+
+                //topright//
+                //topright corner?
+                if (i==0 && j==rsize-1)
+                {
+                    total_around += topright;
+                }
+                //on top row?
+                else if (i == 0)
+                {
+                    total_around += top[j+1];
+                }
+                //on right edge?
+                else if (j == rsize-1)
+                {
+                    total_around += right[i-1];
+                }
+                //in center?
+                else
+                {
+                    total_around += section[(i-1)*rsize+j+1];
+                }
+
+                //left//
+                //on left edge?
+                if(j == 0)
+                {
+
+                    total_around += left[i];
+                }
+                else
+                {
+                    total_around += section[i*rsize+j-1];
+                }
+
+                //right//
+                //on right edge?
+                if(j == (rsize-1))
+                {
+                    total_around += right[i];
+                }
+                else
+                {
+                    total_around += section[i*rsize+j+1];
+                }
+
+                //botleft//
+                //botleft corner?
+                if (i==csize-1 && j==0)
+                {
+                    total_around += botleft;
+                }
+                //on bot row?
+                else if (i == csize-1)
+                {
+                    total_around += bot[j-1];
+                }
+                //on left edge?
+                else if (j == 0)
+                {
+                    total_around += left[i+1];
+                }
+                //in center?
+                else
+                {
+                    total_around += section[(i+1)*rsize+j-1];
+                }
+
+                //bottom center//
+                //on bot edge?
+                if (i == (csize-1))
+                {
+                    total_around += bot[j];
+                }
+                else
+                {
+                    total_around += section[(i+1)*rsize + j];
+                }
+                
+                //botright//
+                //botright corner?
+                if (i==csize-1 && j==rsize-1)
+                {
+                    total_around += botright;
+                }
+                //on bot row?
+                else if (i == csize-1)
+                {
+                    total_around += bot[j+1];
+                }
+                //on right edge?
+                else if (j == rsize-1)
+                {
+                    total_around += right[i+1];
+                }
+                //in center?
+                else
+                {
+                    total_around += section[(i+1)*rsize+j+1];
+                }
+
+                neighbors[i*rsize+j] = total_around;
             }
-            // printf("\n");
         }
 
         //update cells
@@ -1346,13 +1266,13 @@ int main (int argc, char **argv)
             for (j=0; j<rsize; j++)
             {
                 //cell currently alive
-                if (section[i*rsize+j] == 0)
+                if (section[i*rsize+j] == 1)
                 {
                     //2 or 3 neighbors lives, else die
                     if (neighbors[i*rsize+j] < 2 || 
                         neighbors[i*rsize+j] > 3)
                     {
-                        section[i*rsize+j] = 255;
+                        section[i*rsize+j] = 0;
                     }
                 }
                 else
@@ -1360,9 +1280,10 @@ int main (int argc, char **argv)
                     //Exactly 3 neighbors spawns new life
                     if (neighbors[i*rsize+j] == 3)
                     {
-                        section[i*rsize+j] = 0;
+                        section[i*rsize+j] = 1;
                     }
                 }
+
             }
         }
     }

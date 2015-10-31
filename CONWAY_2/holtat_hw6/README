@@ -1,0 +1,14 @@
+Aaron Holt
+HPSC
+Conways 2
+compile instructions: $ make
+run instructions:
+
+$ mpiexec -np NP ./hw6.1-holtat -v -a run_type iterations printwhen PGMout
+-v for verbose (print out buggie counts etc)
+-a to generate animation
+runtype 0=serial, 1=blocked, 2=checkered
+iterations = number of iterations desired
+printwhen = print buggie count at printwhen interval
+PGMout = iterations to generate PGM ex: 1,2,3,4-20,50-55,77
+

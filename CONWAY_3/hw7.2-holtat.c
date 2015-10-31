@@ -360,7 +360,7 @@ int main (int argc, char **argv)
 
     
     //////////////////////READ IN INITIAL PGM////////////////////////////////
-    if(!readpgm("life.pgm"))
+    if(!readpgm("300.pgm"))
     {
         // printf("WR=%d,HERE2\n",rank);
         if( rank==0 )
@@ -646,6 +646,13 @@ int main (int argc, char **argv)
     int current_count;
     int location;
 
+    //Timing variables
+    //comm = communication, comp=computation, total=comm+comp
+    double start_comm, end_comm, start_comp, end_comp;
+    double alltime_comm[50] = {0};
+    double alltime_comp[50] = {0};
+    double total_time[50] = {0};
+
     //Gameplay
     for (k=0;k<iterations;k++)
     {
@@ -752,6 +759,11 @@ int main (int argc, char **argv)
                 MPI_File_write(file, &footer, 1, MPI_CHAR, MPI_STATUS_IGNORE); 
             } 
         }
+
+        if (k>=10)
+        {
+            start_comm = MPI_Wtime();
+        } 
 
 
         // BLOCKED COMMUNITATION //
@@ -1105,6 +1117,16 @@ int main (int argc, char **argv)
             info2[3] = botright;
 
         }
+
+
+        if (k>=10)
+        {
+            end_comm = MPI_Wtime();
+            alltime_comm[k-10] = end_comm-start_comm;
+
+            start_comp = MPI_Wtime();
+        } 
+
  
 
         /////////// CELL UPDATES /////////////////
@@ -1286,7 +1308,63 @@ int main (int argc, char **argv)
 
             }
         }
+
+        if (k>=10)
+        {
+            end_comp = MPI_Wtime();
+            alltime_comp[k-10] = end_comp-start_comp;
+        } 
     }
+
+    //calculate total iteration time:
+    for(i=0;i<50;i++)
+    {
+        total_time[i] = alltime_comp[i] + alltime_comm[i];
+    }
+
+
+    //print data to outfile
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (rank == 0)
+    {
+        //comm time
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.9f,", alltime_comm[i]);
+            }
+            else
+            {
+                printf("%2.9f\n", alltime_comm[i]);
+            }
+        }
+        //comp time
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.9f,", alltime_comp[i]);
+            }
+            else
+            {
+                printf("%2.9f\n", alltime_comp[i]);
+            }
+        }
+        //total time
+        for(i=0; i<50; i++)
+        {
+            if (i < 49)
+            {
+                printf("%2.9f,", total_time[i]);
+            }
+            else
+            {
+                printf("%2.9f\n", total_time[i]);
+            }
+        }
+    }
+
 
     MPI_Barrier(MPI_COMM_WORLD);
     sleep(0.5);

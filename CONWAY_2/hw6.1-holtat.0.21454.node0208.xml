@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE hwpcreport 
+	SYSTEM "/curc/tools/x_86_64/rh6/perfsuite/1.1.4/openmpi/1.8.2/intel/13.0.0/share/perfsuite/dtds/pshwpc/hwpcreport-0.3.dtd">
+<hwpcreport version="0.2" generator="libpshwpc" mode="count"
+		xmlns:perfsuite="http://perfsuite.ncsa.uiuc.edu/">
+	<date>Fri Oct 30 21:44:25 2015</date>
+	<hostname>node0208</hostname>
+	<domainname>(none)</domainname>
+	<pid>21454</pid>
+	<thread>0</thread>
+	<username>holtat</username>
+	<command>hw6.1-holtat</command>
+	<wallclock units="ticks">1891198020</wallclock>
+	<cputime units="seconds">
+		<usertime>0.000160</usertime>
+		<systemtime>0.000110</systemtime>
+	</cputime>
+	<machineinfo>
+		<cpucount>12</cpucount>
+		<cpuinfo>
+			<vendor>Intel</vendor>
+			<brand>Intel(R) Xeon(R) CPU           X5660  @ 2.80GHz</brand>
+			<cpuidinfo>family: 6, model: 44, stepping: 2</cpuidinfo>
+			<revision>2</revision>
+			<clockspeed units="MHz">2801.000</clockspeed>
+			<cacheinfo>
+				<levels>3</levels>
+				<cache type="instruction" level="1">
+					<size units="KB">32</size>
+					<linesize units="B">64</linesize>
+					<associativity type="set">4</associativity>
+				</cache>
+				<cache type="data" level="1">
+					<size units="KB">32</size>
+					<linesize units="B">64</linesize>
+					<associativity type="set">8</associativity>
+				</cache>
+				<cache type="unified" level="2">
+					<size units="KB">256</size>
+					<linesize units="B">64</linesize>
+					<associativity type="set">8</associativity>
+				</cache>
+				<cache type="unified" level="3">
+					<size units="KB">12288</size>
+					<linesize units="B">64</linesize>
+					<associativity type="set">16</associativity>
+				</cache>
+			</cacheinfo>
+			<tlbinfo>
+				<tlb type="instruction" level="1">
+					<entries>128</entries>
+					<associativity type="set">4</associativity>
+				</tlb>
+				<tlb type="instruction" level="1">
+					<entries>7</entries>
+					<associativity type="full">0</associativity>
+				</tlb>
+				<tlb type="data" level="1">
+					<entries>64</entries>
+					<associativity type="set">4</associativity>
+				</tlb>
+				<tlb type="data" level="1">
+					<entries>32</entries>
+					<associativity type="set">4</associativity>
+				</tlb>
+				<tlb type="unified" level="2">
+					<entries>512</entries>
+					<associativity type="set">4</associativity>
+				</tlb>
+			</tlbinfo>
+		</cpuinfo>
+		<memoryinfo units="MB">24150.31</memoryinfo>
+		<syspagesize units="KB">4</syspagesize>
+	</machineinfo>
+	<hwpceventdata class="PAPI" version="5.1.0.2" domain="user" multiplexed="yes">
+		<hwpcevent type="preset" name="PAPI_BR_CN" derived="no">52128766</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_BR_INS" derived="no">105886205</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_BR_MSP" derived="no">163883</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_BR_TKN" derived="no">55603952</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_FP_INS" derived="no">0</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_FP_OPS" derived="yes">0</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L1_DCM" derived="no">4328</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L1_ICA" derived="no">181814657</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L1_ICM" derived="no">2479685</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L2_ICA" derived="no">2472807</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L2_ICM" derived="no">4342</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L2_TCA" derived="no">2453773</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L2_TCM" derived="no">765036</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L3_ICA" derived="no">1163</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L3_TCA" derived="no">4172</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_L3_TCM" derived="no">0</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_LD_INS" derived="no">142955332</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_RES_STL" derived="no">77799511</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_SR_INS" derived="no">46306104</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_TLB_DM" derived="no">638535</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_TLB_IM" derived="no">7285</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_TOT_CYC" derived="no">430354153</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_TOT_IIS" derived="no">841487687</hwpcevent>
+		<hwpcevent type="preset" name="PAPI_TOT_INS" derived="no">868289508</hwpcevent>
+	</hwpceventdata>
+</hwpcreport>

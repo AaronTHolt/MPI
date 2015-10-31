@@ -3,8 +3,8 @@
 ########################################################################### 
 
 CC = mpicc
-CCFLAGS =-lm -g -O2
-LDFLAGS= -lm -g
+CCFLAGS =-lm -O2 
+LDFLAGS= -lm 
 ifeq ($(DEBUG),on)
 	CCFLAGS += -DDEBUG
 endif

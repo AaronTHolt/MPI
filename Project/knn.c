@@ -129,14 +129,13 @@ int main (int argc, char **argv)
 
     for (i=0; i<total_examples; i++){
 
-\
     	//line in csv to buffer
     	fgets(csv_line, 1500, f);
-    	if (verbose>0){
-    		printf("%s\n", csv_line);
-    	}
+    	
+    	// if (verbose>0){
+    	// 	printf("%s\n", csv_line);
+    	// }
 
-    	// printf("Here2, iteration i=%i\n", i);
     	//csv line to 3 individual parts
     	if (i>0)
     	{
@@ -144,12 +143,6 @@ int main (int argc, char **argv)
     		all_data[i-1] = make_example(csv_line, instance);
     	}
     }
-
-
-    // struct data *instance1;
-    // instance1 = make_example(demo_csv_line);
-    // // print_data(instance1);
-    // printf("\n");
 
 
 

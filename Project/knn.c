@@ -8,13 +8,37 @@
 
 
 struct data{
-	int ft_num;
-	char *question;
+	int example_num;
+	char **question;
 	char *cat;
 };
 
-struct data make_example(char csv_line[], struct data instance);
+// struct numeric_data{
+// 	int example_num;
+// 	unsigned char feature_vec[150];
+// 	char *cat;
+// };
+
+// struct data *data_create(int num, char **q, char *c){
+// 	struct data *instance = malloc(sizeof(struct data));
+
+// 	instance->example_num = num;
+// 	instance->question = q;
+// 	instance->cat = c;
+
+// 	return instance;
+
+// }
+
+// struct hashed_q{
+// 	int 
+// };
+
+struct data make_example(char csv_line[]);
 void print_data(struct data *instance);
+char **parse_question(char *question, int num_words);
+unsigned long str_hash(unsigned char *str);
+void add_to_word_list(char **question, char **word_list, int *cur_index);
 
 const char *argp_program_version =
     "argp-ex3 1.0";
@@ -26,7 +50,7 @@ static char doc[] =
     "A program with options and arguments using argp";
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "0=Serial,1=Parallel  Clusters";
+static char args_doc[] = "0=Serial,1=Parallel NumClusters DataPercent";
 
 /* The options we understand. */
 static struct argp_option options[] = {
@@ -109,13 +133,27 @@ int main (int argc, char **argv)
     int i, j, k, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 3;
+    int total_examples = 4;
 
     //Allocate space for data
     char *csv_line = malloc(sizeof(char)*1500);
-    struct data *all_data;
-    all_data = malloc(sizeof(struct data)*total_examples);
 
+    // //store all data
+    // struct data *all_data;
+    // all_data = malloc(sizeof(struct data)*total_examples*1000);
+    // for (ii=0; ii<total_examples; ii++){
+    // 	all_data[ii].question = malloc(sizeof(char*)*200);
+    // 	for (jj=0; jj<200; jj++){
+    // 		all_data[ii].question[jj] = malloc(sizeof(char)*20);
+    // 	}
+    // }
+
+    //store vocabulary list
+    char **word_list;
+    word_list = malloc(sizeof(char*)*10000); //assumes 10000 total vocab
+    for (ii=0; ii<10000; ii++){
+    	word_list[ii] = malloc(sizeof(char)*20);  //assumes max word length of 20
+    }
 
 
     //Read in csv file
@@ -126,9 +164,10 @@ int main (int argc, char **argv)
     }
 
 
-
+    //parse question into individual words, create vocabulary list
+    int vocab_count = 0;
     for (i=0; i<total_examples; i++){
-
+    	struct data instance;
     	//line in csv to buffer
     	fgets(csv_line, 1500, f);
     	
@@ -139,41 +178,157 @@ int main (int argc, char **argv)
     	//csv line to 3 individual parts
     	if (i>0)
     	{
-    		struct data instance;
-    		all_data[i-1] = make_example(csv_line, instance);
+    		// instance.example_num = NULL;
+    		// instance.question = NULL;
+    		// instance.cat = NULL;
+    		instance = make_example(csv_line);
+    		// all_data[i-1] = instance;
+    		// print_data(&all_data[i-1]);
+
+    		//add to vocabulary
+    		add_to_word_list(instance.question, word_list, &vocab_count);
+
+    		//
+    		
     	}
     }
 
 
 
+    //close file
+    fclose(f);
+
+
+    //free malloc calls
+    free(word_list);
+
+
 }
 
-struct data make_example(char csv_line[], struct data instance){
+
+void add_to_word_list(char **question, char **word_list, int *cur_index){
+	int num_words = 200;
+	int ii, jj, add_word;
+
+	// printf("Cur_index = %i\n", *cur_index);
+
+	for (ii=0; ii<num_words; ii++){
+		if (question[ii] == NULL){
+			break;
+		}
+
+		if (strlen(question[ii])<4){
+			continue;
+		}
+
+		add_word = 0;
+		for (jj=0; jj<*cur_index; jj++){
+			if (!strcmp(question[ii], word_list[jj])){
+				add_word = 1;
+				break;
+			}
+		}
+
+		if (add_word == 0){
+			word_list[*cur_index] = question[ii];
+			// printf("%s ", question[ii]);
+			(*cur_index)++;
+		}
+	}
+}
+
+struct data make_example(char csv_line[]){
 	
+	struct data instance;
+
+	int num_words = 200;
 
 	char *tok;
-	const char *errstr;
+	char *tok_copy; //problem with tok getting overwritten in parse_question
+	char **parsed_question = malloc(sizeof(char*)*num_words);
+	int i;
+	for (i=0; i<num_words; i++){
+		parsed_question[i] = malloc(sizeof(char)*20);
+	}
 
 	// printf("CSV_LINE = %s\n", csv_line);
 
 	tok = strtok(csv_line, "|");
-	sscanf(tok, "%i", &instance.ft_num);
+	sscanf(tok, "%i", &instance.example_num);
 
 	tok = strtok(NULL, "|");
-	instance.question = tok;
+	tok_copy = (char *)tok;
 
 	tok = strtok(NULL, "|");
 	instance.cat = tok;
 
-	print_data(&instance);
+	// printf("tok = %s", tok);
+	parsed_question = parse_question(tok_copy, num_words);
+	instance.question = parsed_question;
+
+	// for (i=0; i<10; i++){
+	// 	printf("%s ", instance.question[i]);
+	// }
+	// printf("\n");
+
+	// print_data(&instance);
 
 	return instance;
 }
 
+
 void print_data(struct data *instance){
-	printf("ft_num = %i\n", instance->ft_num);
-	printf("Question = %s\n", instance->question);
+	printf("example_num = %i\n", instance->example_num);
+	int p = 0;
+	printf("Question = ");
+	for (p=0; p<10; p++){
+		printf("%s ", (instance->question)[p]);
+	}
+	printf("\n");
 	printf("Category = %s\n", instance->cat);
 }
 
+char **parse_question(char *question, int num_words){
 
+	char **parsed;
+	parsed = malloc(sizeof(char*)*num_words);
+	int i;
+	for (i=0; i<num_words; i++){
+		parsed[i] = malloc(sizeof(char)*20);
+	}
+	char *tok2;
+
+	tok2 = strtok(question, " \t");
+	parsed[0] = tok2;
+
+	i = 1;
+	while (tok2 != NULL){
+		tok2 = strtok(NULL, " \t");
+		// printf("%s\n", parsed[i-1]);
+		parsed[i] = tok2;
+		i++;
+	}
+
+	//terminate
+	parsed[i] = NULL;
+
+	return parsed;
+
+}
+
+
+
+
+// //djb2 hash function from http://www.cse.yorku.ca/~oz/hash.html
+// //takes a string and returns an unsigned long int
+// unsigned long str_hash(unsigned char *str){
+
+// 	unsigned long hash = 5381;
+// 	int c;
+
+// 	while (c = *str++){
+// 		hash = ((hash<<5) + hash) + c;
+// 	}
+
+// 	return hash;
+// }

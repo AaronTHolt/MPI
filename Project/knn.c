@@ -133,20 +133,20 @@ int main (int argc, char **argv)
     int i, j, k, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 4;
+    int total_examples = 27;
 
     //Allocate space for data
     char *csv_line = malloc(sizeof(char)*1500);
 
     // //store all data
-    // struct data *all_data;
-    // all_data = malloc(sizeof(struct data)*total_examples*1000);
-    // for (ii=0; ii<total_examples; ii++){
-    // 	all_data[ii].question = malloc(sizeof(char*)*200);
-    // 	for (jj=0; jj<200; jj++){
-    // 		all_data[ii].question[jj] = malloc(sizeof(char)*20);
-    // 	}
-    // }
+    struct data *all_data;
+    all_data = malloc(sizeof(struct data)*total_examples);
+    for (ii=0; ii<total_examples; ii++){
+    	all_data[ii].question = malloc(sizeof(char*)*200);
+    	for (jj=0; jj<200; jj++){
+    		all_data[ii].question[jj] = malloc(sizeof(char)*20);
+    	}
+    }
 
     //store vocabulary list
     char **word_list;
@@ -169,30 +169,26 @@ int main (int argc, char **argv)
     for (i=0; i<total_examples; i++){
     	struct data instance;
     	//line in csv to buffer
-    	fgets(csv_line, 1500, f);
-    	
-    	// if (verbose>0){
-    	// 	printf("%s\n", csv_line);
-    	// }
+    	if (fgets(csv_line, 1500, f) == NULL){
+            printf("Fgets error!\n");
+            exit(0);
+        }
 
     	//csv line to 3 individual parts
     	if (i>0)
     	{
-    		// instance.example_num = NULL;
-    		// instance.question = NULL;
-    		// instance.cat = NULL;
     		instance = make_example(csv_line);
-    		// all_data[i-1] = instance;
+    		all_data[i-1] = instance;
     		// print_data(&all_data[i-1]);
 
     		//add to vocabulary
     		add_to_word_list(instance.question, word_list, &vocab_count);
-
-    		//
-    		
     	}
     }
 
+
+    // print_data(&all_data[0]);
+    // print_data(&all_data[1]);
 
 
     //close file
@@ -200,7 +196,21 @@ int main (int argc, char **argv)
 
 
     //free malloc calls
+    for (ii=0; ii<10000; ii++){
+        free(word_list[ii]);  
+    }
     free(word_list);
+
+    for (ii=0; ii<total_examples; ii++){
+        
+        for (jj=0; jj<200; jj++){
+            // free(all_data[ii].question[jj]);
+        }
+        free(all_data[ii].question);
+    }
+    free(all_data);
+
+    free(csv_line);
 
 
 }
@@ -216,6 +226,8 @@ void add_to_word_list(char **question, char **word_list, int *cur_index){
 		if (question[ii] == NULL){
 			break;
 		}
+
+        // printf("%s ", question[ii]);
 
 		if (strlen(question[ii])<4){
 			continue;
@@ -245,10 +257,12 @@ struct data make_example(char csv_line[]){
 
 	char *tok;
 	char *tok_copy; //problem with tok getting overwritten in parse_question
-	char **parsed_question = malloc(sizeof(char*)*num_words);
+	// char **parsed_question = malloc(sizeof(char*)*num_words);
+    instance.question = malloc(sizeof(char*)*num_words);
 	int i;
 	for (i=0; i<num_words; i++){
-		parsed_question[i] = malloc(sizeof(char)*20);
+		// parsed_question[i] = malloc(sizeof(char)*20);
+        instance.question[i] = malloc(sizeof(char)*20);
 	}
 
 	// printf("CSV_LINE = %s\n", csv_line);
@@ -263,8 +277,10 @@ struct data make_example(char csv_line[]){
 	instance.cat = tok;
 
 	// printf("tok = %s", tok);
-	parsed_question = parse_question(tok_copy, num_words);
-	instance.question = parsed_question;
+    instance.question = parse_question(tok_copy, num_words);
+	// parsed_question = parse_question(tok_copy, num_words);
+	// instance.question = parsed_question;
+    // strcpy(instance.question, parsed_question);
 
 	// for (i=0; i<10; i++){
 	// 	printf("%s ", instance.question[i]);
@@ -272,6 +288,11 @@ struct data make_example(char csv_line[]){
 	// printf("\n");
 
 	// print_data(&instance);
+
+    // for (i=0; i<num_words; i++){
+    //     free(parsed_question[i]);
+    // }
+    // free(parsed_question);
 
 	return instance;
 }
@@ -297,23 +318,23 @@ char **parse_question(char *question, int num_words){
 		parsed[i] = malloc(sizeof(char)*20);
 	}
 	char *tok2;
-
 	tok2 = strtok(question, " \t");
-	parsed[0] = tok2;
+
+    strncpy(parsed[0], tok2, 19);
+
 
 	i = 1;
 	while (tok2 != NULL){
 		tok2 = strtok(NULL, " \t");
 		// printf("%s\n", parsed[i-1]);
-		parsed[i] = tok2;
+        // printf("tok2 = %s\n", tok2);
+        if (tok2 != NULL){
+            strncpy(parsed[i], tok2, 19);
+        }
 		i++;
 	}
 
-	//terminate
-	parsed[i] = NULL;
-
 	return parsed;
-
 }
 
 

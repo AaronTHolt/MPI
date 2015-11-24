@@ -13,32 +13,20 @@ struct data{
 	char *cat;
 };
 
-// struct numeric_data{
-// 	int example_num;
-// 	unsigned char feature_vec[150];
-// 	char *cat;
-// };
+struct numeric_data{
+	int example_num;
+	unsigned char *feature_vec;
+	char *cat;
+};
 
-// struct data *data_create(int num, char **q, char *c){
-// 	struct data *instance = malloc(sizeof(struct data));
 
-// 	instance->example_num = num;
-// 	instance->question = q;
-// 	instance->cat = c;
-
-// 	return instance;
-
-// }
-
-// struct hashed_q{
-// 	int 
-// };
 
 struct data make_example(char csv_line[]);
 void print_data(struct data *instance);
 char **parse_question(char *question, int num_words);
 unsigned long str_hash(unsigned char *str);
 void add_to_word_list(char **question, char **word_list, int *cur_index);
+void add_to_cat_list(char *cat, char **cat_list, int *cur_index);
 
 const char *argp_program_version =
     "argp-ex3 1.0";
@@ -133,11 +121,15 @@ int main (int argc, char **argv)
     int i, j, k, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 30;
+    int total_examples = 20000;
     //max words per question
-    int num_words = 200;
+    int num_words = 300;
     //max word length
     int max_word_len = 20;
+    //max vocab count
+    int max_vocab = 100000;
+    //data read in poorly
+    int bad_iterations = 0;
 
     //Allocate space for data
     char *csv_line = malloc(sizeof(char)*1500);
@@ -152,18 +144,27 @@ int main (int argc, char **argv)
     for (ii=0; ii<total_examples; ii++){
     	all_data[ii].question = malloc(sizeof(char*)*num_words);
     	for (jj=0; jj<num_words; jj++){
-    		all_data[ii].question[jj] = malloc(sizeof(char)*max_word_len);
+    		// all_data[ii].question[jj] = malloc(sizeof(char)*max_word_len);
+    		all_data[ii].question[jj] = calloc(max_word_len, sizeof(char));
     	}
     	all_data[ii].cat = malloc(sizeof(char)*max_word_len);
     }
 
     //store vocabulary list (char** points to array of char* of length 20)
     char **word_list;
-    word_list = malloc(sizeof(char*)*10000); //assumes 10000 total vocab
-    for (ii=0; ii<10000; ii++){
-    	word_list[ii] = malloc(sizeof(char)*max_word_len);  //assumes max word length of 20
+    word_list = malloc(sizeof(char*)*max_vocab); //assumes max_vocab total vocab
+    for (ii=0; ii<max_vocab; ii++){
+    	// word_list[ii] = malloc(sizeof(char)*max_word_len);  //assumes max word length of 20
+    	word_list[ii] = calloc(max_word_len, sizeof(char));  //assumes max word length of 20
     }
 
+    //store category list
+    char **cat_list;
+    cat_list = malloc(sizeof(char*)*40);  //assumes 20 max categories
+    for (ii=0; ii<40; ii++){
+    	cat_list[ii] = malloc(sizeof(char)*max_word_len);
+		strncpy(cat_list[ii], "\0", 1);	
+    }
 
     //Read in csv file
     FILE *f = fopen("train2.csv", "r");
@@ -174,8 +175,10 @@ int main (int argc, char **argv)
 
     //parse question into individual words, create vocabulary list
     int vocab_count = 0;
+    int category_count = 0;
 
     for (i=0; i<total_examples; i++){
+    	// printf("Iteration = %i\n", i);
 
     	//line in csv to buffer
     	if (fgets(csv_line, 1500, f) == NULL){
@@ -187,7 +190,7 @@ int main (int argc, char **argv)
     	if (i>0)
     	{
     		// instance = make_example(csv_line);
-    		int num_words = 200;
+    		int num_words = 300;
 
 			char *tok;
 			char *tok_copy; //problem with tok getting overwritten in parse_question
@@ -196,45 +199,73 @@ int main (int argc, char **argv)
 			// printf("CSV_LINE = %s\n", csv_line);
 
 			tok = strtok(csv_line, "|");
+			if (tok == NULL){
+				all_data[i-1].example_num = -1;
+				bad_iterations++;
+				continue;
+			}
 			sscanf(tok, "%i", &all_data[i-1].example_num);
 
-			tok = strtok(NULL, "|");
-			tok_copy = (char *)tok;
-			// strcpy(tok_copy, tok);
+			
 
 			tok = strtok(NULL, "|");
-			strncpy(all_data[i-1].cat, tok, 19);
+			if (tok == NULL){
+				all_data[i-1].example_num = -1;
+				bad_iterations++;
+				continue;
+			}
+			tok_copy = (char *)tok;
 
 			
+
+			tok = strtok(NULL, "|");
+			if (tok == NULL){
+				all_data[i-1].example_num = -1;
+				bad_iterations++;
+				continue;
+			}
+			strncpy(all_data[i-1].cat, tok, 19);
+			all_data[i-1].cat[max_word_len-1] = 0;
+
+
 			char *tok2;
 			tok2 = strtok(tok_copy, " \t");
 
 		    strncpy(all_data[i-1].question[0], tok2, 19);
+		    all_data[i-1].question[0][max_word_len-1] = 0;
 
 			j = 1;
 			while (tok2 != NULL){
+				if (j>=num_words){
+					break;
+				}
 				tok2 = strtok(NULL, " \t");
-
 		        if (tok2 != NULL){
 		            strncpy(all_data[i-1].question[j], tok2, 19);
+		            all_data[i-1].question[j][max_word_len-1] = 0;
 		        }
 				j++;
-			}
+			} //end while
 
     		// all_data[i-1] = instance;
     		// print_data(&all_data[i-1]);
 
     		//add to vocabulary
     		add_to_word_list(all_data[i-1].question, word_list, &vocab_count);
-    	}
+    		//add to category list
+    		add_to_cat_list(all_data[i-1].cat, cat_list, &category_count);
 
-    	// free(parsed);
-    		// free(instance.question);
+    	} //end if
+    } //end for
+
+    printf("Bad iterations = %i/%i\n", bad_iterations, i);
+
+    for (ii=0; ii<40; ii++){
+    	printf("%s", cat_list[ii]);
     }
 
-
-    print_data(&all_data[0]);
-    print_data(&all_data[25]);
+    // print_data(&all_data[0]);
+    // print_data(&all_data[29000]);
 
 
     //close file
@@ -247,6 +278,12 @@ int main (int argc, char **argv)
         free(word_list[ii]);  
     }
     free(word_list);
+
+    //free category list
+    for (ii=0; ii<40; ii++){
+        free(cat_list[ii]);  
+    }
+    free(cat_list);
 
     //free all_data list
     for (ii=0; ii<total_examples; ii++){
@@ -262,22 +299,50 @@ int main (int argc, char **argv)
     //free var used to rean in csv
     free(csv_line);
 
+}
+
+void add_to_cat_list(char *cat, char **cat_list, int *cur_index){
+	int ii, jj, add_cat;
+
+
+	if (cat == NULL){
+		return;
+	}
+
+	// printf("%s ", cat);
+
+	add_cat = 0;
+	for (jj=0; jj<*cur_index; jj++){
+		if (!strcmp(cat, cat_list[jj])){
+			// printf()
+			add_cat = 1;
+			return;
+		}
+	}
+
+	
+
+	if (add_cat == 0){
+		strncpy(cat_list[*cur_index], cat, 19);
+		cat_list[*cur_index][19] = 0;
+		(*cur_index)++;
+	}
 
 }
 
 
 void add_to_word_list(char **question, char **word_list, int *cur_index){
-	int num_words = 200;
+	int num_words = 300;
 	int ii, jj, add_word;
 
 	// printf("Cur_index = %i\n", *cur_index);
 
 	for (ii=0; ii<num_words; ii++){
 		if (question[ii] == NULL){
-			break;
+			continue;
 		}
 
-        // printf("%s ", question[ii]);
+        // printf("%s\n", question[ii]);
 
 		if (strlen(question[ii])<4){
 			continue;
@@ -292,51 +357,20 @@ void add_to_word_list(char **question, char **word_list, int *cur_index){
 		}
 
 		if (add_word == 0){
+			// printf("%i\n", *cur_index);
 			strncpy(word_list[*cur_index], question[ii], 19);
+			word_list[*cur_index][19] = 0;
 			// printf("%s ", question[ii]);
 			(*cur_index)++;
 		}
 	}
 }
 
-struct data make_example(char csv_line[]){
-	
-	struct data instance;
-
-	int num_words = 200;
-
-	char *tok;
-	char *tok_copy; //problem with tok getting overwritten in parse_question
-	// char **parsed_question = malloc(sizeof(char*)*num_words);
-    instance.question = malloc(sizeof(char*)*num_words);
-	int i;
-	for (i=0; i<num_words; i++){
-		// parsed_question[i] = malloc(sizeof(char)*20);
-        instance.question[i] = malloc(sizeof(char)*20);
-	}
-
-	// printf("CSV_LINE = %s\n", csv_line);
-
-	tok = strtok(csv_line, "|");
-	sscanf(tok, "%i", &instance.example_num);
-
-	tok = strtok(NULL, "|");
-	tok_copy = (char *)tok;
-	// strcpy(tok_copy, tok);
-
-	tok = strtok(NULL, "|");
-	instance.cat = tok;
-
-	// printf("tok = %s", tok);
-    instance.question = parse_question(tok_copy, num_words);
-
-	// print_data(&instance);
-
-	return instance;
-}
-
-
 void print_data(struct data *instance){
+	if (instance->example_num == -1){
+		printf("Bad example\n");
+		return;
+	}
 	printf("example_num = %i\n", instance->example_num);
 	int p = 0;
 	printf("Question = ");
@@ -346,48 +380,3 @@ void print_data(struct data *instance){
 	printf("\n");
 	printf("Category = %s\n", instance->cat);
 }
-
-char **parse_question(char *question, int num_words){
-
-	char **parsed;
-	parsed = malloc(sizeof(char*)*num_words);
-	int i;
-	for (i=0; i<num_words; i++){
-		parsed[i] = malloc(sizeof(char)*20);
-	}
-	char *tok2;
-	tok2 = strtok(question, " \t");
-
-    strncpy(parsed[0], tok2, 19);
-
-
-	i = 1;
-	while (tok2 != NULL){
-		tok2 = strtok(NULL, " \t");
-		// printf("%s\n", parsed[i-1]);
-        // printf("tok2 = %s\n", tok2);
-        if (tok2 != NULL){
-            strncpy(parsed[i], tok2, 19);
-        }
-		i++;
-	}
-
-	return parsed;
-}
-
-
-
-
-// //djb2 hash function from http://www.cse.yorku.ca/~oz/hash.html
-// //takes a string and returns an unsigned long int
-// unsigned long str_hash(unsigned char *str){
-
-// 	unsigned long hash = 5381;
-// 	int c;
-
-// 	while (c = *str++){
-// 		hash = ((hash<<5) + hash) + c;
-// 	}
-
-// 	return hash;
-// }

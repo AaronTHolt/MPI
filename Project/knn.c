@@ -19,6 +19,73 @@ struct numeric_data{
 	char *cat;
 };
 
+typedef struct feature_tree{
+	unsigned int feature_num;
+	char *feature;
+	struct feature_tree *left;
+	struct feature_tree *right;
+}feature_tree;
+
+void insert_word(feature_tree **root, char *word){
+	if (word == NULL){
+		return;
+	}
+
+	if (strlen(word)<4){
+		return;
+	}
+
+	if (!(*root)){
+		feature_tree *temp = NULL;
+		temp = (feature_tree *)malloc(sizeof(feature_tree));
+		temp->feature_num = -1;
+		temp->feature = malloc(sizeof(char)*20);
+		strcpy(temp->feature, word);
+		temp->left = NULL;
+		temp->right = NULL;
+		*root = temp;
+		// printf("root feat = %s\n", root.feature);
+		return;
+	}
+
+	// printf("%s, %s\n", root->feature, word);
+	
+	//less than goes left
+	if (strcmp(word, (*root)->feature) < 0){
+		insert_word(&(*root)->left, word);
+	}
+	//greater than goes right
+	else if (strcmp(word, (*root)->feature) > 0){
+		insert_word(&(*root)->right, word);
+	}
+}
+
+void free_feature_tree(feature_tree *root){
+	if (root){
+		free_feature_tree(root->left);
+		free_feature_tree(root->right);
+		free(root->feature);
+		free(root);
+	}
+}
+
+int count_features(feature_tree *root){
+	int count = 0;
+	if (root == NULL){
+		return 0;
+	}
+	count += 1 + count_features(root->left) + count_features(root->right);
+	return count;
+}
+
+void print_inorder(feature_tree *root){
+	if (root){
+		print_inorder(root->left);
+		printf("%s ", root->feature);
+		print_inorder(root->right);
+	}
+}
+
 
 
 struct data make_example(char csv_line[]);
@@ -121,13 +188,13 @@ int main (int argc, char **argv)
     int i, j, k, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 20000;
+    int total_examples = 40000;
     //max words per question
     int num_words = 300;
     //max word length
     int max_word_len = 20;
     //max vocab count
-    int max_vocab = 100000;
+    int max_vocab = 200000;
     //data read in poorly
     int bad_iterations = 0;
 
@@ -158,6 +225,10 @@ int main (int argc, char **argv)
     	word_list[ii] = calloc(max_word_len, sizeof(char));  //assumes max word length of 20
     }
 
+    //alternate vocab store tree
+    feature_tree *vocab;
+    vocab = NULL;
+
     //store category list
     char **cat_list;
     cat_list = malloc(sizeof(char*)*40);  //assumes 20 max categories
@@ -167,7 +238,7 @@ int main (int argc, char **argv)
     }
 
     //Read in csv file
-    FILE *f = fopen("train2.csv", "r");
+    FILE *f = fopen("train_pruned2.csv", "r");
     if (f == NULL){
     	printf("Failed to open file \n");
     	return -1;
@@ -234,6 +305,9 @@ int main (int argc, char **argv)
 		    strncpy(all_data[i-1].question[0], tok2, 19);
 		    all_data[i-1].question[0][max_word_len-1] = 0;
 
+		    //add to tree
+    		insert_word(&vocab, all_data[i-1].question[0]);
+
 			j = 1;
 			while (tok2 != NULL){
 				if (j>=num_words){
@@ -243,6 +317,9 @@ int main (int argc, char **argv)
 		        if (tok2 != NULL){
 		            strncpy(all_data[i-1].question[j], tok2, 19);
 		            all_data[i-1].question[j][max_word_len-1] = 0;
+
+		            //add to tree
+    				insert_word(&vocab, all_data[i-1].question[j]);
 		        }
 				j++;
 			} //end while
@@ -251,7 +328,8 @@ int main (int argc, char **argv)
     		// print_data(&all_data[i-1]);
 
     		//add to vocabulary
-    		add_to_word_list(all_data[i-1].question, word_list, &vocab_count);
+    		// add_to_word_list(all_data[i-1].question, word_list, &vocab_count);
+    		
     		//add to category list
     		add_to_cat_list(all_data[i-1].cat, cat_list, &category_count);
 
@@ -259,11 +337,20 @@ int main (int argc, char **argv)
     } //end for
 
     printf("Bad iterations = %i/%i\n", bad_iterations, i);
+    printf("Total feature count = %i\n", vocab_count);
+    printf("Check feature count = %i\n", count_features(vocab));
 
     for (ii=0; ii<40; ii++){
     	printf("%s", cat_list[ii]);
     }
 
+    // for (ii=0;ii<41;ii++){
+    // 	printf("%s ", word_list[ii]);
+    // }
+
+    // print_inorder(vocab);
+
+    // printf("vocab->right = %s \n", vocab->feature);
     // print_data(&all_data[0]);
     // print_data(&all_data[29000]);
 
@@ -271,10 +358,13 @@ int main (int argc, char **argv)
     //close file
     fclose(f);
 
+    //free feature tree
+    free_feature_tree(vocab);
+
 
     ////free malloc calls////
     //free vocab list
-    for (ii=0; ii<10000; ii++){
+    for (ii=0; ii<max_vocab; ii++){
         free(word_list[ii]);  
     }
     free(word_list);

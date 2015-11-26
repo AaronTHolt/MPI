@@ -430,6 +430,7 @@ int main (int argc, char **argv)
     //close file
     fclose(f);
 
+
     ////free malloc calls////
     //free feature tree
     free_feature_tree(vocab);

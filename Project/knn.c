@@ -25,7 +25,7 @@ struct feature_count{
 struct numeric_data{
 	int example_num;
 	struct feature_count *array_of_features;
-	char *cat;
+	int cat;
 };
 
 //tree to hold vocabulary (features)
@@ -307,7 +307,7 @@ int main (int argc, char **argv)
 
     //parse question into individual words, create vocabulary list
     int vocab_count = 0;
-    int category_count = 0;
+    int category_count = 1;
 
     for (i=0; i<total_examples; i++){
     	// printf("Iteration = %i\n", i);
@@ -415,10 +415,12 @@ int main (int argc, char **argv)
 
     ////turn data into numeric features////
     for (i=0; i<total_examples; i++){
+    	num_data[i].example_num = all_data[i].example_num;
+    	num_data[i].cat = get_cat_index(cat_list, all_data[i].cat);
     	words_to_num(&num_data[i], &all_data[i], &vocab, num_words);
     }
 
-    print_num_data(num_data);
+    print_num_data(&num_data[0]);
     
     // printf("vocab->right = %s \n", vocab->feature);
     // print_data(&all_data[0]);
@@ -464,6 +466,16 @@ int main (int argc, char **argv)
     //free var used to rean in csv
     free(csv_line);
 
+}
+
+int get_cat_index(char **cat_list, char *cat){
+	int index;
+	for (index = 0; index<40; index++){
+		if (strcmp(cat_list[index], cat) == 0){
+			return index;
+		}
+	}
+	return 0;
 }
 
 void words_to_num(struct numeric_data *num_data, struct data *all_data, 
@@ -594,6 +606,6 @@ void print_num_data(struct numeric_data *instance){
 		printf("%u-%u ", instance->array_of_features[p].feature_num, 
 			              instance->array_of_features[p].count);
 	}
-	printf("\nCategory = %s\n", instance->cat);
+	printf("\nCategory = %i\n", instance->cat);
 
 }

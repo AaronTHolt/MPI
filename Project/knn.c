@@ -7,18 +7,28 @@
 #include "unistd.h"
 
 
+//stores data in text form
 struct data{
 	int example_num;
 	char **question;
 	char *cat;
 };
 
+//data is sparse (each example has ~100/150,000 points)
+//using 'numeric_data' and 'feature_count' structs to store sparse data
+struct feature_count{
+	unsigned int feature_num;
+	unsigned char count;
+};
+
+//stores data in numeric form
 struct numeric_data{
 	int example_num;
-	unsigned char *feature_vec;
+	struct feature_count *array_of_features;
 	char *cat;
 };
 
+//tree to hold vocabulary (features)
 typedef struct feature_tree{
 	unsigned int feature_num;
 	char *feature;
@@ -26,6 +36,7 @@ typedef struct feature_tree{
 	struct feature_tree *right;
 }feature_tree;
 
+//Insert a word into the tree
 void insert_word(feature_tree **root, char *word){
 	if (word == NULL){
 		return;
@@ -38,7 +49,7 @@ void insert_word(feature_tree **root, char *word){
 	if (!(*root)){
 		feature_tree *temp = NULL;
 		temp = (feature_tree *)malloc(sizeof(feature_tree));
-		temp->feature_num = -1;
+		temp->feature_num = 0;
 		temp->feature = malloc(sizeof(char)*20);
 		strcpy(temp->feature, word);
 		temp->left = NULL;
@@ -60,6 +71,8 @@ void insert_word(feature_tree **root, char *word){
 	}
 }
 
+
+//Free's the tree
 void free_feature_tree(feature_tree *root){
 	if (root){
 		free_feature_tree(root->left);
@@ -69,6 +82,7 @@ void free_feature_tree(feature_tree *root){
 	}
 }
 
+//counts total number of features
 int count_features(feature_tree *root){
 	int count = 0;
 	if (root == NULL){
@@ -78,6 +92,7 @@ int count_features(feature_tree *root){
 	return count;
 }
 
+//print out features and their current numbers in order
 void print_inorder(feature_tree *root){
 	if (root){
 		print_inorder(root->left);
@@ -86,6 +101,7 @@ void print_inorder(feature_tree *root){
 	}
 }
 
+//takes in tree root and pointer to int, numbers all features in order
 void number_features(feature_tree *root, unsigned int *cur_index){
 	if (root){
 		number_features(root->left, cur_index);
@@ -96,14 +112,37 @@ void number_features(feature_tree *root, unsigned int *cur_index){
 	}
 }
 
+unsigned int get_feature_number(feature_tree **root, char *word){
+	//nothing there
+	if (!(*root)){
+		return 0;
+	}
+
+	//equal to
+	if (strcmp(word, (*root)->feature) == 0){
+		return (*root)->feature_num;
+	}
+	//less than goes left
+	else if (strcmp(word, (*root)->feature) < 0){
+		get_feature_number(&(*root)->left, word);
+	}
+	//greater than goes right
+	else if (strcmp(word, (*root)->feature) > 0){
+		get_feature_number(&(*root)->right, word);
+	}
+}
 
 
 struct data make_example(char csv_line[]);
 void print_data(struct data *instance);
+void print_num_data(struct numeric_data *instance);
 char **parse_question(char *question, int num_words);
 unsigned long str_hash(unsigned char *str);
 void add_to_word_list(char **question, char **word_list, int *cur_index);
 void add_to_cat_list(char *cat, char **cat_list, int *cur_index);
+void words_to_num(struct numeric_data *num_data, struct data *all_data, 
+	                               feature_tree **vocab, int num_words);
+
 
 const char *argp_program_version =
     "argp-ex3 1.0";
@@ -204,7 +243,7 @@ int main (int argc, char **argv)
     //max word length
     int max_word_len = 20;
     //max vocab count
-    int max_vocab = 200000;
+    // int max_vocab = 200000;
     //data read in poorly
     int bad_iterations = 0;
 
@@ -227,13 +266,25 @@ int main (int argc, char **argv)
     	all_data[ii].cat = malloc(sizeof(char)*max_word_len);
     }
 
-    //store vocabulary list (char** points to array of char* of length 20)
-    char **word_list;
-    word_list = malloc(sizeof(char*)*max_vocab); //assumes max_vocab total vocab
-    for (ii=0; ii<max_vocab; ii++){
-    	// word_list[ii] = malloc(sizeof(char)*max_word_len);  //assumes max word length of 20
-    	word_list[ii] = calloc(max_word_len, sizeof(char));  //assumes max word length of 20
+    //store numeric version of data for algorithms
+    struct numeric_data *num_data;
+    num_data = malloc(sizeof(struct numeric_data)*total_examples);
+    for (ii=0; ii<total_examples; ii++){
+    	num_data[ii].array_of_features = malloc(sizeof(struct feature_count)*num_words);
+    	for (jj=0; jj<num_words; jj++){
+    		num_data[ii].array_of_features[jj].feature_num = 0;
+    		num_data[ii].array_of_features[jj].count = 0;
+    	}
     }
+    
+
+    // //store vocabulary list (char** points to array of char* of length 20)
+    // char **word_list;
+    // word_list = malloc(sizeof(char*)*max_vocab); //assumes max_vocab total vocab
+    // for (ii=0; ii<max_vocab; ii++){
+    // 	// word_list[ii] = malloc(sizeof(char)*max_word_len);  //assumes max word length of 20
+    // 	word_list[ii] = calloc(max_word_len, sizeof(char));  //assumes max word length of 20
+    // }
 
     //alternate vocab store tree
     feature_tree *vocab;
@@ -324,20 +375,21 @@ int main (int argc, char **argv)
 					break;
 				}
 				tok2 = strtok(NULL, " \t");
-		        if (tok2 != NULL){
+		        if ((tok2 != NULL) && (strlen(tok2)>3)){
 		            strncpy(all_data[i-1].question[j], tok2, 19);
 		            all_data[i-1].question[j][max_word_len-1] = 0;
 
 		            //add to tree
     				insert_word(&vocab, all_data[i-1].question[j]);
+    				j++;
 		        }
-				j++;
+				
 			} //end while
 
     		// all_data[i-1] = instance;
     		// print_data(&all_data[i-1]);
 
-    		//add to vocabulary
+    		////add to vocabulary (using array, VERY slow with lots of data)
     		// add_to_word_list(all_data[i-1].question, word_list, &vocab_count);
     		
     		//add to category list
@@ -346,40 +398,51 @@ int main (int argc, char **argv)
     	} //end if
     } //end for
 
-    printf("Bad iterations = %i/%i\n", bad_iterations, i);
-    // printf("Feature count array = %i\n", vocab_count);
-    printf("Feature count tree = %i\n", count_features(vocab));
+    //assign unique number to each feature
+    //first feature is feature 1, feature 0 is for errors etc.
+    unsigned int mm = 1;
+    number_features(vocab, &mm);
 
-    for (ii=0; ii<40; ii++){
-    	printf("%s", cat_list[ii]);
+    //Some of the csv rows aren't read in properly with fgets
+    printf("Bad iterations = %i/%i\n", bad_iterations, i);
+    printf("Feature count = %i\n", count_features(vocab));
+
+    print_inorder(vocab);
+
+    // for (ii=0; ii<40; ii++){
+    // 	printf("%s", cat_list[ii]);
+    // }
+
+    ////turn data into numeric features////
+    for (i=0; i<total_examples; i++){
+    	words_to_num(&num_data[i], &all_data[i], &vocab, num_words);
     }
 
-    // for (ii=0;ii<41;ii++){
-    // 	printf("%s ", word_list[ii]);
-    // }
-    unsigned int mm = 0;
-    // printf("mm = %u\n", mm);
-    number_features(vocab, &mm);
-    // print_inorder(vocab);
-
+    print_num_data(num_data);
+    
     // printf("vocab->right = %s \n", vocab->feature);
     // print_data(&all_data[0]);
     // print_data(&all_data[29000]);
-
+    // printf("%s, %u\n", "1829", get_feature_number(&vocab, "1829"));
 
     //close file
     fclose(f);
 
+    ////free malloc calls////
     //free feature tree
     free_feature_tree(vocab);
 
-
-    ////free malloc calls////
-    //free vocab list
-    for (ii=0; ii<max_vocab; ii++){
-        free(word_list[ii]);  
+    //free numeric data
+    for (ii=0; ii<total_examples; ii++){
+    	free(num_data[ii].array_of_features);
     }
-    free(word_list);
+    free(num_data);
+
+    // //free vocab list
+    // for (ii=0; ii<max_vocab; ii++){
+    //     free(word_list[ii]);  
+    // }
+    // free(word_list);
 
     //free category list
     for (ii=0; ii<40; ii++){
@@ -402,6 +465,41 @@ int main (int argc, char **argv)
     free(csv_line);
 
 }
+
+void words_to_num(struct numeric_data *num_data, struct data *all_data, 
+	                               feature_tree **vocab, int num_words){
+	int ii, jj;
+	unsigned int cur_feature;
+	for (ii=0; ii<num_words; ii++){
+		//get feature number for every word
+		cur_feature = get_feature_number(vocab, all_data->question[ii]);
+
+		//If no more feature break
+		if (cur_feature == 0){
+			break;
+		}
+		// printf("%s %u  ", all_data->question[ii], cur_feature);
+
+		//if valid feature number, add to feature array
+		if (cur_feature > 0){
+			//check if feature is already in array
+			//add to count if it is, otherwise att
+			for (jj=0; jj<num_words; jj++){
+				if (cur_feature == num_data->array_of_features[jj].feature_num){
+					num_data->array_of_features[jj].count += 1;
+					break;
+				}
+				else if (num_data->array_of_features[jj].feature_num == 0){
+					num_data->array_of_features[jj].feature_num = cur_feature;
+					num_data->array_of_features[jj].count += 1;
+					break;
+				}
+
+			} 
+		}
+	}
+}
+
 
 void add_to_cat_list(char *cat, char **cat_list, int *cur_index){
 	int ii, jj, add_cat;
@@ -481,4 +579,21 @@ void print_data(struct data *instance){
 	}
 	printf("\n");
 	printf("Category = %s\n", instance->cat);
+}
+
+void print_num_data(struct numeric_data *instance){
+	if (instance->array_of_features->feature_num == 0){
+		printf("Bad example\n");
+		return;
+	}
+
+	printf("example_num = %i\n", instance->example_num);
+	printf("Data array = ");
+	int p = 0;
+	for (p=0; p<40; p++){
+		printf("%u-%u ", instance->array_of_features[p].feature_num, 
+			              instance->array_of_features[p].count);
+	}
+	printf("\nCategory = %s\n", instance->cat);
+
 }

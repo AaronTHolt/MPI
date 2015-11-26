@@ -81,8 +81,18 @@ int count_features(feature_tree *root){
 void print_inorder(feature_tree *root){
 	if (root){
 		print_inorder(root->left);
-		printf("%s ", root->feature);
+		printf("%s %u\n", root->feature, root->feature_num);
 		print_inorder(root->right);
+	}
+}
+
+void number_features(feature_tree *root, unsigned int *cur_index){
+	if (root){
+		number_features(root->left, cur_index);
+		root->feature_num = *cur_index;
+		*cur_index += 1;
+		// printf("%s %u\n", root->feature, *cur_index);
+		number_features(root->right, cur_index);
 	}
 }
 
@@ -188,7 +198,7 @@ int main (int argc, char **argv)
     int i, j, k, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 40000;
+    int total_examples = 2;
     //max words per question
     int num_words = 300;
     //max word length
@@ -337,8 +347,8 @@ int main (int argc, char **argv)
     } //end for
 
     printf("Bad iterations = %i/%i\n", bad_iterations, i);
-    printf("Total feature count = %i\n", vocab_count);
-    printf("Check feature count = %i\n", count_features(vocab));
+    // printf("Feature count array = %i\n", vocab_count);
+    printf("Feature count tree = %i\n", count_features(vocab));
 
     for (ii=0; ii<40; ii++){
     	printf("%s", cat_list[ii]);
@@ -347,7 +357,9 @@ int main (int argc, char **argv)
     // for (ii=0;ii<41;ii++){
     // 	printf("%s ", word_list[ii]);
     // }
-
+    unsigned int mm = 0;
+    // printf("mm = %u\n", mm);
+    number_features(vocab, &mm);
     // print_inorder(vocab);
 
     // printf("vocab->right = %s \n", vocab->feature);

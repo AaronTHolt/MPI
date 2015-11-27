@@ -28,6 +28,13 @@ struct numeric_data{
 	int cat;
 };
 
+//Will store k nearest neighbors to example
+struct distance_results{
+	int example_num;
+	double *distances;
+	int *comp_example_nums;
+};
+
 //tree to hold vocabulary (features)
 typedef struct feature_tree{
 	unsigned int feature_num;
@@ -35,6 +42,20 @@ typedef struct feature_tree{
 	struct feature_tree *left;
 	struct feature_tree *right;
 }feature_tree;
+
+struct data make_example(char csv_line[]);
+void print_data(struct data *instance);
+void print_num_data(struct numeric_data *instance);
+char **parse_question(char *question, int num_words);
+unsigned long str_hash(unsigned char *str);
+void add_to_word_list(char **question, char **word_list, int *cur_index);
+void add_to_cat_list(char *cat, char **cat_list, int *cur_index);
+void words_to_num(struct numeric_data *num_data, struct data *all_data, 
+	                               feature_tree **vocab, int num_words);
+double get_distance(struct numeric_data *s1, struct numeric_data *s2, int num_words);
+void add_distance_to_results(struct distance_results *results, double distance,
+													   int k, int comp_example);
+int calc_nearest_neighbor(struct distance_results *results, int k);
 
 //Insert a word into the tree
 void insert_word(feature_tree **root, char *word){
@@ -70,7 +91,6 @@ void insert_word(feature_tree **root, char *word){
 		insert_word(&(*root)->right, word);
 	}
 }
-
 
 //Free's the tree
 void free_feature_tree(feature_tree *root){
@@ -132,18 +152,6 @@ unsigned int get_feature_number(feature_tree **root, char *word){
 	}
 }
 
-
-struct data make_example(char csv_line[]);
-void print_data(struct data *instance);
-void print_num_data(struct numeric_data *instance);
-char **parse_question(char *question, int num_words);
-unsigned long str_hash(unsigned char *str);
-void add_to_word_list(char **question, char **word_list, int *cur_index);
-void add_to_cat_list(char *cat, char **cat_list, int *cur_index);
-void words_to_num(struct numeric_data *num_data, struct data *all_data, 
-	                               feature_tree **vocab, int num_words);
-
-
 const char *argp_program_version =
     "argp-ex3 1.0";
 const char *argp_program_bug_address =
@@ -154,7 +162,7 @@ static char doc[] =
     "A program with options and arguments using argp";
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "0=Serial,1=Parallel NumClusters DataPercent";
+static char args_doc[] = "0=Serial,1=Parallel kVal DataPercent";
 
 /* The options we understand. */
 static struct argp_option options[] = {
@@ -218,9 +226,10 @@ int main (int argc, char **argv)
     run_type = 0; //default is serial
     if (sscanf (arguments.args[0], "%i", &run_type)!=1) {}
 
-    int clusters;
-    clusters = 0; //default is serial
-    if (sscanf (arguments.args[1], "%i", &clusters)!=1) {}
+    // number of nearest neighbors
+    int k;
+    k = 1; //default is 1
+    if (sscanf (arguments.args[1], "%i", &k)!=1) {}
 
     int percent_data;
 	percent_data = 100; //default is 100% of data
@@ -230,14 +239,14 @@ int main (int argc, char **argv)
     int verbose;
     verbose = arguments.verbose;
 
-    printf("Runtype, Clusters, Verbose, PercentDataUsed = %i, %i, %i, %i\n",
-                          run_type, clusters, verbose, percent_data);
+    printf("Runtype, k, Verbose, PercentDataUsed = %i, %i, %i, %i\n",
+                          run_type, k, verbose, percent_data);
 
     //define a bunch of counters!
-    int i, j, k, m, n, ii, jj, kk;
+    int i, j, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 2;
+    int total_examples = 30;
     //max words per question
     int num_words = 300;
     //max word length
@@ -276,7 +285,14 @@ int main (int argc, char **argv)
     		num_data[ii].array_of_features[jj].count = 0;
     	}
     }
-    
+
+    //store struct which keep track of the k nearest neighbors
+    struct distance_results results;
+    results.example_num = 0;
+    results.distances = calloc(k, sizeof(double));
+    results.comp_example_nums = calloc(k, sizeof(int));
+ 
+
 
     // //store vocabulary list (char** points to array of char* of length 20)
     // char **word_list;
@@ -363,13 +379,16 @@ int main (int argc, char **argv)
 			char *tok2;
 			tok2 = strtok(tok_copy, " \t");
 
-		    strncpy(all_data[i-1].question[0], tok2, 19);
-		    all_data[i-1].question[0][max_word_len-1] = 0;
+			j = 0;
+			if ((tok2 != NULL) && (strlen(tok2)>3)){
+				strncpy(all_data[i-1].question[0], tok2, 19);
+		    	all_data[i-1].question[0][max_word_len-1] = 0;
 
-		    //add to tree
-    		insert_word(&vocab, all_data[i-1].question[0]);
+		    	//add to tree
+    			insert_word(&vocab, all_data[i-1].question[0]);
+    			j += 1;
+			}
 
-			j = 1;
 			while (tok2 != NULL){
 				if (j>=num_words){
 					break;
@@ -398,6 +417,9 @@ int main (int argc, char **argv)
     	} //end if
     } //end for
 
+    //close file
+    fclose(f);
+
     //assign unique number to each feature
     //first feature is feature 1, feature 0 is for errors etc.
     unsigned int mm = 1;
@@ -407,7 +429,7 @@ int main (int argc, char **argv)
     printf("Bad iterations = %i/%i\n", bad_iterations, i);
     printf("Feature count = %i\n", count_features(vocab));
 
-    print_inorder(vocab);
+    // print_inorder(vocab);
 
     // for (ii=0; ii<40; ii++){
     // 	printf("%s", cat_list[ii]);
@@ -420,15 +442,32 @@ int main (int argc, char **argv)
     	words_to_num(&num_data[i], &all_data[i], &vocab, num_words);
     }
 
-    print_num_data(&num_data[0]);
-    
+    // num_data->array_of_features[0].feature_num = 44;
+
+    // print_num_data(&num_data[0]);
+    // print_num_data(&num_data[1]);
+    // print_num_data(&num_data[29]);
+
     // printf("vocab->right = %s \n", vocab->feature);
     // print_data(&all_data[0]);
     // print_data(&all_data[29000]);
     // printf("%s, %u\n", "1829", get_feature_number(&vocab, "1829"));
 
-    //close file
-    fclose(f);
+
+
+    
+    // printf("distnace = %f\n", get_distance(&num_data[0], &num_data[1], 2));
+
+    double distance;
+    for (ii=1; ii<total_examples-1; ii++){
+    	distance = get_distance(&num_data[0], &num_data[ii], num_words);
+    	if (num_data[ii].example_num > 0){
+    		add_distance_to_results(&results, distance, k, num_data[ii].example_num);
+    	}
+		// printf("Distance, ExampleNum = %f %i, Iter = %i\n", distance, num_data[ii].example_num, ii);
+    }
+
+
 
 
     ////free malloc calls////
@@ -467,7 +506,134 @@ int main (int argc, char **argv)
     //free var used to rean in csv
     free(csv_line);
 
+    //free distance result
+    free(results.distances);
+    free(results.comp_example_nums); 
+
+
 }
+
+//finds the most frequent class of nearest neighbor for a given example
+//ties go to class with nearest neighbor
+int calc_nearest_neighbor(struct distance_results *results, int k){
+	int cur_class;
+	int ii;
+
+	for (ii=0; ii<k; ii++){
+		if (ii == 0){
+			cur_class = results->comp_example_nums[ii];
+		}
+	}
+
+	return cur_class;
+}
+
+
+//adds distance from get_distance to results
+	// int example_num;
+	// double *distances;
+	// int *comp_example_nums;
+void add_distance_to_results(struct distance_results *results, double distance, 
+													   int k, int comp_example){
+	int ii;
+	double temp;
+	int temp_example_num;
+
+	//ties are thrown out
+	for (ii=0; ii<k; ii++){
+		//if nothing in results yet
+		if (results->comp_example_nums[ii] == 0){
+			results->comp_example_nums[ii] == comp_example;
+			results->distances[ii] = distance;
+			return;
+		}
+
+		//if this neighbor is closer, replace and
+		//then check if replaces neighbor is less than
+		//other neighbors
+		if ((results->comp_example_nums[ii] > 0) &&
+			distance < results->distances[ii]){
+			temp = results->distances[ii];
+			temp_example_num = results->comp_example_nums[ii];
+			results->distances[ii] = distance;
+			results->comp_example_nums[ii] = comp_example;
+			distance = temp;
+			comp_example = temp_example_num;
+
+		}
+	}
+}
+
+//subtracts two data "arrays" and then returns the distance
+//the data arrays are in structs
+//returns euclidean distance
+double get_distance(struct numeric_data *s1, struct numeric_data *s2, int num_words){
+	double cur_distance = 0;
+	int ii, jj, same_feature;
+
+	//check for features in both s1 and s2, as well as features only in s1
+	for (ii=0; ii<num_words; ii++){
+		
+		same_feature = 0;
+		
+		//end when there are not more features in array
+		if (s1->array_of_features[ii].feature_num == 0){
+			break;
+		}
+
+		for (jj=0; jj<num_words; jj++){
+			//end when there are not more features in array
+			if (s2->array_of_features[jj].feature_num == 0){
+				break;
+			}
+
+			//if they both have feature, subtract distance between them
+			if (s1->array_of_features[ii].feature_num == 
+				s2->array_of_features[jj].feature_num){
+				cur_distance += ((s1->array_of_features[ii].count - s2->array_of_features[jj].count) *
+								(s1->array_of_features[ii].count - s2->array_of_features[jj].count));
+				// printf("1 - Cur_dist = %f\n", cur_distance);
+				same_feature = 1;
+				break;
+			}
+		}
+
+		//if they don't both have the same feature
+		if (same_feature == 0){
+			cur_distance += (s1->array_of_features[ii].count * s1->array_of_features[ii].count);
+			// printf("2 - Cur_dist = %f\n", cur_distance);
+		}
+	}
+
+	//check for features only in s2
+	for (ii=0; ii<num_words; ii++){
+				
+		//end when there are not more features in array
+		if (s2->array_of_features[ii].feature_num == 0){
+			break;
+		}
+
+		for (jj=0; jj<num_words; jj++){
+			//end when there are not more features in array
+			if (s1->array_of_features[jj].feature_num == 0){
+				break;
+			}
+
+			//if they both have feature, break
+			if (s2->array_of_features[ii].feature_num == 
+				s1->array_of_features[jj].feature_num){
+				break;
+			}
+		}
+
+		cur_distance += (s2->array_of_features[ii].count * s2->array_of_features[ii].count);
+		// printf("3 - Cur_dist = %f\n", cur_distance);
+	}
+
+	//sqrt to find euclidean distance
+	return sqrt(cur_distance);
+}
+
 
 int get_cat_index(char **cat_list, char *cat){
 	int index;
@@ -483,9 +649,12 @@ void words_to_num(struct numeric_data *num_data, struct data *all_data,
 	                               feature_tree **vocab, int num_words){
 	int ii, jj;
 	unsigned int cur_feature;
+	// printf("\n\n");
 	for (ii=0; ii<num_words; ii++){
 		//get feature number for every word
 		cur_feature = get_feature_number(vocab, all_data->question[ii]);
+
+		// printf("%s %u  ", all_data->question[ii], cur_feature);
 
 		//If no more feature break
 		if (cur_feature == 0){

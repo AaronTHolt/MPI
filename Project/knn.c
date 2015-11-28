@@ -35,6 +35,11 @@ struct distance_results{
 	int *comp_example_nums;
 };
 
+struct mode{
+	int *count;
+	int *comp_example_nums;
+};
+
 //tree to hold vocabulary (features)
 typedef struct feature_tree{
 	unsigned int feature_num;
@@ -55,7 +60,7 @@ void words_to_num(struct numeric_data *num_data, struct data *all_data,
 double get_distance(struct numeric_data *s1, struct numeric_data *s2, int num_words);
 void add_distance_to_results(struct distance_results *results, double distance,
 													   int k, int comp_example);
-int calc_nearest_neighbor(struct distance_results *results, int k);
+int calc_nearest_neighbor(struct distance_results *results, struct mode *mod, int k);
 
 //Insert a word into the tree
 void insert_word(feature_tree **root, char *word){
@@ -247,16 +252,22 @@ int main (int argc, char **argv)
 
     //number of examples to read in
     int total_examples = 30;
+
     //max words per question
     int num_words = 300;
+
     //max word length
     int max_word_len = 20;
     //max vocab count
     // int max_vocab = 200000;
-    //data read in poorly
-    int bad_iterations = 0;
 
-    //Allocate space for data
+    //data read in poorly
+    int bad_iter = 0;
+
+    //Used to split into training and testing data (will train on example_num%train)
+    int train = 10;
+
+     //Allocate space for data being read in with fgets
     char *csv_line = malloc(sizeof(char)*1500);
 
     //store all data
@@ -291,9 +302,12 @@ int main (int argc, char **argv)
     results.example_num = 0;
     results.distances = calloc(k, sizeof(double));
     results.comp_example_nums = calloc(k, sizeof(int));
+
+    //struct used to calculate the mode of the k nearest neighbors
+    struct mode mod;
+    mod.count = calloc(k, sizeof(int));
+    mod.comp_example_nums = calloc(k, sizeof(int));
  
-
-
     // //store vocabulary list (char** points to array of char* of length 20)
     // char **word_list;
     // word_list = malloc(sizeof(char*)*max_vocab); //assumes max_vocab total vocab
@@ -348,18 +362,20 @@ int main (int argc, char **argv)
 
 			tok = strtok(csv_line, "|");
 			if (tok == NULL){
-				all_data[i-1].example_num = -1;
-				bad_iterations++;
+				// all_data[i-bad_iter-1].example_num = -1;
+				bad_iter++;
+				// i--;
 				continue;
 			}
-			sscanf(tok, "%i", &all_data[i-1].example_num);
+			sscanf(tok, "%i", &all_data[i-bad_iter-1].example_num);
 
 			
 
 			tok = strtok(NULL, "|");
 			if (tok == NULL){
-				all_data[i-1].example_num = -1;
-				bad_iterations++;
+				// all_data[i-bad_iter-1].example_num = -1;
+				bad_iter++;
+				// i--;
 				continue;
 			}
 			tok_copy = (char *)tok;
@@ -368,12 +384,13 @@ int main (int argc, char **argv)
 
 			tok = strtok(NULL, "|");
 			if (tok == NULL){
-				all_data[i-1].example_num = -1;
-				bad_iterations++;
+				// all_data[i-bad_iter-1].example_num = -1;
+				bad_iter++;
+				// i--;
 				continue;
 			}
-			strncpy(all_data[i-1].cat, tok, 19);
-			all_data[i-1].cat[max_word_len-1] = 0;
+			strncpy(all_data[i-bad_iter-1].cat, tok, 19);
+			all_data[i-bad_iter-1].cat[max_word_len-1] = 0;
 
 
 			char *tok2;
@@ -381,12 +398,15 @@ int main (int argc, char **argv)
 
 			j = 0;
 			if ((tok2 != NULL) && (strlen(tok2)>3)){
-				strncpy(all_data[i-1].question[0], tok2, 19);
-		    	all_data[i-1].question[0][max_word_len-1] = 0;
+				strncpy(all_data[i-bad_iter-1].question[0], tok2, 19);
+		    	all_data[i-bad_iter-1].question[0][max_word_len-1] = 0;
 
-		    	//add to tree
-    			insert_word(&vocab, all_data[i-1].question[0]);
-    			j += 1;
+		    	//add to tree if not test data
+		    	if (all_data[i-bad_iter-1].example_num % train != 0){
+		    		insert_word(&vocab, all_data[i-bad_iter-1].question[0]);
+    				j += 1;
+		    	}
+    			
 			}
 
 			while (tok2 != NULL){
@@ -395,24 +415,26 @@ int main (int argc, char **argv)
 				}
 				tok2 = strtok(NULL, " \t");
 		        if ((tok2 != NULL) && (strlen(tok2)>3)){
-		            strncpy(all_data[i-1].question[j], tok2, 19);
-		            all_data[i-1].question[j][max_word_len-1] = 0;
+		            strncpy(all_data[i-bad_iter-1].question[j], tok2, 19);
+		            all_data[i-bad_iter-1].question[j][max_word_len-1] = 0;
 
-		            //add to tree
-    				insert_word(&vocab, all_data[i-1].question[j]);
-    				j++;
+		            //add to tree if not test data
+		            if (all_data[i-bad_iter-1].example_num % train != 0){
+    					insert_word(&vocab, all_data[i-bad_iter-1].question[j]);
+    					j++;
+    				}
 		        }
 				
 			} //end while
 
-    		// all_data[i-1] = instance;
-    		// print_data(&all_data[i-1]);
+    		// all_data[i-bad_iter-1] = instance;
+    		// print_data(&all_data[i-bad_iter-1]);
 
     		////add to vocabulary (using array, VERY slow with lots of data)
-    		// add_to_word_list(all_data[i-1].question, word_list, &vocab_count);
+    		// add_to_word_list(all_data[i-bad_iter-1].question, word_list, &vocab_count);
     		
     		//add to category list
-    		add_to_cat_list(all_data[i-1].cat, cat_list, &category_count);
+    		add_to_cat_list(all_data[i-bad_iter-1].cat, cat_list, &category_count);
 
     	} //end if
     } //end for
@@ -426,7 +448,7 @@ int main (int argc, char **argv)
     number_features(vocab, &mm);
 
     //Some of the csv rows aren't read in properly with fgets
-    printf("Bad iterations = %i/%i\n", bad_iterations, i);
+    printf("Bad iterations = %i/%i\n", bad_iter, i);
     printf("Feature count = %i\n", count_features(vocab));
 
     // print_inorder(vocab);
@@ -466,6 +488,8 @@ int main (int argc, char **argv)
     	}
 		// printf("Distance, ExampleNum = %f %i, Iter = %i\n", distance, num_data[ii].example_num, ii);
     }
+
+
 
 
 
@@ -510,18 +534,38 @@ int main (int argc, char **argv)
     free(results.distances);
     free(results.comp_example_nums); 
 
-
+    //free mode struct
+    free(mod.count);
+    free(mod.comp_example_nums);
 }
 
 //finds the most frequent class of nearest neighbor for a given example
 //ties go to class with nearest neighbor
-int calc_nearest_neighbor(struct distance_results *results, int k){
-	int cur_class;
-	int ii;
+int calc_nearest_neighbor(struct distance_results *results, struct mode *mod, int k){
+	int cur_class, count;
+	int ii, jj;
 
+	//count each class
 	for (ii=0; ii<k; ii++){
-		if (ii == 0){
-			cur_class = results->comp_example_nums[ii];
+		cur_class = results->comp_example_nums[ii];
+		mod->count[ii] = 0;
+		mod->comp_example_nums[ii] = results->comp_example_nums[ii];
+
+		for (jj=0; jj<k; jj++){
+			if (results->comp_example_nums[jj] == cur_class){
+				mod->count[ii] ++;
+			}
+		}
+	}
+
+	cur_class = mod->comp_example_nums[0];
+	count = mod->count[0];
+
+	//find class maximums
+	for (ii=1; ii<k; ii++){
+		if (mod->count[ii] > count){
+			count = mod->count[ii];
+			cur_class = mod->comp_example_nums[ii];
 		}
 	}
 

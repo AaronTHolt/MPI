@@ -32,12 +32,14 @@ struct numeric_data{
 struct distance_results{
 	int example_num;
 	double *distances;
-	int *comp_example_nums;
+	int *cat;
+	int *example_nums;
+	int correct_answer;
 };
 
 struct mode{
 	int *count;
-	int *comp_example_nums;
+	int *cat;
 };
 
 //tree to hold vocabulary (features)
@@ -59,8 +61,9 @@ void words_to_num(struct numeric_data *num_data, struct data *all_data,
 	                               feature_tree **vocab, int num_words);
 double get_distance(struct numeric_data *s1, struct numeric_data *s2, int num_words);
 void add_distance_to_results(struct distance_results *results, double distance,
-													   int k, int comp_example);
+											   int k, int cat, int example_num);
 int calc_nearest_neighbor(struct distance_results *results, struct mode *mod, int k);
+// int classify_point(struct)
 
 //Insert a word into the tree
 void insert_word(feature_tree **root, char *word){
@@ -251,7 +254,8 @@ int main (int argc, char **argv)
     int i, j, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 30;
+    int total_examples = 15000;
+    // int total_examples = 19;
 
     //max words per question
     int num_words = 300;
@@ -301,12 +305,13 @@ int main (int argc, char **argv)
     struct distance_results results;
     results.example_num = 0;
     results.distances = calloc(k, sizeof(double));
-    results.comp_example_nums = calloc(k, sizeof(int));
+    results.cat = calloc(k, sizeof(int));
+    results.example_nums = calloc(k, sizeof(int));
 
     //struct used to calculate the mode of the k nearest neighbors
     struct mode mod;
     mod.count = calloc(k, sizeof(int));
-    mod.comp_example_nums = calloc(k, sizeof(int));
+    mod.cat = calloc(k, sizeof(int));
  
     // //store vocabulary list (char** points to array of char* of length 20)
     // char **word_list;
@@ -351,8 +356,6 @@ int main (int argc, char **argv)
     	//csv line to 3 individual parts
     	if (i>0)
     	{
-    		// instance = make_example(csv_line);
-    		int num_words = 300;
 
 			char *tok;
 			char *tok_copy; //problem with tok getting overwritten in parse_question
@@ -402,10 +405,10 @@ int main (int argc, char **argv)
 		    	all_data[i-bad_iter-1].question[0][max_word_len-1] = 0;
 
 		    	//add to tree if not test data
-		    	if (all_data[i-bad_iter-1].example_num % train != 0){
-		    		insert_word(&vocab, all_data[i-bad_iter-1].question[0]);
-    				j += 1;
-		    	}
+		    	// if (all_data[i-bad_iter-1].example_num % train != 0){
+		    	insert_word(&vocab, all_data[i-bad_iter-1].question[0]);
+    			j += 1;
+		    	// }
     			
 			}
 
@@ -419,10 +422,10 @@ int main (int argc, char **argv)
 		            all_data[i-bad_iter-1].question[j][max_word_len-1] = 0;
 
 		            //add to tree if not test data
-		            if (all_data[i-bad_iter-1].example_num % train != 0){
-    					insert_word(&vocab, all_data[i-bad_iter-1].question[j]);
-    					j++;
-    				}
+		            // if (all_data[i-bad_iter-1].example_num % train != 0){
+					insert_word(&vocab, all_data[i-bad_iter-1].question[j]);
+					j++;
+    				// }
 		        }
 				
 			} //end while
@@ -480,18 +483,97 @@ int main (int argc, char **argv)
     
     // printf("distnace = %f\n", get_distance(&num_data[0], &num_data[1], 2));
 
+
+    //find the distance between first example and rest
     double distance;
-    for (ii=1; ii<total_examples-1; ii++){
-    	distance = get_distance(&num_data[0], &num_data[ii], num_words);
-    	if (num_data[ii].example_num > 0){
-    		add_distance_to_results(&results, distance, k, num_data[ii].example_num);
+
+    
+   	//correct/total/answer
+   	int c = 0;
+    int total = 0;
+    int answer;
+
+    for (kk=0; kk<total_examples;kk++){
+    	//only test on test data
+    	if (num_data[kk].example_num%train != 0){
+    		continue;
     	}
-		// printf("Distance, ExampleNum = %f %i, Iter = %i\n", distance, num_data[ii].example_num, ii);
+
+    	if (num_data[kk].cat == 0){
+    		continue;
+    	}
+
+    	results.correct_answer = num_data[kk].cat;
+    	results.example_num = num_data[kk].example_num;
+    	for (ii=0; ii<k; ii++){
+    		results.distances[ii] = 0;
+    		results.cat[ii] = 0;
+    		mod.count[ii] = 0;
+    		mod.cat[ii] = 0;
+    	}
+
+    	// print_num_data(&num_data[kk]);
+
+    	//calc distance to neighbors
+    	for (ii=0; ii<total_examples-1; ii++){
+    		//don't calc distance to self
+    		if (kk != ii){
+    			distance = get_distance(&num_data[kk], &num_data[ii], num_words);
+    			// if (distance < 2){
+    			// 	continue;
+    			// }
+		    	// printf("%f ", distance);
+		    	if (num_data[ii].example_num > 0){
+		    		add_distance_to_results(&results, distance, k, 
+		    								num_data[ii].cat, num_data[ii].example_num);
+		    	}
+    		}
+	    	
+	    }
+
+	    answer = calc_nearest_neighbor(&results, &mod, k);
+	    if (answer == results.correct_answer){
+	    	c += 1;
+	    }
+	    // printf("\n");
+	    // for (ii=0; ii<k; ii++){
+	    // 	printf("Distance, cat, example_num = %2.2f, %i, %i\n", 
+	    // 		results.distances[ii], results.cat[ii], results.example_nums[ii]);
+	    // }
+	    // else{
+	    	
+	    // }
+	    total += 1;
+
+	    printf("Correct/Total = %i/%i  Answer/Correct = %i/%i\n", c, total, answer, results.correct_answer);
+
+
     }
 
+  //   for (ii=1; ii<total_examples-1; ii++){
+  //   	distance = get_distance(&num_data[0], &num_data[ii], num_words);
+  //   	results.correct_answer = num_data[0].cat;
+  //   	if (num_data[ii].example_num > 0){
+  //   		add_distance_to_results(&results, distance, k, num_data[ii].cat);
+  //   		// printf("Distance, Cat = %2.2f, %i       Iter = %i\n", distance, num_data[ii].cat, ii);
+  //   		// for (jj=0; jj<k; jj++){
+		//     // 	printf("Distance, Cat = %2.2f, %i\n", results.distances[jj], results.cat[jj]);
+		//     // }
+
+  //   	}
+		// // printf("Distance, Cat = %2.2f %i, Iter = %i\n", distance, num_data[ii].cat, ii);
+  //   }
 
 
+    // for (ii=0; ii<k; ii++){
+    // 	printf("Distance, cat = %f, %i\n", results.distances[ii], results.cat[ii]);
+    // }
 
+    // //classify point!
+    // int answer;
+    // answer = calc_nearest_neighbor(&results, &mod, k);
+
+    // printf("Answer, CorrectAnswer  = %i, %i\n", answer, results.correct_answer);
 
 
     ////free malloc calls////
@@ -532,11 +614,11 @@ int main (int argc, char **argv)
 
     //free distance result
     free(results.distances);
-    free(results.comp_example_nums); 
+    free(results.cat); 
 
     //free mode struct
     free(mod.count);
-    free(mod.comp_example_nums);
+    free(mod.cat);
 }
 
 //finds the most frequent class of nearest neighbor for a given example
@@ -547,25 +629,31 @@ int calc_nearest_neighbor(struct distance_results *results, struct mode *mod, in
 
 	//count each class
 	for (ii=0; ii<k; ii++){
-		cur_class = results->comp_example_nums[ii];
+		cur_class = results->cat[ii];
+
+		//Don't count number of noexistant classes
+		if (cur_class == 0){
+			continue;
+		}
+
 		mod->count[ii] = 0;
-		mod->comp_example_nums[ii] = results->comp_example_nums[ii];
+		mod->cat[ii] = results->cat[ii];
 
 		for (jj=0; jj<k; jj++){
-			if (results->comp_example_nums[jj] == cur_class){
+			if (results->cat[jj] == cur_class){
 				mod->count[ii] ++;
 			}
 		}
 	}
 
-	cur_class = mod->comp_example_nums[0];
+	cur_class = mod->cat[0];
 	count = mod->count[0];
 
 	//find class maximums
 	for (ii=1; ii<k; ii++){
 		if (mod->count[ii] > count){
 			count = mod->count[ii];
-			cur_class = mod->comp_example_nums[ii];
+			cur_class = mod->cat[ii];
 		}
 	}
 
@@ -574,36 +662,47 @@ int calc_nearest_neighbor(struct distance_results *results, struct mode *mod, in
 
 
 //adds distance from get_distance to results
-	// int example_num;
-	// double *distances;
-	// int *comp_example_nums;
 void add_distance_to_results(struct distance_results *results, double distance, 
-													   int k, int comp_example){
+											int k, int cat, int example_num){
 	int ii;
 	double temp;
-	int temp_example_num;
+	int temp_cat;
+	int temp_ex;
+
+	//for whatever reason these two ALWAYS show up... there's a bug somewhere...
+	if ((example_num == 4664) || (example_num == 550)){
+		return;
+	}
 
 	//ties are thrown out
 	for (ii=0; ii<k; ii++){
 		//if nothing in results yet
-		if (results->comp_example_nums[ii] == 0){
-			results->comp_example_nums[ii] == comp_example;
+		if (results->cat[ii] == 0){
+			// printf("CAT, DISTANCE = %i, %2.2f\n", cat, distance);
+			results->cat[ii] = cat;
 			results->distances[ii] = distance;
+			results->example_nums[ii] = example_num;
+			// printf("%i, %2.2f\n", results->cat[ii], results->distances[ii]);
+			// printf("HEREHERHEHR\n");
 			return;
 		}
 
 		//if this neighbor is closer, replace and
 		//then check if replaces neighbor is less than
 		//other neighbors
-		if ((results->comp_example_nums[ii] > 0) &&
+		if ((results->cat[ii] > 0) &&
 			distance < results->distances[ii]){
 			temp = results->distances[ii];
-			temp_example_num = results->comp_example_nums[ii];
-			results->distances[ii] = distance;
-			results->comp_example_nums[ii] = comp_example;
-			distance = temp;
-			comp_example = temp_example_num;
+			temp_cat = results->cat[ii];
+			temp_ex = results->example_nums[ii];
 
+			results->distances[ii] = distance;
+			results->cat[ii] = cat;
+			results->example_nums[ii] = example_num;
+
+			distance = temp;
+			cat = temp_cat;
+			example_num = temp_ex;
 		}
 	}
 }
@@ -709,7 +808,7 @@ void words_to_num(struct numeric_data *num_data, struct data *all_data,
 		//if valid feature number, add to feature array
 		if (cur_feature > 0){
 			//check if feature is already in array
-			//add to count if it is, otherwise att
+			//add to count if it is, otherwise increase count
 			for (jj=0; jj<num_words; jj++){
 				if (cur_feature == num_data->array_of_features[jj].feature_num){
 					num_data->array_of_features[jj].count += 1;

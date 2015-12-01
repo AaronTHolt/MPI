@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+#SBATCH --job-name=hw93_32
+#SBATCH --qos janus
+#SBATCH --nodes 32
+#SBATCH --ntasks-per-node 1
+#SBATCH --time 00:25:00
+#SBATCH --output RESULTS/hw93_32
+
+./hw9.3-holtat-openmp-runtime
+

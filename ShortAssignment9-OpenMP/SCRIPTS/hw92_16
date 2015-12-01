@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+#SBATCH --job-name=hw92_16
+#SBATCH --qos janus
+#SBATCH --nodes 16
+#SBATCH --ntasks-per-node 1
+#SBATCH --time 00:25:00
+#SBATCH --output RESULTS/hw92_16
+
+./hw9.2-holtat-openmp-compiletime
+

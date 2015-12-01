@@ -18,7 +18,7 @@
 
 //Aaron Holt
 //HPSC
-//Conways 2
+//Conways 3 - Optimized
 // compile instructions: $ make
 // run instructions:
 /*

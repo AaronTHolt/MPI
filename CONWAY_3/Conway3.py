@@ -74,83 +74,6 @@ for ss in [300, 600, 900]:
 # print [checkered[900][x][0] for x in sorted([row for row in checkered[900]])]
 # print serial[900][0]
 
-##################### Speedup vs NP ##########################
-aa = serial[900][0]
-a = [serial[900][0]]+[checkered[900][x][0] for x in sorted([row for row in checkered[900]])]
-b = [0]+[checkered[900][x][1] for x in sorted([row for row in checkered[900]])]
-c = [1]+sorted([row for row in checkered[900]])
-a = [aa/x for x in a]
-
-
-line0, = plt.plot(c, a, 'ro-')
-plt.errorbar(c, a, 
-	yerr=b, fmt='ro-')
-
-aa = serial[600][0]
-a = [serial[600][0]]+[checkered[600][x][0] for x in sorted([row for row in checkered[600]])]
-b = [0]+[checkered[600][x][1] for x in sorted([row for row in checkered[600]])]
-c = [1]+sorted([row for row in checkered[600]])
-a = [aa/x for x in a]
-
-
-line1, = plt.plot(c, a, 'bo-')
-plt.errorbar(c, a, 
-	yerr=b, fmt='bo-')
-
-aa = serial[300][0]
-a = [serial[300][0]]+[checkered[300][x][0] for x in sorted([row for row in checkered[300]])]
-b = [0]+[checkered[300][x][1] for x in sorted([row for row in checkered[300]])]
-c = [1]+sorted([row for row in checkered[300]])
-a = [aa/x for x in a]
-
-line2, = plt.plot(c, a, 'ko-')
-plt.errorbar(c, a, 
-	yerr=b, fmt='ko-')
-
-
-aa = serial[900][0]
-a = [serial[900][0]]+[blocked[900][x][0] for x in sorted([row for row in blocked[900]])]
-b = [0]+[blocked[900][x][1] for x in sorted([row for row in blocked[900]])]
-c = [1]+sorted([row for row in blocked[900]])
-a = [aa/x for x in a]
-
-
-line3, = plt.plot(c, a, 'r^--')
-plt.errorbar(c, a, 
-	yerr=b, fmt='r^--')
-
-aa = serial[600][0]
-a = [serial[600][0]]+[blocked[600][x][0] for x in sorted([row for row in blocked[600]])]
-b = [0]+[blocked[600][x][1] for x in sorted([row for row in blocked[600]])]
-c = [1]+sorted([row for row in blocked[600]])
-a = [aa/x for x in a]
-
-
-line4, = plt.plot(c, a, 'b^--')
-plt.errorbar(c, a, 
-	yerr=b, fmt='b^--')
-
-aa = serial[300][0]
-a = [serial[300][0]]+[blocked[300][x][0] for x in sorted([row for row in blocked[300]])]
-b = [0]+[blocked[300][x][1] for x in sorted([row for row in blocked[300]])]
-c = [1]+sorted([row for row in blocked[300]])
-a = [aa/x for x in a]
-
-line5, = plt.plot(c, a, 'k^--')
-plt.errorbar(c, a, 
-	yerr=b, fmt='k^--')
-
-
-#title and axis labels
-plt.xlabel('Number of Processors')
-plt.ylabel('Speedup Ratio')
-plt.title("Speedup vs Processor Count for Checkered with Different World Sizes")
-#legend
-plt.legend([line0, line1, line2, line3, line4, line5], 
-	['Checker 900x900', 'Checker 600x600', 'Checker 300x300',
-	'Block 900x900', 'Block 600x600', 'Block 300x300'], loc=2)
-plt.show()
-
 # ##################### Speedup vs NP ##########################
 # aa = serial[900][0]
 # a = [serial[900][0]]+[checkered[900][x][0] for x in sorted([row for row in checkered[900]])]
@@ -163,11 +86,86 @@ plt.show()
 # plt.errorbar(c, a, 
 # 	yerr=b, fmt='ro-')
 
+# aa = serial[600][0]
+# a = [serial[600][0]]+[checkered[600][x][0] for x in sorted([row for row in checkered[600]])]
+# b = [0]+[checkered[600][x][1] for x in sorted([row for row in checkered[600]])]
+# c = [1]+sorted([row for row in checkered[600]])
+# a = [aa/x for x in a]
+
+
+# line1, = plt.plot(c, a, 'bo-')
+# plt.errorbar(c, a, 
+# 	yerr=b, fmt='bo-')
+
+# aa = serial[300][0]
+# a = [serial[300][0]]+[checkered[300][x][0] for x in sorted([row for row in checkered[300]])]
+# b = [0]+[checkered[300][x][1] for x in sorted([row for row in checkered[300]])]
+# c = [1]+sorted([row for row in checkered[300]])
+# a = [aa/x for x in a]
+
+# line2, = plt.plot(c, a, 'ko-')
+# plt.errorbar(c, a, 
+# 	yerr=b, fmt='ko-')
+
+
+# aa = serial[900][0]
 # a = [serial[900][0]]+[blocked[900][x][0] for x in sorted([row for row in blocked[900]])]
 # b = [0]+[blocked[900][x][1] for x in sorted([row for row in blocked[900]])]
 # c = [1]+sorted([row for row in blocked[900]])
 # a = [aa/x for x in a]
 
+
+# line3, = plt.plot(c, a, 'r^--')
+# plt.errorbar(c, a, 
+# 	yerr=b, fmt='r^--')
+
+# aa = serial[600][0]
+# a = [serial[600][0]]+[blocked[600][x][0] for x in sorted([row for row in blocked[600]])]
+# b = [0]+[blocked[600][x][1] for x in sorted([row for row in blocked[600]])]
+# c = [1]+sorted([row for row in blocked[600]])
+# a = [aa/x for x in a]
+
+
+# line4, = plt.plot(c, a, 'b^--')
+# plt.errorbar(c, a, 
+# 	yerr=b, fmt='b^--')
+
+# aa = serial[300][0]
+# a = [serial[300][0]]+[blocked[300][x][0] for x in sorted([row for row in blocked[300]])]
+# b = [0]+[blocked[300][x][1] for x in sorted([row for row in blocked[300]])]
+# c = [1]+sorted([row for row in blocked[300]])
+# a = [aa/x for x in a]
+
+# line5, = plt.plot(c, a, 'k^--')
+# plt.errorbar(c, a, 
+# 	yerr=b, fmt='k^--')
+
+
+# #title and axis labels
+# plt.xlabel('Number of Processors')
+# plt.ylabel('Speedup Ratio')
+# plt.title("Speedup vs Processor Count for Checkered with Different World Sizes")
+# #legend
+# plt.legend([line0, line1, line2, line3, line4, line5], 
+# 	['Checker 900x900', 'Checker 600x600', 'Checker 300x300',
+# 	'Block 900x900', 'Block 600x600', 'Block 300x300'], loc=2)
+# plt.show()
+
+# ##################### Speedup vs NP ##########################
+# aa = serial[900][0]
+# a = [serial[900][0]]+[checkered[900][x][0] for x in sorted([row for row in checkered[900]])]
+# b = [0]+[checkered[900][x][1] for x in sorted([row for row in checkered[900]])]
+# c = [1]+sorted([row for row in checkered[900]])
+# a = [aa/x for x in a]
+
+# line0, = plt.plot(c, a, 'ro-')
+# plt.errorbar(c, a, 
+# 	yerr=b, fmt='ro-')
+
+# a = [serial[900][0]]+[blocked[900][x][0] for x in sorted([row for row in blocked[900]])]
+# b = [0]+[blocked[900][x][1] for x in sorted([row for row in blocked[900]])]
+# c = [1]+sorted([row for row in blocked[900]])
+# a = [aa/x for x in a]
 
 # line1, = plt.plot(c, a, 'bo-')
 # plt.errorbar(c, a, 
@@ -191,26 +189,28 @@ plt.show()
 
 # ########################### Efficiency vs NP ##################################
 
-# aa = serial[900][0]
-# a = [serial[900][0]]+[checkered[900][x][0] for x in sorted([row for row in checkered[900]])]
-# b = [0]+[checkered[900][x][1] for x in sorted([row for row in checkered[900]])]
-# c = [1]+sorted([row for row in checkered[900]])
-# a = [aa/x for x in a]
-# # b = [aa/x for x in b]
-# for ii in range(0,len(a)):
-# 	a[ii] = a[ii]/c[ii]
+aa = serial[900][0]
+a = [serial[900][0]]+[checkered[900][x][0] for x in sorted([row for row in checkered[900]])]
+b = [0]+[checkered[900][x][1] for x in sorted([row for row in checkered[900]])]
+c = [1]+sorted([row for row in checkered[900]])
+a = [aa/x for x in a]
+# b = [aa/x for x in b]
+for ii in range(0,len(a)):
+	a[ii] = a[ii]/c[ii]
+print a
 
 # line0, = plt.plot(c, a, 'ro-')
 # plt.errorbar(c, a, 
 # 	yerr=b, fmt='ro-')
 
-# a = [serial[900][0]]+[blocked[900][x][0] for x in sorted([row for row in blocked[900]])]
-# b = [0]+[blocked[900][x][1] for x in sorted([row for row in blocked[900]])]
-# c = [1]+sorted([row for row in blocked[900]])
-# a = [aa/x for x in a]
-# # b = [aa/x for x in b]
-# for ii in range(0,len(a)):
-# 	a[ii] = a[ii]/c[ii]
+a = [serial[900][0]]+[blocked[900][x][0] for x in sorted([row for row in blocked[900]])]
+b = [0]+[blocked[900][x][1] for x in sorted([row for row in blocked[900]])]
+c = [1]+sorted([row for row in blocked[900]])
+a = [aa/x for x in a]
+# b = [aa/x for x in b]
+for ii in range(0,len(a)):
+	a[ii] = a[ii]/c[ii]
+print a
 
 # line1, = plt.plot(c, a, 'bo-')
 # plt.errorbar(c, a, 
@@ -287,6 +287,9 @@ Tc = 3.6*10**-10
 
 comm_check = 0
 comm_block = 0
+comm_check_l = []
+comm_block_l = []
+computation_l = []
 time_check = []
 time_block = []
 for ii in [1,4,9,16,25,36]:
@@ -295,9 +298,24 @@ for ii in [1,4,9,16,25,36]:
 		comm_block = 0
 	else:
 		comm_check = 8*(Ts+Tc*(900*2)/(ii**(1/2)))
+		comm_check_l.append(comm_check)
 		comm_block = 4*(Ts+Tc*900*2)
+		comm_block_l.append(comm_block)
+	computation_l.append(serial_c_time/ii)
 	time_block.append(serial_c_time/ii+comm_block)
 	time_check.append(serial_c_time/ii+comm_check)
 
 # print time_block
 # print time_check
+# print comm_block_l
+# print comm_check_l
+# print ''
+# print computation_l
+
+
+# aa = serial[900][0]
+# speedup_block = [serial_c_time/x for x in time_block]
+# speedup_check = [serial_c_time/x for x in time_check]
+
+# print speedup_block
+# print speedup_check

@@ -24,6 +24,7 @@ struct feature_count{
 //stores data in numeric form
 struct numeric_data{
 	int example_num;
+    int total_features; //number of features for given example
 	struct feature_count *array_of_features;
 	int cat;
 };
@@ -59,6 +60,7 @@ void add_to_word_list(char **question, char **word_list, int *cur_index);
 void add_to_cat_list(char *cat, char **cat_list, int *cur_index);
 void words_to_num(struct numeric_data *num_data, struct data *all_data, 
 	                               feature_tree **vocab, int num_words);
+int count_features2(struct numeric_data *num_data);
 double get_distance(struct numeric_data *s1, struct numeric_data *s2, int num_words);
 void add_distance_to_results(struct distance_results *results, double distance,
 											   int k, int cat, int example_num);
@@ -465,20 +467,45 @@ int main (int argc, char **argv)
     	num_data[i].example_num = all_data[i].example_num;
     	num_data[i].cat = get_cat_index(cat_list, all_data[i].cat);
     	words_to_num(&num_data[i], &all_data[i], &vocab, num_words);
+        // count_features2(&num_data[i]);
     }
 
     // num_data->array_of_features[0].feature_num = 44;
 
-    // print_num_data(&num_data[0]);
-    // print_num_data(&num_data[1]);
-    // print_num_data(&num_data[29]);
+    print_num_data(&num_data[0]);
+    print_num_data(&num_data[1]);
+
+    int sadfjh;
+    double av_feature_count = 0;
+    for (ii=0; ii<total_examples-bad_iter-1; ii++){
+        sadfjh = count_features2(&num_data[ii]);
+        av_feature_count += sadfjh;
+        // printf("%i ", sadfjh);
+    }
+    printf("\n av_feature_count %f\n", av_feature_count/(total_examples-bad_iter-1));
+    
+    
+    // print_num_data(&num_data[4464]);
 
     // printf("vocab->right = %s \n", vocab->feature);
     // print_data(&all_data[0]);
     // print_data(&all_data[29000]);
     // printf("%s, %u\n", "1829", get_feature_number(&vocab, "1829"));
 
-
+    for (ii=0; ii<total_examples; ii++){
+        if (num_data[ii].example_num == 4664){
+            print_num_data(&num_data[ii]);
+        }
+        else if (num_data[ii].example_num == 1505){
+            print_num_data(&num_data[ii]);
+        }
+        else if (num_data[ii].example_num == 10124){
+            print_num_data(&num_data[ii]);
+        }
+        else if (num_data[ii].example_num == 550){
+            print_num_data(&num_data[ii]);
+        }
+    }
 
     
     // printf("distnace = %f\n", get_distance(&num_data[0], &num_data[1], 2));
@@ -518,14 +545,18 @@ int main (int argc, char **argv)
     	for (ii=0; ii<total_examples-1; ii++){
     		//don't calc distance to self
     		if (kk != ii){
-    			distance = get_distance(&num_data[kk], &num_data[ii], num_words);
-    			// if (distance < 2){
-    			// 	continue;
-    			// }
-		    	// printf("%f ", distance);
-		    	if (num_data[ii].example_num > 0){
-		    		add_distance_to_results(&results, distance, k, 
-		    								num_data[ii].cat, num_data[ii].example_num);
+                //Eliminate bad data (examples with few words tend to have low distances
+                //reguardless of whether they are more similar...
+                if (num_data[ii].total_features >= 40){
+                    distance = get_distance(&num_data[kk], &num_data[ii], num_words);
+                    // if (distance < 2){
+                    //  continue;
+                    // }
+                    // printf("%f ", distance);
+                    if (num_data[ii].example_num > 0){
+                        add_distance_to_results(&results, distance, k, 
+                                                num_data[ii].cat, num_data[ii].example_num);
+                    }
 		    	}
     		}
 	    	
@@ -537,8 +568,8 @@ int main (int argc, char **argv)
 	    }
 	    // printf("\n");
 	    // for (ii=0; ii<k; ii++){
-	    // 	printf("Distance, cat, example_num = %2.2f, %i, %i\n", 
-	    // 		results.distances[ii], results.cat[ii], results.example_nums[ii]);
+	    // 	printf("Distance, cat, example_num1, example_num2 = %2.2f, %i, %i, %i\n", 
+	    // 		results.distances[ii], results.cat[ii], results.example_num, results.example_nums[ii]);
 	    // }
 	    // else{
 	    	
@@ -670,9 +701,10 @@ void add_distance_to_results(struct distance_results *results, double distance,
 	int temp_ex;
 
 	//for whatever reason these two ALWAYS show up... there's a bug somewhere...
-	if ((example_num == 4664) || (example_num == 550)){
-		return;
-	}
+	// if ((example_num == 4664) || (example_num == 550) || (example_num == 10124)
+ //        || (example_num == 1505)){
+	// 	return;
+	// }
 
 	//ties are thrown out
 	for (ii=0; ii<k; ii++){
@@ -786,6 +818,17 @@ int get_cat_index(char **cat_list, char *cat){
 		}
 	}
 	return 0;
+}
+
+int count_features2(struct numeric_data *num_data){
+    int ii;
+    for (ii=0; ii<300; ii++){
+        if (num_data->array_of_features[ii].feature_num == 0){
+            break;
+        }
+    }
+    num_data->total_features = ii;
+    return ii;
 }
 
 void words_to_num(struct numeric_data *num_data, struct data *all_data, 
@@ -913,6 +956,7 @@ void print_num_data(struct numeric_data *instance){
 	}
 
 	printf("example_num = %i\n", instance->example_num);
+    printf("feature_count = %i\n", instance->total_features);
 	printf("Data array = ");
 	int p = 0;
 	for (p=0; p<40; p++){

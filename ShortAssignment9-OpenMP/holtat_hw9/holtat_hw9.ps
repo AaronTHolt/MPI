@@ -1,0 +1,1863 @@
+%!PS-Adobe-3.0
+%%BoundingBox: 18 36 594 756
+%%Title: Enscript Output
+%%Creator: GNU Enscript 1.6.5.90
+%%CreationDate: Thu Dec  3 10:58:41 2015
+%%Orientation: Landscape
+%%Pages: (atend)
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Enscript-Prolog 1.6.5 90
+%
+% Procedures.
+%
+
+/_S {	% save current state
+  /_s save def
+} def
+/_R {	% restore from saved state
+  _s restore
+} def
+
+/S {	% showpage protecting gstate
+  gsave
+  showpage
+  grestore
+} bind def
+
+/MF {	% fontname newfontname -> -	make a new encoded font
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  % insert only valid encoding vectors
+  encoding_vector length 256 eq {
+    newfont /Encoding encoding_vector put
+  } if
+
+  newfontname newfont definefont pop
+} def
+
+/MF_PS { % fontname newfontname -> -	make a new font preserving its enc
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  newfontname newfont definefont pop
+} def
+
+/SF { % fontname width height -> -	set a new font
+  /height exch def
+  /width exch def
+
+  findfont
+  [width 0 0 height 0 0] makefont setfont
+} def
+
+/SUF { % fontname width height -> -	set a new user font
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF
+  /F-gs-user-font width height SF
+} def
+
+/SUF_PS { % fontname width height -> -	set a new user font preserving its enc
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF_PS
+  /F-gs-user-font width height SF
+} def
+
+/M {moveto} bind def
+/s {show} bind def
+
+/Box {	% x y w h -> -			define box path
+  /d_h exch def /d_w exch def /d_y exch def /d_x exch def
+  d_x d_y  moveto
+  d_w 0 rlineto
+  0 d_h rlineto
+  d_w neg 0 rlineto
+  closepath
+} def
+
+/bgs {	% x y height blskip gray str -> -	show string with bg color
+  /str exch def
+  /gray exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    gray setgray
+    fill
+  grestore
+  x y M str s
+} def
+
+/bgcs { % x y height blskip red green blue str -> -  show string with bg color
+  /str exch def
+  /blue exch def
+  /green exch def
+  /red exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    red green blue setrgbcolor
+    fill
+  grestore
+  x y M str s
+} def
+
+% Highlight bars.
+/highlight_bars {	% nlines lineheight output_y_margin gray -> -
+  gsave
+    setgray
+    /ymarg exch def
+    /lineheight exch def
+    /nlines exch def
+
+    % This 2 is just a magic number to sync highlight lines to text.
+    0 d_header_y ymarg sub 2 sub translate
+
+    /cw d_output_w cols div def
+    /nrows d_output_h ymarg 2 mul sub lineheight div cvi def
+
+    % for each column
+    0 1 cols 1 sub {
+      cw mul /xp exch def
+
+      % for each rows
+      0 1 nrows 1 sub {
+        /rn exch def
+        rn lineheight mul neg /yp exch def
+        rn nlines idiv 2 mod 0 eq {
+	  % Draw highlight bar.  4 is just a magic indentation.
+	  xp 4 add yp cw 8 sub lineheight neg Box fill
+	} if
+      } for
+    } for
+
+  grestore
+} def
+
+% Line highlight bar.
+/line_highlight {	% x y width height gray -> -
+  gsave
+    /gray exch def
+    Box gray setgray fill
+  grestore
+} def
+
+% Column separator lines.
+/column_lines {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h translate
+    /cw d_output_w cols div def
+    1 1 cols 1 sub {
+      cw mul 0 moveto
+      0 d_output_h rlineto stroke
+    } for
+  grestore
+} def
+
+% Column borders.
+/column_borders {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h moveto
+    0 d_output_h rlineto
+    d_output_w 0 rlineto
+    0 d_output_h neg rlineto
+    closepath stroke
+  grestore
+} def
+
+% Do the actual underlay drawing
+/draw_underlay {
+  ul_style 0 eq {
+    ul_str true charpath stroke
+  } {
+    ul_str show
+  } ifelse
+} def
+
+% Underlay
+/underlay {	% - -> -
+  gsave
+    0 d_page_h translate
+    d_page_h neg d_page_w atan rotate
+
+    ul_gray setgray
+    ul_font setfont
+    /dw d_page_h dup mul d_page_w dup mul add sqrt def
+    ul_str stringwidth pop dw exch sub 2 div ul_h_ptsize -2 div moveto
+    draw_underlay
+  grestore
+} def
+
+/user_underlay {	% - -> -
+  gsave
+    ul_x ul_y translate
+    ul_angle rotate
+    ul_gray setgray
+    ul_font setfont
+    0 0 ul_h_ptsize 2 div sub moveto
+    draw_underlay
+  grestore
+} def
+
+% Page prefeed
+/page_prefeed {		% bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} def
+
+% Wrapped line markers
+/wrapped_line_mark {	% x y charwith charheight type -> -
+  /type exch def
+  /h exch def
+  /w exch def
+  /y exch def
+  /x exch def
+
+  type 2 eq {
+    % Black boxes (like TeX does)
+    gsave
+      0 setlinewidth
+      x w 4 div add y M
+      0 h rlineto w 2 div 0 rlineto 0 h neg rlineto
+      closepath fill
+    grestore
+  } {
+    type 3 eq {
+      % Small arrows
+      gsave
+        .2 setlinewidth
+        x w 2 div add y h 2 div add M
+        w 4 div 0 rlineto
+        x w 4 div add y lineto stroke
+
+        x w 4 div add w 8 div add y h 4 div add M
+        x w 4 div add y lineto
+	w 4 div h 8 div rlineto stroke
+      grestore
+    } {
+      % do nothing
+    } ifelse
+  } ifelse
+} def
+
+% EPSF import.
+
+/BeginEPSF {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack
+  userdict begin
+  /showpage { } def
+  0 setgray 0 setlinecap
+  1 setlinewidth 0 setlinejoin
+  10 setmiterlimit [ ] 0 setdash newpath
+  /languagelevel where {
+    pop languagelevel
+    1 ne {
+      false setstrokeadjust false setoverprint
+    } if
+  } if
+} bind def
+
+/EndEPSF {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+%%EndResource
+%%BeginResource: procset Enscript-Encoding-88591 1.6.5 90
+/encoding_vector [
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclam       	/quotedbl     	/numbersign   	
+/dollar       	/percent      	/ampersand    	/quoteright   	
+/parenleft    	/parenright   	/asterisk     	/plus         	
+/comma        	/hyphen       	/period       	/slash        	
+/zero         	/one          	/two          	/three        	
+/four         	/five         	/six          	/seven        	
+/eight        	/nine         	/colon        	/semicolon    	
+/less         	/equal        	/greater      	/question     	
+/at           	/A            	/B            	/C            	
+/D            	/E            	/F            	/G            	
+/H            	/I            	/J            	/K            	
+/L            	/M            	/N            	/O            	
+/P            	/Q            	/R            	/S            	
+/T            	/U            	/V            	/W            	
+/X            	/Y            	/Z            	/bracketleft  	
+/backslash    	/bracketright 	/asciicircum  	/underscore   	
+/quoteleft    	/a            	/b            	/c            	
+/d            	/e            	/f            	/g            	
+/h            	/i            	/j            	/k            	
+/l            	/m            	/n            	/o            	
+/p            	/q            	/r            	/s            	
+/t            	/u            	/v            	/w            	
+/x            	/y            	/z            	/braceleft    	
+/bar          	/braceright   	/tilde        	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclamdown   	/cent         	/sterling     	
+/currency     	/yen          	/brokenbar    	/section      	
+/dieresis     	/copyright    	/ordfeminine  	/guillemotleft	
+/logicalnot   	/hyphen       	/registered   	/macron       	
+/degree       	/plusminus    	/twosuperior  	/threesuperior	
+/acute        	/mu           	/paragraph    	/bullet       	
+/cedilla      	/onesuperior  	/ordmasculine 	/guillemotright	
+/onequarter   	/onehalf      	/threequarters	/questiondown 	
+/Agrave       	/Aacute       	/Acircumflex  	/Atilde       	
+/Adieresis    	/Aring        	/AE           	/Ccedilla     	
+/Egrave       	/Eacute       	/Ecircumflex  	/Edieresis    	
+/Igrave       	/Iacute       	/Icircumflex  	/Idieresis    	
+/Eth          	/Ntilde       	/Ograve       	/Oacute       	
+/Ocircumflex  	/Otilde       	/Odieresis    	/multiply     	
+/Oslash       	/Ugrave       	/Uacute       	/Ucircumflex  	
+/Udieresis    	/Yacute       	/Thorn        	/germandbls   	
+/agrave       	/aacute       	/acircumflex  	/atilde       	
+/adieresis    	/aring        	/ae           	/ccedilla     	
+/egrave       	/eacute       	/ecircumflex  	/edieresis    	
+/igrave       	/iacute       	/icircumflex  	/idieresis    	
+/eth          	/ntilde       	/ograve       	/oacute       	
+/ocircumflex  	/otilde       	/odieresis    	/divide       	
+/oslash       	/ugrave       	/uacute       	/ucircumflex  	
+/udieresis    	/yacute       	/thorn        	/ydieresis    	
+] def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Courier
+/HFpt_w 10 def
+/HFpt_h 10 def
+/Courier-Bold /HF-gs-font MF
+/HF /HF-gs-font findfont [HFpt_w 0 0 HFpt_h 0 0] makefont def
+/Courier /F-gs-font MF
+/F-gs-font 7 7 SF
+/#copies 1 def
+% Pagedevice definitions:
+gs_languagelevel 1 gt {
+  <<
+    /PageSize [612 792] 
+  >> setpagedevice
+} if
+%%BeginResource: procset Enscript-Header-enscript 1.6.5 90
+%%IncludeResource: font Times-Bold
+%%IncludeResource: font Times-Roman
+
+% Fonts.
+/Times-Bold /HeaderFont-Bold MF
+/HeaderDateF /HeaderFont-Bold findfont 12 scalefont def
+
+/Times-Roman /HeaderFont-Times MF
+/HeaderHDRF /HeaderFont-Times findfont 14 scalefont def
+
+/HeaderPageNumF /Helvetica-Bold findfont 28.8 scalefont def
+
+/do_header {	% print enscript header
+  gsave
+    d_header_x d_header_y translate
+
+    % light bar
+    0 0 d_header_w d_header_h 2 div Box
+    .95 setgray fill
+
+    % dark gray boxes
+    /dbw d_header_h 2 mul def	% dark box width
+    /dbc .7 def			% dark box color
+
+    % left dark box.
+    0 0 dbw d_header_h Box
+    dbc setgray fill
+
+    0 setgray 
+    HeaderDateF setfont
+    moddatestr dup stringwidth pop dbw exch sub 2 div 
+    d_header_h 2 div 2 add moveto show
+    modtimestr dup stringwidth pop dbw exch sub 2 div 
+    d_header_h 5 div moveto show
+
+    % right dark box
+    d_header_w dbw sub 0 dbw d_header_h Box
+    dbc setgray fill
+
+    HeaderPageNumF setfont
+    1 setgray
+    pagenumstr dup
+    stringwidth pop dbw exch sub 2 div d_header_w dbw sub add
+    d_header_h .2 mul moveto show
+
+    % filename
+    0 setgray 
+    HeaderHDRF setfont
+    d_header_w fname stringwidth pop sub 2 div d_header_h 8 div moveto
+    fname show
+
+    % user supplied header string.
+    user_header_p {
+      /h d_header_h 8 div 5 mul def
+
+      % Implement strict enscript compatibility.
+      user_header_center_str () eq user_header_right_str () eq and {
+        d_header_w user_header_left_str stringwidth pop sub 2 div 
+        h moveto user_header_left_str show
+      } {
+        dbw 5 add h moveto user_header_left_str show
+
+        d_header_w user_header_center_str stringwidth pop sub 2 div 
+        h moveto user_header_center_str show
+
+	d_header_w dbw sub 5 sub user_header_right_str stringwidth pop
+	sub h moveto user_header_right_str show
+      } ifelse
+    } if
+
+  grestore
+} def
+%%EndResource
+/d_page_w 720 def
+/d_page_h 576 def
+/d_header_x 0 def
+/d_header_y 540 def
+/d_header_w 720 def
+/d_header_h 36 def
+/d_footer_x 0 def
+/d_footer_y 0 def
+/d_footer_w 720 def
+/d_footer_h 0 def
+/d_output_w 720 def
+/d_output_h 540 def
+/cols 2 def
+%%EndSetup
+%%Page: (1) 1
+%%BeginPageSetup
+_S
+90 rotate
+36 -594 translate
+/pagenum 1 def
+/fname (hw9.1-holtat-openmp-manual.c) def
+/fdir (.) def
+/ftail (hw9.1-holtat-openmp-manual.c) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (11/30/15) def
+/modtimestr (19:20:55) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+/Courier-Oblique 7 7 SUF
+5 530 M
+(/* ) s
+5 522 M
+(  Basic matrix-matrix multiplication for HPSC OpenMP Assignment) s
+5 514 M
+(  Michael Oberg, modified from code provided by Ian Karlin) s
+5 498 M
+(  HPSC ) s
+5 490 M
+(  Aaron Holt) s
+5 482 M
+(  Assignment 9) s
+5 474 M
+(*/) s
+/F-gs-font 7 7 SF
+5 458 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 458 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 458 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 458 M
+(<stdio.h>) s
+/F-gs-font 7 7 SF
+5 450 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 450 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 450 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 450 M
+(<sys/time.h>) s
+/F-gs-font 7 7 SF
+5 442 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 442 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 442 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 442 M
+(<sys/types.h>) s
+/F-gs-font 7 7 SF
+5 434 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 434 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 434 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 434 M
+(<stdlib.h>) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 418 M
+(char) s
+/F-gs-font 7 7 SF
+21.8 418 M
+( *program = ) s
+/Courier-Bold 7 7 SUF
+72.2 418 M
+("OpenMP-manual") s
+/F-gs-font 7 7 SF
+135.2 418 M
+(;) s
+/Courier-Bold 7 7 SUF
+5 402 M
+(double) s
+/F-gs-font 7 7 SF
+30.2 402 M
+( ) s
+/Courier-Bold 7 7 SUF
+34.4 402 M
+(calctime) s
+/F-gs-font 7 7 SF
+68 402 M
+(\() s
+/Courier-Bold 7 7 SUF
+72.2 402 M
+(struct) s
+/F-gs-font 7 7 SF
+97.4 402 M
+( timeval start, ) s
+/Courier-Bold 7 7 SUF
+164.6 402 M
+(struct) s
+/F-gs-font 7 7 SF
+189.8 402 M
+( timeval end\) ) s
+5 394 M
+({) s
+5 386 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 386 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 386 M
+( time = 0.0;) s
+5 370 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 370 M
+(//struct timeval {) s
+/F-gs-font 7 7 SF
+5 362 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 362 M
+(//   time_t      tv_sec;     /* seconds */) s
+/F-gs-font 7 7 SF
+5 354 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 354 M
+(//   suseconds_t tv_usec;    /* microseconds */) s
+/F-gs-font 7 7 SF
+5 346 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 346 M
+(//};) s
+/F-gs-font 7 7 SF
+5 338 M
+(  time = end.tv_usec - start.tv_usec;) s
+5 330 M
+(  time = time/1000000;) s
+5 322 M
+(  time += end.tv_sec - start.tv_sec;) s
+5 306 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 306 M
+(return) s
+/F-gs-font 7 7 SF
+38.6 306 M
+( time;) s
+5 298 M
+(}) s
+/Courier-Bold 7 7 SUF
+5 282 M
+(int) s
+/F-gs-font 7 7 SF
+17.6 282 M
+( ) s
+/Courier-Bold 7 7 SUF
+21.8 282 M
+(main) s
+/F-gs-font 7 7 SF
+38.6 282 M
+(\(\) ) s
+5 274 M
+({) s
+5 266 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 266 M
+(int) s
+/F-gs-font 7 7 SF
+26 266 M
+(    i, j, k;) s
+5 258 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 258 M
+(int) s
+/F-gs-font 7 7 SF
+26 258 M
+(    n = 1024;) s
+5 250 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 250 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 250 M
+( *A;) s
+5 242 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 242 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 242 M
+( *B;) s
+5 234 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 234 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 234 M
+( *C;) s
+5 218 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 218 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 218 M
+( time;) s
+5 210 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 210 M
+(struct) s
+/F-gs-font 7 7 SF
+38.6 210 M
+( timeval start;) s
+5 202 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 202 M
+(struct) s
+/F-gs-font 7 7 SF
+38.6 202 M
+( timeval end;) s
+5 186 M
+(  A = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 186 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 186 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 186 M
+(double) s
+/F-gs-font 7 7 SF
+131 186 M
+(\)\);) s
+5 178 M
+(  B = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 178 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 178 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 178 M
+(double) s
+/F-gs-font 7 7 SF
+131 178 M
+(\)\);) s
+5 170 M
+(  C = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 170 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 170 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 170 M
+(double) s
+/F-gs-font 7 7 SF
+131 170 M
+(\)\);) s
+5 154 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 154 M
+(// Initialize arrays) s
+/F-gs-font 7 7 SF
+5 146 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 146 M
+(for) s
+/F-gs-font 7 7 SF
+26 146 M
+(\(i = 0; i < n; i++\)) s
+5 138 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 138 M
+(for) s
+/F-gs-font 7 7 SF
+34.4 138 M
+(\(j = 0; j < n; j++\)) s
+5 130 M
+(    {) s
+5 122 M
+(       A[i*n + j] = 0.0;) s
+5 114 M
+(       B[i*n + j] = i + j*n;) s
+5 106 M
+(       C[i*n + j] = i*n + j;) s
+5 98 M
+(    }) s
+5 82 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 82 M
+(int) s
+/F-gs-font 7 7 SF
+26 82 M
+( num_threads;) s
+5 74 M
+(  num_threads = 8;) s
+5 58 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 58 M
+(// while\(num_threads < 66\){) s
+/F-gs-font 7 7 SF
+5 50 M
+(                ) s
+/Courier-Oblique 7 7 SUF
+72.2 50 M
+(// timed loop) s
+/F-gs-font 7 7 SF
+5 42 M
+(        gettimeofday\(&start, NULL\);) s
+5 34 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 34 M
+(/* Insert OpenMP #pragma\(s\) here */) s
+/F-gs-font 7 7 SF
+5 26 M
+(        omp_set_dynamic\(0\);     ) s
+/Courier-Oblique 7 7 SUF
+139.4 26 M
+(// Explicitly disable dynamic teams) s
+/F-gs-font 7 7 SF
+5 18 M
+(        omp_set_num_threads\(num_threads\); ) s
+/Courier-Oblique 7 7 SUF
+181.4 18 M
+(// Set number of threads for parallel reg) s
+5 10 M
+(ions to 8) s
+/F-gs-font 7 7 SF
+5 2 M
+(        #pragma omp parallel shared\(A, B, C, num_threads\) private\(i, j, k\)) s
+365 530 M
+(        #pragma omp ) s
+/Courier-Bold 7 7 SUF
+449 530 M
+(for) s
+/F-gs-font 7 7 SF
+461.6 530 M
+( nowait) s
+365 522 M
+(        ) s
+/Courier-Bold 7 7 SUF
+398.6 522 M
+(for) s
+/F-gs-font 7 7 SF
+411.2 522 M
+( \(i = 0; i <n; i++\)) s
+365 514 M
+(          ) s
+/Courier-Bold 7 7 SUF
+407 514 M
+(for) s
+/F-gs-font 7 7 SF
+419.6 514 M
+(\(j = 0; j < n; j++\)) s
+365 506 M
+(            ) s
+/Courier-Bold 7 7 SUF
+415.4 506 M
+(for) s
+/F-gs-font 7 7 SF
+428 506 M
+(\(k = 0; k < n; k++\)) s
+365 498 M
+(              A[i*n + j] += B[i*n + k] * C[j*n + k];) s
+365 482 M
+(        num_threads = omp_get_max_threads\(\);) s
+365 474 M
+(        gettimeofday\(&end, NULL\);) s
+365 458 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+398.6 458 M
+(// calc & print results) s
+/F-gs-font 7 7 SF
+365 450 M
+(        time = calctime\(start, end\);) s
+365 442 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+428 442 M
+("%s multiplcation time: %lf\(s\) for size: %dx%d\\n") s
+/F-gs-font 7 7 SF
+633.8 442 M
+(, program, time, n,) s
+365 434 M
+( n\);) s
+365 426 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+428 426 M
+("Num threads = %i\\n") s
+/F-gs-font 7 7 SF
+512 426 M
+(, num_threads\);) s
+365 418 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+398.6 418 M
+(// num_threads = num_threads*2;) s
+/F-gs-font 7 7 SF
+365 410 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+373.4 410 M
+(// }) s
+/F-gs-font 7 7 SF
+365 402 M
+(  ) s
+365 386 M
+(  ) s
+/Courier-Bold 7 7 SUF
+373.4 386 M
+(return) s
+/F-gs-font 7 7 SF
+398.6 386 M
+( 0;) s
+365 378 M
+(}) s
+_R
+S
+%%Page: (1) 2
+%%BeginPageSetup
+_S
+90 rotate
+36 -594 translate
+/pagenum 1 def
+/fname (hw9.2-holtat-openmp-compiletime.c) def
+/fdir (.) def
+/ftail (hw9.2-holtat-openmp-compiletime.c) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (11/30/15) def
+/modtimestr (19:20:55) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+/Courier-Oblique 7 7 SUF
+5 530 M
+(/* ) s
+5 522 M
+(  Basic matrix-matrix multiplication for HPSC OpenMP Assignment) s
+5 514 M
+(  Michael Oberg, modified from code provided by Ian Karlin) s
+5 506 M
+(*/) s
+/F-gs-font 7 7 SF
+5 490 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 490 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 490 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 490 M
+(<stdio.h>) s
+/F-gs-font 7 7 SF
+5 482 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 482 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 482 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 482 M
+(<sys/time.h>) s
+/F-gs-font 7 7 SF
+5 474 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 474 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 474 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 474 M
+(<sys/types.h>) s
+/F-gs-font 7 7 SF
+5 466 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 466 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 466 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 466 M
+(<stdlib.h>) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 450 M
+(char) s
+/F-gs-font 7 7 SF
+21.8 450 M
+( *program = ) s
+/Courier-Bold 7 7 SUF
+72.2 450 M
+("OpenMP-compiletime") s
+/F-gs-font 7 7 SF
+156.2 450 M
+(;) s
+/Courier-Bold 7 7 SUF
+5 434 M
+(double) s
+/F-gs-font 7 7 SF
+30.2 434 M
+( ) s
+/Courier-Bold 7 7 SUF
+34.4 434 M
+(calctime) s
+/F-gs-font 7 7 SF
+68 434 M
+(\() s
+/Courier-Bold 7 7 SUF
+72.2 434 M
+(struct) s
+/F-gs-font 7 7 SF
+97.4 434 M
+( timeval start, ) s
+/Courier-Bold 7 7 SUF
+164.6 434 M
+(struct) s
+/F-gs-font 7 7 SF
+189.8 434 M
+( timeval end\) ) s
+5 426 M
+({) s
+5 418 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 418 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 418 M
+( time = 0.0;) s
+5 402 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 402 M
+(//struct timeval {) s
+/F-gs-font 7 7 SF
+5 394 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 394 M
+(//   time_t      tv_sec;     /* seconds */) s
+/F-gs-font 7 7 SF
+5 386 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 386 M
+(//   suseconds_t tv_usec;    /* microseconds */) s
+/F-gs-font 7 7 SF
+5 378 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 378 M
+(//};) s
+/F-gs-font 7 7 SF
+5 370 M
+(  time = end.tv_usec - start.tv_usec;) s
+5 362 M
+(  time = time/1000000;) s
+5 354 M
+(  time += end.tv_sec - start.tv_sec;) s
+5 338 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 338 M
+(return) s
+/F-gs-font 7 7 SF
+38.6 338 M
+( time;) s
+5 330 M
+(}) s
+/Courier-Bold 7 7 SUF
+5 314 M
+(int) s
+/F-gs-font 7 7 SF
+17.6 314 M
+( ) s
+/Courier-Bold 7 7 SUF
+21.8 314 M
+(main) s
+/F-gs-font 7 7 SF
+38.6 314 M
+(\(\) ) s
+5 306 M
+({) s
+5 298 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 298 M
+(int) s
+/F-gs-font 7 7 SF
+26 298 M
+(    i, j, k;) s
+5 290 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 290 M
+(int) s
+/F-gs-font 7 7 SF
+26 290 M
+(    n = 1024;) s
+5 282 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 282 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 282 M
+( *A;) s
+5 274 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 274 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 274 M
+( *B;) s
+5 266 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 266 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 266 M
+( *C;) s
+5 250 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 250 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 250 M
+( time;) s
+5 242 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 242 M
+(struct) s
+/F-gs-font 7 7 SF
+38.6 242 M
+( timeval start;) s
+5 234 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 234 M
+(struct) s
+/F-gs-font 7 7 SF
+38.6 234 M
+( timeval end;) s
+5 218 M
+(  A = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 218 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 218 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 218 M
+(double) s
+/F-gs-font 7 7 SF
+131 218 M
+(\)\);) s
+5 210 M
+(  B = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 210 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 210 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 210 M
+(double) s
+/F-gs-font 7 7 SF
+131 210 M
+(\)\);) s
+5 202 M
+(  C = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 202 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 202 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 202 M
+(double) s
+/F-gs-font 7 7 SF
+131 202 M
+(\)\);) s
+5 186 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 186 M
+(// Initialize arrays) s
+/F-gs-font 7 7 SF
+5 178 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 178 M
+(for) s
+/F-gs-font 7 7 SF
+26 178 M
+(\(i = 0; i < n; i++\)) s
+5 170 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 170 M
+(for) s
+/F-gs-font 7 7 SF
+34.4 170 M
+(\(j = 0; j < n; j++\)) s
+5 162 M
+(    {) s
+5 154 M
+(       A[i*n + j] = 0.0;) s
+5 146 M
+(       B[i*n + j] = i + j*n;) s
+5 138 M
+(       C[i*n + j] = i*n + j;) s
+5 130 M
+(    }) s
+5 114 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 114 M
+(int) s
+/F-gs-font 7 7 SF
+26 114 M
+( num_threads;) s
+5 106 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 106 M
+(// num_threads = 1;) s
+/F-gs-font 7 7 SF
+5 90 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 90 M
+(// while\(num_threads < 66\){) s
+/F-gs-font 7 7 SF
+5 82 M
+(                ) s
+/Courier-Oblique 7 7 SUF
+72.2 82 M
+(// timed loop) s
+/F-gs-font 7 7 SF
+5 74 M
+(        gettimeofday\(&start, NULL\);) s
+5 66 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 66 M
+(/* Insert OpenMP #pragma\(s\) here */) s
+/F-gs-font 7 7 SF
+5 58 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 58 M
+(// omp_set_dynamic\(0\);     // Explicitly disable dynamic teams) s
+/F-gs-font 7 7 SF
+5 50 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 50 M
+(// omp_set_num_threads\(num_threads\); // Set number of threads for parallel ) s
+5 42 M
+(regions to 8) s
+/F-gs-font 7 7 SF
+5 34 M
+(        #pragma omp parallel shared\(A, B, C, num_threads\) private\(i, j, k\)) s
+5 26 M
+(        #pragma omp ) s
+/Courier-Bold 7 7 SUF
+89 26 M
+(for) s
+/F-gs-font 7 7 SF
+101.6 26 M
+( schedule\() s
+/Courier-Bold 7 7 SUF
+143.6 26 M
+(static) s
+/F-gs-font 7 7 SF
+168.8 26 M
+(\) nowait) s
+5 18 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 18 M
+(for) s
+/F-gs-font 7 7 SF
+51.2 18 M
+( \(i = 0; i <n; i++\)) s
+5 10 M
+(          ) s
+/Courier-Bold 7 7 SUF
+47 10 M
+(for) s
+/F-gs-font 7 7 SF
+59.6 10 M
+(\(j = 0; j < n; j++\)) s
+5 2 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 2 M
+(for) s
+/F-gs-font 7 7 SF
+68 2 M
+(\(k = 0; k < n; k++\)) s
+365 530 M
+(              A[i*n + j] += B[i*n + k] * C[j*n + k];) s
+365 514 M
+(        num_threads = omp_get_max_threads\(\);) s
+365 506 M
+(        gettimeofday\(&end, NULL\);) s
+365 490 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+398.6 490 M
+(// calc & print results) s
+/F-gs-font 7 7 SF
+365 482 M
+(        time = calctime\(start, end\);) s
+365 474 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+428 474 M
+("%s multiplcation time: %lf\(s\) for size: %dx%d\\n") s
+/F-gs-font 7 7 SF
+633.8 474 M
+(, program, time, n,) s
+365 466 M
+( n\);) s
+365 458 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+428 458 M
+("Num threads = %i\\n") s
+/F-gs-font 7 7 SF
+512 458 M
+(, num_threads\);) s
+365 450 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+398.6 450 M
+(// num_threads = num_threads*2;) s
+/F-gs-font 7 7 SF
+365 442 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+373.4 442 M
+(// }) s
+/F-gs-font 7 7 SF
+365 426 M
+(  ) s
+/Courier-Bold 7 7 SUF
+373.4 426 M
+(return) s
+/F-gs-font 7 7 SF
+398.6 426 M
+( 0;) s
+365 418 M
+(}) s
+_R
+S
+%%Page: (1) 3
+%%BeginPageSetup
+_S
+90 rotate
+36 -594 translate
+/pagenum 1 def
+/fname (hw9.3-holtat-openmp-runtime.c) def
+/fdir (.) def
+/ftail (hw9.3-holtat-openmp-runtime.c) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (11/30/15) def
+/modtimestr (19:20:55) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+/Courier-Oblique 7 7 SUF
+5 530 M
+(/* ) s
+5 522 M
+(  Basic matrix-matrix multiplication for HPSC OpenMP Assignment) s
+5 514 M
+(  Michael Oberg, modified from code provided by Ian Karlin) s
+5 506 M
+(*/) s
+/F-gs-font 7 7 SF
+5 490 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 490 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 490 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 490 M
+(<stdio.h>) s
+/F-gs-font 7 7 SF
+5 482 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 482 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 482 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 482 M
+(<sys/time.h>) s
+/F-gs-font 7 7 SF
+5 474 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 474 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 474 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 474 M
+(<sys/types.h>) s
+/F-gs-font 7 7 SF
+5 466 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 466 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 466 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 466 M
+(<stdlib.h>) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 450 M
+(char) s
+/F-gs-font 7 7 SF
+21.8 450 M
+( *program = ) s
+/Courier-Bold 7 7 SUF
+72.2 450 M
+("OpenMP-runtime") s
+/F-gs-font 7 7 SF
+139.4 450 M
+(;) s
+/Courier-Bold 7 7 SUF
+5 434 M
+(double) s
+/F-gs-font 7 7 SF
+30.2 434 M
+( ) s
+/Courier-Bold 7 7 SUF
+34.4 434 M
+(calctime) s
+/F-gs-font 7 7 SF
+68 434 M
+(\() s
+/Courier-Bold 7 7 SUF
+72.2 434 M
+(struct) s
+/F-gs-font 7 7 SF
+97.4 434 M
+( timeval start, ) s
+/Courier-Bold 7 7 SUF
+164.6 434 M
+(struct) s
+/F-gs-font 7 7 SF
+189.8 434 M
+( timeval end\) ) s
+5 426 M
+({) s
+5 418 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 418 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 418 M
+( time = 0.0;) s
+5 402 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 402 M
+(//struct timeval {) s
+/F-gs-font 7 7 SF
+5 394 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 394 M
+(//   time_t      tv_sec;     /* seconds */) s
+/F-gs-font 7 7 SF
+5 386 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 386 M
+(//   suseconds_t tv_usec;    /* microseconds */) s
+/F-gs-font 7 7 SF
+5 378 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 378 M
+(//};) s
+/F-gs-font 7 7 SF
+5 370 M
+(  time = end.tv_usec - start.tv_usec;) s
+5 362 M
+(  time = time/1000000;) s
+5 354 M
+(  time += end.tv_sec - start.tv_sec;) s
+5 338 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 338 M
+(return) s
+/F-gs-font 7 7 SF
+38.6 338 M
+( time;) s
+5 330 M
+(}) s
+/Courier-Bold 7 7 SUF
+5 314 M
+(int) s
+/F-gs-font 7 7 SF
+17.6 314 M
+( ) s
+/Courier-Bold 7 7 SUF
+21.8 314 M
+(main) s
+/F-gs-font 7 7 SF
+38.6 314 M
+(\(\) ) s
+5 306 M
+({) s
+5 298 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 298 M
+(int) s
+/F-gs-font 7 7 SF
+26 298 M
+(    i, j, k;) s
+5 290 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 290 M
+(int) s
+/F-gs-font 7 7 SF
+26 290 M
+(    n = 1024;) s
+5 282 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 282 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 282 M
+( *A;) s
+5 274 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 274 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 274 M
+( *B;) s
+5 266 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 266 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 266 M
+( *C;) s
+5 250 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 250 M
+(double) s
+/F-gs-font 7 7 SF
+38.6 250 M
+( time;) s
+5 242 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 242 M
+(struct) s
+/F-gs-font 7 7 SF
+38.6 242 M
+( timeval start;) s
+5 234 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 234 M
+(struct) s
+/F-gs-font 7 7 SF
+38.6 234 M
+( timeval end;) s
+5 218 M
+(  A = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 218 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 218 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 218 M
+(double) s
+/F-gs-font 7 7 SF
+131 218 M
+(\)\);) s
+5 210 M
+(  B = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 210 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 210 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 210 M
+(double) s
+/F-gs-font 7 7 SF
+131 210 M
+(\)\);) s
+5 202 M
+(  C = malloc\(n*n*) s
+/Courier-Bold 7 7 SUF
+76.4 202 M
+(sizeof) s
+/F-gs-font 7 7 SF
+101.6 202 M
+(\() s
+/Courier-Bold 7 7 SUF
+105.8 202 M
+(double) s
+/F-gs-font 7 7 SF
+131 202 M
+(\)\);) s
+5 186 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 186 M
+(// Initialize arrays) s
+/F-gs-font 7 7 SF
+5 178 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 178 M
+(for) s
+/F-gs-font 7 7 SF
+26 178 M
+(\(i = 0; i < n; i++\)) s
+5 170 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 170 M
+(for) s
+/F-gs-font 7 7 SF
+34.4 170 M
+(\(j = 0; j < n; j++\)) s
+5 162 M
+(    {) s
+5 154 M
+(       A[i*n + j] = 0.0;) s
+5 146 M
+(       B[i*n + j] = i + j*n;) s
+5 138 M
+(       C[i*n + j] = i*n + j;) s
+5 130 M
+(    }) s
+5 114 M
+(  ) s
+/Courier-Bold 7 7 SUF
+13.4 114 M
+(int) s
+/F-gs-font 7 7 SF
+26 114 M
+( num_threads;) s
+5 106 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 106 M
+(// num_threads = 1;) s
+/F-gs-font 7 7 SF
+5 90 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+13.4 90 M
+(// while\(num_threads < 66\){) s
+/F-gs-font 7 7 SF
+5 82 M
+(                ) s
+/Courier-Oblique 7 7 SUF
+72.2 82 M
+(// timed loop) s
+/F-gs-font 7 7 SF
+5 74 M
+(        gettimeofday\(&start, NULL\);) s
+5 66 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 66 M
+(/* Insert OpenMP #pragma\(s\) here */) s
+/F-gs-font 7 7 SF
+5 58 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 58 M
+(// omp_set_num_threads\(num_threads\); // Set number of threads for parallel ) s
+5 50 M
+(regions to 8) s
+/F-gs-font 7 7 SF
+5 42 M
+(        #pragma omp parallel shared\(A, B, C, num_threads\) private\(i, j, k\)) s
+5 34 M
+(        #pragma omp ) s
+/Courier-Bold 7 7 SUF
+89 34 M
+(for) s
+/F-gs-font 7 7 SF
+101.6 34 M
+( schedule\(dynamic\) nowait) s
+5 26 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 26 M
+(for) s
+/F-gs-font 7 7 SF
+51.2 26 M
+( \(i = 0; i <n; i++\)) s
+5 18 M
+(          ) s
+/Courier-Bold 7 7 SUF
+47 18 M
+(for) s
+/F-gs-font 7 7 SF
+59.6 18 M
+(\(j = 0; j < n; j++\)) s
+5 10 M
+(            ) s
+/Courier-Bold 7 7 SUF
+55.4 10 M
+(for) s
+/F-gs-font 7 7 SF
+68 10 M
+(\(k = 0; k < n; k++\)) s
+5 2 M
+(              A[i*n + j] += B[i*n + k] * C[j*n + k];) s
+365 522 M
+(        num_threads = omp_get_max_threads\(\);) s
+365 514 M
+(        gettimeofday\(&end, NULL\);) s
+365 498 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+398.6 498 M
+(// calc & print results) s
+/F-gs-font 7 7 SF
+365 490 M
+(        time = calctime\(start, end\);) s
+365 482 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+428 482 M
+("%s multiplcation time: %lf\(s\) for size: %dx%d\\n") s
+/F-gs-font 7 7 SF
+633.8 482 M
+(, program, time, n,) s
+365 474 M
+( n\);) s
+365 466 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+428 466 M
+("Num threads = %i\\n") s
+/F-gs-font 7 7 SF
+512 466 M
+(, num_threads\);) s
+365 458 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+398.6 458 M
+(// num_threads = num_threads*2;) s
+/F-gs-font 7 7 SF
+365 450 M
+(  ) s
+/Courier-Oblique 7 7 SUF
+373.4 450 M
+(// }) s
+/F-gs-font 7 7 SF
+365 434 M
+(  ) s
+/Courier-Bold 7 7 SUF
+373.4 434 M
+(return) s
+/F-gs-font 7 7 SF
+398.6 434 M
+( 0;) s
+365 426 M
+(}) s
+_R
+S
+%%Trailer
+%%Pages: 3
+%%DocumentNeededResources: font Times-Roman Courier-Oblique Courier-Bold 
+%%+ font Courier Times-Bold 
+%%EOF

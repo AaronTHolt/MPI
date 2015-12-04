@@ -1,6 +1,6 @@
 #include "stdlib.h"
 #include "argp.h"
-#include "mpi.h"
+#include "omp.h"
 #include "stdio.h"
 #include "math.h"
 #include "string.h"
@@ -277,26 +277,9 @@ int main (int argc, char **argv)
     //Used to split into training and testing data (will train on example_num%train)
     int train = 10;
 
-    // Initialize the MPI environment
-    MPI_Init(NULL, NULL);
 
-    // Get the number of processes
-    int world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-    // Get the rank of the process
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    // Get the name of the processor
-    char processor_name[MPI_MAX_PROCESSOR_NAME];
-    int name_len;
-    MPI_Get_processor_name(processor_name, &name_len);
-
-    if (rank == 0){
-        printf("Runtype, k, Verbose, PercentDataUsed = %i, %i, %i, %i\n",
+    printf("Runtype, k, Verbose, PercentDataUsed = %i, %i, %i, %i\n",
                           run_type, k, verbose, percent_data);
-    }
 
      //Allocate space for data being read in with fgets
     char *csv_line = malloc(sizeof(char)*1500);
@@ -478,10 +461,8 @@ int main (int argc, char **argv)
     number_features(vocab, &mm);
 
     //Some of the csv rows aren't read in properly with fgets
-    if (rank == 0){
-        printf("Bad iterations = %i/%i\n", bad_iter, i);
-        printf("Feature count = %i\n", count_features(vocab));
-    }
+    printf("Bad iterations = %i/%i\n", bad_iter, i);
+    printf("Feature count = %i\n", count_features(vocab));
     // print_inorder(vocab);
 
     // for (ii=0; ii<40; ii++){
@@ -541,7 +522,6 @@ int main (int argc, char **argv)
 
     //range each process will cover
     int range;
-    range = total_examples/world_size;
 
     // printf("%i, %i\n", range, total_examples);
     // printf("R, Min, Max = %i, %i, %i\n", rank, rank*range, (rank+1)*range);
@@ -552,7 +532,7 @@ int main (int argc, char **argv)
     int total = 0;
     int answer;
 
-    for (kk=rank*range; kk<(rank+1)*range; kk++){
+    for (kk=0; kk<total_examples; kk++){
     	//only test on test data
     	if (num_data[kk].example_num%train != 0){
     		continue;
@@ -614,18 +594,7 @@ int main (int argc, char **argv)
 	    
     }
 
-    // int MPI_Reduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
-    //            MPI_Op op, int root, MPI_Comm comm)
-    int total_correct = 0;
-    int total_tested = 0;
-    MPI_Reduce(&c, &total_correct, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&total, &total_tested, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    if (rank == 0){
-        printf("/// Final Results ///\n");
-        printf("Correct/Total = %i/%i\n", total_correct, total_tested);
-        // printf("verbose = %i", verbose);
-    }
     
 
     ////free malloc calls////
@@ -671,10 +640,6 @@ int main (int argc, char **argv)
     //free mode struct
     free(mod.count);
     free(mod.cat);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    sleep(0.5);
-    MPI_Finalize();
 }
 
 //finds the most frequent class of nearest neighbor for a given example

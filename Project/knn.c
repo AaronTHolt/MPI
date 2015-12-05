@@ -260,7 +260,7 @@ int main (int argc, char **argv)
     int i, j, m, n, ii, jj, kk;
 
     //number of examples to read in
-    int total_examples = 40000;
+    int total_examples = 10000;
     // int total_examples = 19;
 
     //max words per question
@@ -609,7 +609,8 @@ int main (int argc, char **argv)
 	    total += 1;
 
         if (verbose>0){
-            printf("Correct/Total = %i/%i  Answer/Correct = %i/%i\n", c, total, answer, results.correct_answer);
+            printf("Process = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
+                    rank, c, total, answer, results.correct_answer);
         }
 	    
     }

@@ -1,6 +1,6 @@
 #include "stdlib.h"
 #include "argp.h"
-#include "omp.h"
+#include "mpi.h"
 #include "stdio.h"
 #include "math.h"
 #include "string.h"
@@ -210,7 +210,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             break;
 
         case ARGP_KEY_END:
-            if (state->arg_num < 2)
+            if (state->arg_num < 1)
             /* Not enough arguments. */
             argp_usage (state);
             break;
@@ -236,11 +236,6 @@ int main (int argc, char **argv)
     int k;
     k = 1; //default is 1
     if (sscanf (arguments.args[0], "%i", &k)!=1) {}
-
-    //omp vars
-    int num_threads;
-    num_threads = 4;
-    if (sscanf(arguments.args[1], "%i", &num_threads)!=1) {}
 
     //verbose?
     int verbose;
@@ -277,10 +272,26 @@ int main (int argc, char **argv)
     //Debug
     int debug = 0;
 
+    // Initialize the MPI environment
+    MPI_Init(NULL, NULL);
 
-    printf("k, Verbose, num_threads = %i, %i, %i\n",
-                          k, verbose, num_threads);
-    
+    // Get the number of processes
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    // Get the rank of the process
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    // Get the name of the processor
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    int name_len;
+    MPI_Get_processor_name(processor_name, &name_len);
+
+    if (rank == 0){
+        printf("k, Verbose, num_process = %i, %i, %i\n",
+                          k, verbose, world_size);
+    }
 
      //Allocate space for data being read in with fgets
     char *csv_line = malloc(sizeof(char)*1500);
@@ -313,16 +324,16 @@ int main (int argc, char **argv)
     }
 
     //store struct which keep track of the k nearest neighbors
-    // struct distance_results results;
-    // results.example_num = 0;
-    // results.distances = calloc(k, sizeof(double));
-    // results.cat = calloc(k, sizeof(int));
-    // results.example_nums = calloc(k, sizeof(int));
+    struct distance_results results;
+    results.example_num = 0;
+    results.distances = calloc(k, sizeof(double));
+    results.cat = calloc(k, sizeof(int));
+    results.example_nums = calloc(k, sizeof(int));
 
-    // //struct used to calculate the mode of the k nearest neighbors
-    // struct mode mod;
-    // mod.count = calloc(k, sizeof(int));
-    // mod.cat = calloc(k, sizeof(int));
+    //struct used to calculate the mode of the k nearest neighbors
+    struct mode mod;
+    mod.count = calloc(k, sizeof(int));
+    mod.cat = calloc(k, sizeof(int));
  
     // //store vocabulary list (char** points to array of char* of length 20)
     // char **word_list;
@@ -462,8 +473,10 @@ int main (int argc, char **argv)
     number_features(vocab, &mm);
 
     //Some of the csv rows aren't read in properly with fgets
-    printf("Bad iterations = %i/%i\n", bad_iter, i);
-    printf("Feature count = %i\n", count_features(vocab));
+    if (rank == 0){
+        printf("Bad iterations = %i/%i\n", bad_iter, i);
+        printf("Feature count = %i\n", count_features(vocab));
+    }
     // print_inorder(vocab);
 
     // for (ii=0; ii<40; ii++){
@@ -501,6 +514,21 @@ int main (int argc, char **argv)
     // print_data(&all_data[29000]);
     // printf("%s, %u\n", "1829", get_feature_number(&vocab, "1829"));
 
+    //Debugging why some examples were always closest...
+    // for (ii=0; ii<total_examples; ii++){
+    //     if (num_data[ii].example_num == 4664){
+    //         print_num_data(&num_data[ii]);
+    //     }
+    //     else if (num_data[ii].example_num == 1505){
+    //         print_num_data(&num_data[ii]);
+    //     }
+    //     else if (num_data[ii].example_num == 10124){
+    //         print_num_data(&num_data[ii]);
+    //     }
+    //     else if (num_data[ii].example_num == 550){
+    //         print_num_data(&num_data[ii]);
+    //     }
+    // }
 
 
     //find the distance between first example and rest
@@ -508,20 +536,10 @@ int main (int argc, char **argv)
 
     //range each process will cover
     int range;
+    range = total_examples/world_size;
 
     // printf("%i, %i\n", range, total_examples);
     // printf("R, Min, Max = %i, %i, %i\n", rank, rank*range, (rank+1)*range);
-
-    //     struct distance_results results;
-    // results.example_num = 0;
-    // results.distances = calloc(k, sizeof(double));
-    // results.cat = calloc(k, sizeof(int));
-    // results.example_nums = calloc(k, sizeof(int));
-
-    // //struct used to calculate the mode of the k nearest neighbors
-    // struct mode mod;
-    // mod.count = calloc(k, sizeof(int));
-    // mod.cat = calloc(k, sizeof(int));
 
 
    	//correct/total/answer
@@ -529,115 +547,81 @@ int main (int argc, char **argv)
     int total = 0;
     int answer;
 
-    omp_set_dynamic(0); //Explicitly disable dynamic teams
-    omp_set_num_threads(num_threads); //Specify thread count
+    for (kk=rank*range; kk<(rank+1)*range; kk++){
+    	//only test on test data
+    	if (num_data[kk].example_num%train != 0){
+    		continue;
+    	}
 
-    #pragma omp parallel \
-            private(kk, ii, distance, answer) \
-            reduction(+:c,total) \
-            shared(num_data)
-    {
-        //store struct which keep track of the k nearest neighbors
-        struct distance_results results;
-        results.example_num = 0;
-        results.distances = calloc(k, sizeof(double));
-        results.cat = calloc(k, sizeof(int));
-        results.example_nums = calloc(k, sizeof(int));
+    	if (num_data[kk].cat == 0){
+    		continue;
+    	}
 
-        //struct used to calculate the mode of the k nearest neighbors
-        struct mode mod;
-        mod.count = calloc(k, sizeof(int));
-        mod.cat = calloc(k, sizeof(int));
-    
-        #pragma omp for
-        for (kk=0; kk<total_examples; kk++){
-            // printf("Thread = %i, Iter = %i, c = %i, total=%i\n", omp_get_thread_num(), kk, c, total);
+    	results.correct_answer = num_data[kk].cat;
+    	results.example_num = num_data[kk].example_num;
+    	for (ii=0; ii<k; ii++){
+    		results.distances[ii] = 0;
+    		results.cat[ii] = 0;
+    		mod.count[ii] = 0;
+    		mod.cat[ii] = 0;
+    	}
 
-        	//only test on test data
-        	if (num_data[kk].example_num%train != 0){
-        		continue;
-        	}
+    	// print_num_data(&num_data[kk]);
 
-        	if (num_data[kk].cat == 0){
-        		continue;
-        	}
+    	//calc distance to neighbors
+    	for (ii=0; ii<total_examples-1; ii++){
+    		//don't calc distance to self
+    		if (kk != ii){
+                //Eliminate bad data (examples with few words tend to have low distances
+                //reguardless of whether they are more similar...
+                if (num_data[ii].total_features >= 40){
+                    distance = get_distance(&num_data[kk], &num_data[ii], num_words);
+                    // if (distance < 2){
+                    //  continue;
+                    // }
+                    // printf("%f ", distance);
+                    if (num_data[ii].example_num > 0){
+                        add_distance_to_results(&results, distance, k, 
+                                                num_data[ii].cat, num_data[ii].example_num);
+                    }
+		    	}
+    		}
+	    	
+	    }
 
-        	results.correct_answer = num_data[kk].cat;
-        	results.example_num = num_data[kk].example_num;
-        	for (ii=0; ii<k; ii++){
-        		results.distances[ii] = 0;
-        		results.cat[ii] = 0;
-        		mod.count[ii] = 0;
-        		mod.cat[ii] = 0;
-        	}
+	    answer = calc_nearest_neighbor(&results, &mod, k);
+	    if (answer == results.correct_answer){
+	    	c += 1;
+	    }
+	    // printf("\n");
+	    // for (ii=0; ii<k; ii++){
+	    // 	printf("Distance, cat, example_num1, example_num2 = %2.2f, %i, %i, %i\n", 
+	    // 		results.distances[ii], results.cat[ii], results.example_num, results.example_nums[ii]);
+	    // }
+	    // else{
+	    	
+	    // }
+	    total += 1;
 
-        	// print_num_data(&num_data[kk]);
-
-        	//calc distance to neighbors
-        	for (ii=0; ii<total_examples-1; ii++){
-        		//don't calc distance to self
-        		if (kk != ii){
-                    //Eliminate bad data (examples with few words tend to have low distances
-                    //reguardless of whether they are more similar...
-                    if (num_data[ii].total_features >= 40){
-                        distance = get_distance(&num_data[kk], &num_data[ii], num_words);
-                        // if (distance < 2){
-                        //  continue;
-                        // }
-                        // printf("%f ", distance);
-                        if (num_data[ii].example_num > 0){
-                            add_distance_to_results(&results, distance, k, 
-                                                    num_data[ii].cat, num_data[ii].example_num);
-                        }
-    		    	}
-        		}
-    	    	
-    	    }
-
-    	    answer = calc_nearest_neighbor(&results, &mod, k);
-    	    if (answer == results.correct_answer){
-    	    	c += 1;
-    	    }
-    	    // printf("\n");
-    	    // for (ii=0; ii<k; ii++){
-    	    // 	printf("Distance, cat, example_num1, example_num2 = %2.2f, %i, %i, %i\n", 
-    	    // 		results.distances[ii], results.cat[ii], results.example_num, results.example_nums[ii]);
-    	    // }
-    	    // else{
-    	    	
-    	    // }
-    	    total += 1;
-
-            if (verbose>0 && debug>0){
-                printf("Thread = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
-                    omp_get_thread_num(), c, total, answer, results.correct_answer);
-            }
-    	    
+        if (verbose>0 && debug>0){
+            printf("Process = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
+                    rank, c, total, answer, results.correct_answer);
         }
-
-        //Thread results
-        #pragma omp barrier
-        if (omp_get_thread_num() == 0){
-            printf("/// Thread Results ///\n");
-        }
-        #pragma omp barrier
-        printf("Thread = %i, Correct/Total = %i/%i\n", 
-                omp_get_thread_num(), c, total);
-
-        //free distance result
-        free(results.distances);
-        free(results.cat); 
-
-        //free mode struct
-        free(mod.count);
-        free(mod.cat);
+	    
     }
 
-    printf("/// Final Results ///\n");
-    printf("Correct/Total = %i/%i\n", c, total);
-    // printf("verbose = %i", verbose);
+    // int MPI_Reduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
+    //            MPI_Op op, int root, MPI_Comm comm)
+    int total_correct = 0;
+    int total_tested = 0;
+    MPI_Reduce(&c, &total_correct, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&total, &total_tested, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-
+    if (rank == 0){
+        printf("/// Final Results ///\n");
+        printf("Correct/Total = %i/%i\n", total_correct, total_tested);
+        // printf("verbose = %i", verbose);
+    }
     
 
     ////free malloc calls////
@@ -676,7 +660,17 @@ int main (int argc, char **argv)
     //free var used to rean in csv
     free(csv_line);
 
-    
+    //free distance result
+    free(results.distances);
+    free(results.cat); 
+
+    //free mode struct
+    free(mod.count);
+    free(mod.cat);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    sleep(0.5);
+    MPI_Finalize();
 }
 
 //finds the most frequent class of nearest neighbor for a given example

@@ -1,4 +1,5 @@
 #include "stdlib.h"
+#include "stdarg.h"
 #include "argp.h"
 #include "mpi.h"
 #include "omp.h"
@@ -583,6 +584,10 @@ int main (int argc, char **argv)
     int total = 0;
     int answer;
 
+    //Timing variables
+    double start_time, end_time;
+    double total_time[10] = {0};
+
     //MPI only
     if (run_type == 0)
     {
@@ -597,61 +602,84 @@ int main (int argc, char **argv)
         struct mode mod;
         mod.count = calloc(k, sizeof(int));
         mod.cat = calloc(k, sizeof(int));
-        for (kk=rank*range; kk<(rank+1)*range; kk++){
-            //only test on test data
-            if (num_data[kk].example_num%train != 0){
-                continue;
+
+        //Timing loop
+        for(jj=0; jj<11; jj++){
+
+            c = 0;
+            total = 0;
+
+            //Sync before every iteration
+            MPI_Barrier(MPI_COMM_WORLD);
+
+            //Have one burn in iteration
+            if (jj>0){
+                start_time = MPI_Wtime();
             }
 
-            if (num_data[kk].cat == 0){
-                continue;
-            }
+            //Main loop
+            for (kk=rank*range; kk<(rank+1)*range; kk++){
+                //only test on test data
+                if (num_data[kk].example_num%train != 0){
+                    continue;
+                }
 
-            results.correct_answer = num_data[kk].cat;
-            results.example_num = num_data[kk].example_num;
-            for (ii=0; ii<k; ii++){
-                results.distances[ii] = 0;
-                results.cat[ii] = 0;
-                mod.count[ii] = 0;
-                mod.cat[ii] = 0;
-            }
+                //Skip if category doesn't exist
+                if (num_data[kk].cat == 0){
+                    continue;
+                }
 
-            // print_num_data(&num_data[kk]);
+                results.correct_answer = num_data[kk].cat;
+                results.example_num = num_data[kk].example_num;
+                for (ii=0; ii<k; ii++){
+                    results.distances[ii] = 0;
+                    results.cat[ii] = 0;
+                    mod.count[ii] = 0;
+                    mod.cat[ii] = 0;
+                }
 
-            //calc distance to neighbors
-            for (ii=0; ii<total_examples-1; ii++){
-                //don't calc distance to self
-                if (kk != ii){
-                    //Eliminate bad data (examples with few words tend to have low distances
-                    //reguardless of whether they are more similar...
-                    if (num_data[ii].total_features >= 40){
-                        distance = get_distance(&num_data[kk], &num_data[ii], num_words);
-                        // if (distance < 2){
-                        //  continue;
-                        // }
-                        // printf("%f ", distance);
-                        if (num_data[ii].example_num > 0){
-                            add_distance_to_results(&results, distance, k, 
-                                                    num_data[ii].cat, num_data[ii].example_num);
+                //calc distance to neighbors
+                for (ii=0; ii<total_examples-1; ii++){
+                    //don't calc distance to self
+                    if (kk != ii){
+                        //Eliminate bad data (examples with few words tend to have low distances
+                        //reguardless of whether they are more similar...
+                        if (num_data[ii].total_features >= 40){
+                            distance = get_distance(&num_data[kk], &num_data[ii], num_words);
+                            // if (distance < 2){
+                            //  continue;
+                            // }
+                            // printf("%f ", distance);
+                            if (num_data[ii].example_num > 0){
+                                add_distance_to_results(&results, distance, k, 
+                                                        num_data[ii].cat, num_data[ii].example_num);
+                            }
                         }
                     }
+                    
+                }
+
+                answer = calc_nearest_neighbor(&results, &mod, k);
+                if (answer == results.correct_answer){
+                    c += 1;
+                }
+
+                total += 1;
+
+                if (verbose>0 && debug>0){
+                    printf("Process = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
+                            rank, c, total, answer, results.correct_answer);
                 }
                 
             }
 
-            answer = calc_nearest_neighbor(&results, &mod, k);
-            if (answer == results.correct_answer){
-                c += 1;
+            if (jj>0){
+                end_time = MPI_Wtime();
             }
+            total_time[jj-1] = end_time - start_time;
 
-            total += 1;
-
-            if (verbose>0 && debug>0){
-                printf("Process = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
-                        rank, c, total, answer, results.correct_answer);
-            }
-            
         }
+            
         //free distance result
         free(results.distances);
         free(results.cat); 
@@ -911,6 +939,37 @@ int main (int argc, char **argv)
         }
     }
     
+
+    //print data to outfile
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    //dynamic filename with leading zeroes for easy conversion to gif
+    if (rank == 0){
+        char buffer[128];
+        // run_type _ k _ data_used . txt
+        snprintf(buffer, sizeof(char)*128, "RESULTS/%i_%d_%d.txt", run_type, k, total_examples+bad_iter+1);
+
+        // printf("BUFFER = %s\n", buffer);
+        // MPI_Barrier(MPI_COMM_WORLD);
+
+        //open
+        FILE *fp;
+        fp = fopen(buffer, "wb");
+
+        for(i=0; i<10; i++)
+        {
+            if (i < 9)
+            {
+                fprintf(fp, "%2.9f,", total_time[i]);
+            }
+            else
+            {
+                fprintf(fp, "%2.9f\n", total_time[i]);
+            }
+        }
+    }
+    
+
 
     ////free malloc calls////
     //free feature tree

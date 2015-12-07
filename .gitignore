@@ -34,3 +34,6 @@
 #images/gifs
 *.pgm
 *.map
+
+#Results Files
+*.txt

@@ -887,7 +887,7 @@ int main (int argc, char **argv)
 
 
             //Timing loop
-            for(jj=0; jj<2; jj++){
+            for(jj=0; jj<11; jj++){
 
                 c = 0;
                 total = 0;
@@ -1005,14 +1005,14 @@ int main (int argc, char **argv)
         double total_time_private[10] = {0};
 
         //Thread results reductions
-        for(ii=0; ii<1; ii++){
+        for(ii=0; ii<10; ii++){
             total_time[ii] = total_time[ii]/num_threads;
             total_time_private[ii] = total_time[ii];
         }
 
         //Process results reduction
-        MPI_Reduce(&total_time_private[0], &total_time[0], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-        for(ii=0; ii<1; ii++){
+        MPI_Reduce(&total_time_private[0], &total_time[0], 10, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        for(ii=0; ii<10; ii++){
             total_time[ii] = total_time[ii]/world_size;
         }
 

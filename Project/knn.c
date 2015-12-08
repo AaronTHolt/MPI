@@ -308,7 +308,7 @@ int main (int argc, char **argv)
     int train = 10;
 
     //Debug
-    int debug = 0;
+    int debug = 1;
 
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
@@ -329,6 +329,8 @@ int main (int argc, char **argv)
     if (run_type == 0){
         num_threads = 0;
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 0 && verbose>0){
         char *str;
@@ -590,7 +592,6 @@ int main (int argc, char **argv)
     //Timing variables
     double start_time, end_time, iter_time;
     double total_time[10] = {0};
-    double total_time_private[10] = {0};
 
     //MPI only
     if (run_type == 0)
@@ -687,6 +688,7 @@ int main (int argc, char **argv)
         //free distance result
         free(results.distances);
         free(results.cat); 
+        free(results.example_nums);
 
         //free mode struct
         free(mod.count);
@@ -713,7 +715,7 @@ int main (int argc, char **argv)
 
         #pragma omp parallel \
                 private(kk, ii, distance, answer, jj) \
-                firstprivate(iter_time, start_time, end_time, total_time_private) \
+                firstprivate(iter_time, start_time, end_time, debug, verbose) \
                 reduction(+:c,total) \
                 shared(num_data, total_time)
         {
@@ -728,6 +730,8 @@ int main (int argc, char **argv)
             struct mode mod;
             mod.count = calloc(k, sizeof(int));
             mod.cat = calloc(k, sizeof(int));
+
+            double total_time_private[10] = {0};
         
             for (jj=0; jj<11; jj++){
 
@@ -836,6 +840,7 @@ int main (int argc, char **argv)
             //free distance result
             free(results.distances);
             free(results.cat); 
+            free(results.example_nums); 
 
             //free mode struct
             free(mod.count);
@@ -860,7 +865,7 @@ int main (int argc, char **argv)
 
         #pragma omp parallel \
             private(kk, ii, distance, answer, jj) \
-            firstprivate(iter_time, start_time, end_time, total_time_private) \
+            firstprivate(iter_time, start_time, end_time, verbose, rank, debug) \
             reduction(+:c,total) \
             shared(num_data, total_time)
         {
@@ -877,8 +882,12 @@ int main (int argc, char **argv)
             mod.count = calloc(k, sizeof(int));
             mod.cat = calloc(k, sizeof(int));
 
+            double total_time_private[10] = {0};
+
+
+
             //Timing loop
-            for(jj=0; jj<11; jj++){
+            for(jj=0; jj<2; jj++){
 
                 c = 0;
                 total = 0;
@@ -886,10 +895,8 @@ int main (int argc, char **argv)
                 // printf("HERE! %i %i\n", rank, omp_get_thread_num());
                 
                 //Sync before every iteration
-                MPI_Barrier(MPI_COMM_WORLD);
                 #pragma omp barrier
                 // printf("          HERE3! %i %i\n", rank, omp_get_thread_num());
-
 
                 //Have one burn in iteration
                 if (jj>0){
@@ -954,8 +961,8 @@ int main (int argc, char **argv)
                     total += 1;
 
                     if (verbose>0 && debug>0){
-                        printf("Process = %i, Thread = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
-                                rank, omp_get_thread_num(), c, total, answer, results.correct_answer);
+                        printf("Process = %i, Thread = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i, jj=%i\n", 
+                                rank, omp_get_thread_num(), c, total, answer, results.correct_answer, jj);
                     }
 
                 }
@@ -979,18 +986,15 @@ int main (int argc, char **argv)
 
             if (verbose > 0){
                 //Individual thread result
-                MPI_Barrier(MPI_COMM_WORLD);
-                if (rank == 0 && (omp_get_thread_num() == 0)){
-                    printf("/// Thread Results ///\n");
-                }
-                MPI_Barrier(MPI_COMM_WORLD);
+                #pragma omp barrier
                 printf("Process = %i, Thread = %i, Correct/Total = %i/%i\n", 
                         rank, omp_get_thread_num(), c, total);
             }
 
             //free distance result
             free(results.distances);
-            free(results.cat); 
+            free(results.cat);
+            free(results.example_nums); 
 
             //free mode struct
             free(mod.count);
@@ -998,15 +1002,17 @@ int main (int argc, char **argv)
             
         }
 
+        double total_time_private[10] = {0};
+
         //Thread results reductions
-        for(ii=0; ii<10; ii++){
+        for(ii=0; ii<1; ii++){
             total_time[ii] = total_time[ii]/num_threads;
             total_time_private[ii] = total_time[ii];
         }
 
         //Process results reduction
-        MPI_Reduce(&total_time_private, &total_time, 10, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-        for(ii=0; ii<10; ii++){
+        MPI_Reduce(&total_time_private[0], &total_time[0], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        for(ii=0; ii<1; ii++){
             total_time[ii] = total_time[ii]/world_size;
         }
 

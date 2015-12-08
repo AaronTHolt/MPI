@@ -802,14 +802,16 @@ int main (int argc, char **argv)
                 if (jj>0){
                     end_time = MPI_Wtime();
                     iter_time = end_time-start_time;
+                    total_time_private[jj-1] = iter_time;
+
+                    #pragma omp barrier
+
+                    #pragma omp atomic
+                    total_time[jj-1] += total_time_private[jj-1];
                 }
 
-                total_time_private[jj-1] = iter_time;
 
-                #pragma omp barrier
-
-                #pragma omp atomic
-                total_time[jj-1] += total_time_private[jj-1];
+                
 
                 // #pragma omp barrier
                 // printf("thread = %i, %f\n", omp_get_thread_num(), total_time[jj-1]);
@@ -860,7 +862,7 @@ int main (int argc, char **argv)
             private(kk, ii, distance, answer, jj) \
             firstprivate(iter_time, start_time, end_time, total_time_private) \
             reduction(+:c,total) \
-            shared(num_data)
+            shared(num_data, total_time)
         {
 
             //store struct which keep track of the k nearest neighbors
@@ -961,15 +963,17 @@ int main (int argc, char **argv)
                 if (jj>0){
                     end_time = MPI_Wtime();
                     iter_time = end_time-start_time;
+
+                    total_time_private[jj-1] = iter_time;
+
+                    #pragma omp barrier
+                    // printf("HERE! %i %i\n", rank, omp_get_thread_num());
+
+                    #pragma omp atomic
+                    total_time[jj-1] += total_time_private[jj-1];
                 }
 
-                total_time_private[jj-1] = iter_time;
-
-                #pragma omp barrier
-                // printf("HERE! %i %i\n", rank, omp_get_thread_num());
-
-                #pragma omp atomic
-                total_time[jj-1] += total_time_private[jj-1];
+                
                 // printf("          HERE2! %i %i\n", rank, omp_get_thread_num());
             }
 

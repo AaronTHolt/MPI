@@ -303,3 +303,87 @@ hybrid_stats = {}
 # # plt.yscale('log')
 
 # plt.show()
+
+################## Runtime vs Datasize ##############################
+
+
+for data in [1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000]:
+    f_name = "Results_Data/1_1_9_1_{data}.txt".format(data=data)
+    if os.path.isfile(f_name):
+        with open(f_name) as f:
+            lis = [line.split() for line in f]
+            total = lis[0][0].split(",")
+            total = [float(x) for x in total]
+            omp[data] = mean_confidence_interval(total)
+            # print data, omp[data]
+
+        f.close()
+
+
+for data in [1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000]:
+    f_name = "Results_Data/0_9_0_1_{data}.txt".format(data=data)
+    if os.path.isfile(f_name):
+        with open(f_name) as f:
+            lis = [line.split() for line in f]
+            total = lis[0][0].split(",")
+            total = [float(x) for x in total]
+            mpi[data] = mean_confidence_interval(total)
+            # print data, mpi[data]
+
+        f.close()
+
+
+for data in [1000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000]:
+    f_name = "Results_Data/2_3_3_1_{data}.txt".format(data=data)
+    if os.path.isfile(f_name):
+        with open(f_name) as f:
+            lis = [line.split() for line in f]
+            total = lis[0][0].split(",")
+            total = [float(x) for x in total]
+            hybrid[data] = mean_confidence_interval(total)
+            # print data, hybrid[data]
+
+        f.close()
+
+
+a = [omp[x][0] for x in sorted([row for row in omp])]
+b = [omp[x][1] for x in sorted([row for row in omp])]
+c = sorted([row for row in omp])
+
+print a
+print b
+print c
+
+line0, = plt.plot(c, a, 'ro-')
+plt.errorbar(c, a, 
+  yerr=b, fmt='ro-')
+
+a = [hybrid[x][0] for x in sorted([row for row in hybrid])]
+b = [hybrid[x][1] for x in sorted([row for row in hybrid])]
+c = sorted([row for row in hybrid])
+
+line1, = plt.plot(c, a, 'bo-')
+plt.errorbar(c, a, 
+  yerr=b, fmt='bo-')
+
+a = [mpi[x][0] for x in sorted([row for row in mpi])]
+b = [mpi[x][1] for x in sorted([row for row in mpi])]
+c = sorted([row for row in mpi])
+
+line2, = plt.plot(c, a, 'go-')
+plt.errorbar(c, a, 
+  yerr=b, fmt='go-')
+
+#title and axis labels
+plt.xlabel('Number of Questions')
+plt.ylabel('Runtime (s)')
+plt.title("Runtime vs Data Size for KNN with NP=9")
+plt.xlim([0, 41000])
+# plt.xscale('log', basex=2)
+# plt.yscale('log', basey=2)
+# plt.xscale('log')
+# plt.yscale('log')
+#legend
+plt.legend([line0, line1, line2], 
+  ['OpenMP', 'Hybrid', 'MPI'], loc=2)
+plt.show()

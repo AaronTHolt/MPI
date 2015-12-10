@@ -308,7 +308,7 @@ int main (int argc, char **argv)
     int train = 10;
 
     //Debug
-    int debug = 1;
+    int debug = 0;
 
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
@@ -535,8 +535,8 @@ int main (int argc, char **argv)
 
     // num_data->array_of_features[0].feature_num = 44;
 
-    print_num_data(&num_data[0]);
-    print_num_data(&num_data[1]);
+    // print_num_data(&num_data[0]);
+    // print_num_data(&num_data[1]);
     total_examples = total_examples-bad_iter-1;
 
     int sadfjh;
@@ -608,83 +608,70 @@ int main (int argc, char **argv)
         mod.count = calloc(k, sizeof(int));
         mod.cat = calloc(k, sizeof(int));
 
-        //Timing loop
-        for(jj=0; jj<11; jj++){
+        c = 0;
+        total = 0;
 
-            c = 0;
-            total = 0;
+        //Sync before every iteration
+        MPI_Barrier(MPI_COMM_WORLD);
 
-            //Sync before every iteration
-            MPI_Barrier(MPI_COMM_WORLD);
+        //Have one burn in iteration
+        if (jj>0){
+            start_time = MPI_Wtime();
+        }
 
-            //Have one burn in iteration
-            if (jj>0){
-                start_time = MPI_Wtime();
+        //Main loop
+        for (kk=rank*range; kk<(rank+1)*range; kk++){
+            //only test on test data
+            if (num_data[kk].example_num%train != 0){
+                continue;
             }
 
-            //Main loop
-            for (kk=rank*range; kk<(rank+1)*range; kk++){
-                //only test on test data
-                if (num_data[kk].example_num%train != 0){
-                    continue;
-                }
+            //Skip if category doesn't exist
+            if (num_data[kk].cat == 0){
+                continue;
+            }
 
-                //Skip if category doesn't exist
-                if (num_data[kk].cat == 0){
-                    continue;
-                }
+            results.correct_answer = num_data[kk].cat;
+            results.example_num = num_data[kk].example_num;
+            for (ii=0; ii<k; ii++){
+                results.distances[ii] = 0;
+                results.cat[ii] = 0;
+                mod.count[ii] = 0;
+                mod.cat[ii] = 0;
+            }
 
-                results.correct_answer = num_data[kk].cat;
-                results.example_num = num_data[kk].example_num;
-                for (ii=0; ii<k; ii++){
-                    results.distances[ii] = 0;
-                    results.cat[ii] = 0;
-                    mod.count[ii] = 0;
-                    mod.cat[ii] = 0;
-                }
+            //calc distance to neighbors
+            for (ii=0; ii<total_examples-1; ii++){
+                //don't calc distance to self
+                if (kk != ii){
+                    //Eliminate bad data (examples with few words tend to have low distances
+                    //reguardless of whether they are more similar...
+                    if (num_data[ii].total_features >= 40){
+                        distance = get_distance(&num_data[kk], &num_data[ii], num_words);
 
-                //calc distance to neighbors
-                for (ii=0; ii<total_examples-1; ii++){
-                    //don't calc distance to self
-                    if (kk != ii){
-                        //Eliminate bad data (examples with few words tend to have low distances
-                        //reguardless of whether they are more similar...
-                        if (num_data[ii].total_features >= 40){
-                            distance = get_distance(&num_data[kk], &num_data[ii], num_words);
-                            // if (distance < 2){
-                            //  continue;
-                            // }
-                            // printf("%f ", distance);
-                            if (num_data[ii].example_num > 0){
-                                add_distance_to_results(&results, distance, k, 
-                                                        num_data[ii].cat, num_data[ii].example_num);
-                            }
+                        if (num_data[ii].example_num > 0){
+                            add_distance_to_results(&results, distance, k, 
+                                                    num_data[ii].cat, num_data[ii].example_num);
                         }
                     }
-                    
-                }
-
-                answer = calc_nearest_neighbor(&results, &mod, k);
-                if (answer == results.correct_answer){
-                    c += 1;
-                }
-
-                total += 1;
-
-                if (verbose>0 && debug>0){
-                    printf("Process = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
-                            rank, c, total, answer, results.correct_answer);
                 }
                 
             }
 
-            if (jj>0){
-                end_time = MPI_Wtime();
+            answer = calc_nearest_neighbor(&results, &mod, k);
+            if (answer == results.correct_answer){
+                c += 1;
             }
-            total_time[jj-1] = end_time - start_time;
 
-        }
+            total += 1;
+
+            if (verbose>0 && debug>0){
+                printf("Process = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
+                        rank, c, total, answer, results.correct_answer);
+            }
             
+        }
+
         //free distance result
         free(results.distances);
         free(results.cat); 
@@ -702,7 +689,6 @@ int main (int argc, char **argv)
             MPI_Barrier(MPI_COMM_WORLD);
             printf("Process = %i, Correct/Total = %i/%i\n", 
                             rank, c, total); 
-            sleep(0.1);
             MPI_Barrier(MPI_COMM_WORLD);
     
         }

@@ -719,96 +719,74 @@ int main (int argc, char **argv)
 
             double total_time_private[10] = {0};
         
-            for (jj=0; jj<11; jj++){
+            c = 0;
+            total = 0;
 
-                c = 0;
-                total = 0;
+            #pragma omp barrier
+            //Have one burn in iteration
+            if (jj>0){
+                start_time = MPI_Wtime();
+            }
 
-                #pragma omp barrier
-                //Have one burn in iteration
-                if (jj>0){
-                    start_time = MPI_Wtime();
+            #pragma omp for
+            for (kk=0; kk<total_examples; kk++){
+                // printf("Thread = %i, Iter = %i, c = %i, total=%i\n", omp_get_thread_num(), kk, c, total);
+
+                //only test on test data
+                if (num_data[kk].example_num%train != 0){
+                    continue;
                 }
 
-                #pragma omp for
-                for (kk=0; kk<total_examples; kk++){
-                    // printf("Thread = %i, Iter = %i, c = %i, total=%i\n", omp_get_thread_num(), kk, c, total);
+                if (num_data[kk].cat == 0){
+                    continue;
+                }
 
-                    //only test on test data
-                    if (num_data[kk].example_num%train != 0){
-                        continue;
-                    }
+                results.correct_answer = num_data[kk].cat;
+                results.example_num = num_data[kk].example_num;
+                for (ii=0; ii<k; ii++){
+                    results.distances[ii] = 0;
+                    results.cat[ii] = 0;
+                    mod.count[ii] = 0;
+                    mod.cat[ii] = 0;
+                }
 
-                    if (num_data[kk].cat == 0){
-                        continue;
-                    }
+                // print_num_data(&num_data[kk]);
 
-                    results.correct_answer = num_data[kk].cat;
-                    results.example_num = num_data[kk].example_num;
-                    for (ii=0; ii<k; ii++){
-                        results.distances[ii] = 0;
-                        results.cat[ii] = 0;
-                        mod.count[ii] = 0;
-                        mod.cat[ii] = 0;
-                    }
-
-                    // print_num_data(&num_data[kk]);
-
-                    //calc distance to neighbors
-                    for (ii=0; ii<total_examples-1; ii++){
-                        //don't calc distance to self
-                        if (kk != ii){
-                            //Eliminate bad data (examples with few words tend to have low distances
-                            //reguardless of whether they are more similar...
-                            if (num_data[ii].total_features >= 40){
-                                distance = get_distance(&num_data[kk], &num_data[ii], num_words);
-                                // if (distance < 2){
-                                //  continue;
-                                // }
-                                // printf("%f ", distance);
-                                if (num_data[ii].example_num > 0){
-                                    add_distance_to_results(&results, distance, k, 
-                                                            num_data[ii].cat, num_data[ii].example_num);
-                                }
+                //calc distance to neighbors
+                for (ii=0; ii<total_examples-1; ii++){
+                    //don't calc distance to self
+                    if (kk != ii){
+                        //Eliminate bad data (examples with few words tend to have low distances
+                        //reguardless of whether they are more similar...
+                        if (num_data[ii].total_features >= 40){
+                            distance = get_distance(&num_data[kk], &num_data[ii], num_words);
+                            // if (distance < 2){
+                            //  continue;
+                            // }
+                            // printf("%f ", distance);
+                            if (num_data[ii].example_num > 0){
+                                add_distance_to_results(&results, distance, k, 
+                                                        num_data[ii].cat, num_data[ii].example_num);
                             }
                         }
-                        
-                    }
-
-                    answer = calc_nearest_neighbor(&results, &mod, k);
-                    if (answer == results.correct_answer){
-                        c += 1;
-                    }
-
-                    total += 1;
-
-                    if (verbose>0 && debug>0){
-                        printf("Thread = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
-                            omp_get_thread_num(), c, total, answer, results.correct_answer);
                     }
                     
                 }
 
-                if (jj>0){
-                    end_time = MPI_Wtime();
-                    iter_time = end_time-start_time;
-                    total_time_private[jj-1] = iter_time;
-
-                    #pragma omp barrier
-
-                    #pragma omp atomic
-                    total_time[jj-1] += total_time_private[jj-1];
+                answer = calc_nearest_neighbor(&results, &mod, k);
+                if (answer == results.correct_answer){
+                    c += 1;
                 }
 
+                total += 1;
 
-                
-
-                // #pragma omp barrier
-                // printf("thread = %i, %f\n", omp_get_thread_num(), total_time[jj-1]);
-                // #pragma omp barrier
-                // printf("\n");
+                if (verbose>0 && debug>0){
+                    printf("Thread = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i\n", 
+                        omp_get_thread_num(), c, total, answer, results.correct_answer);
+                }
                 
             }
+
 
             if(verbose > 0){
                 //Thread results
@@ -834,9 +812,6 @@ int main (int argc, char **argv)
 
         }
 
-        for(ii=0; ii<10; ii++){
-            total_time[ii] = total_time[ii]/num_threads;
-        }
 
         if (verbose > 0){
             printf("/// Final Results ///\n");
@@ -871,104 +846,87 @@ int main (int argc, char **argv)
             double total_time_private[10] = {0};
 
 
+            c = 0;
+            total = 0;
 
-            //Timing loop
-            for(jj=0; jj<11; jj++){
+            // printf("HERE! %i %i\n", rank, omp_get_thread_num());
+            
+            //Sync before every iteration
+            #pragma omp barrier
+            // printf("          HERE3! %i %i\n", rank, omp_get_thread_num());
 
-                c = 0;
-                total = 0;
+            //Have one burn in iteration
+            if (jj>0){
+                start_time = MPI_Wtime();
+            }
 
-                // printf("HERE! %i %i\n", rank, omp_get_thread_num());
-                
-                //Sync before every iteration
-                #pragma omp barrier
-                // printf("          HERE3! %i %i\n", rank, omp_get_thread_num());
-
-                //Have one burn in iteration
-                if (jj>0){
-                    start_time = MPI_Wtime();
+            #pragma omp for
+            for (kk=rank*range; kk<(rank+1)*range; kk++){
+                //only test on test data
+                if (num_data[kk].example_num%train != 0){
+                    continue;
                 }
 
-                #pragma omp for
-                for (kk=rank*range; kk<(rank+1)*range; kk++){
-                    //only test on test data
-                    if (num_data[kk].example_num%train != 0){
-                        continue;
-                    }
+                if (num_data[kk].cat == 0){
+                    continue;
+                }
 
-                    if (num_data[kk].cat == 0){
-                        continue;
-                    }
+                results.correct_answer = num_data[kk].cat;
+                results.example_num = num_data[kk].example_num;
+                for (ii=0; ii<k; ii++){
+                    results.distances[ii] = 0;
+                    results.cat[ii] = 0;
+                    mod.count[ii] = 0;
+                    mod.cat[ii] = 0;
+                }
 
-                    results.correct_answer = num_data[kk].cat;
-                    results.example_num = num_data[kk].example_num;
-                    for (ii=0; ii<k; ii++){
-                        results.distances[ii] = 0;
-                        results.cat[ii] = 0;
-                        mod.count[ii] = 0;
-                        mod.cat[ii] = 0;
-                    }
+                // print_num_data(&num_data[kk]);
 
-                    // print_num_data(&num_data[kk]);
-
-                    //calc distance to neighbors
-                    for (ii=0; ii<total_examples-1; ii++){
-                        //don't calc distance to self
-                        if (kk != ii){
-                            //Eliminate bad data (examples with few words tend to have low distances
-                            //reguardless of whether they are more similar...
-                            if (num_data[ii].total_features >= 40){
-                                distance = get_distance(&num_data[kk], &num_data[ii], num_words);
-                                // if (distance < 2){
-                                //  continue;
-                                // }
-                                // printf("%f ", distance);
-                                if (num_data[ii].example_num > 0){
-                                    add_distance_to_results(&results, distance, k, 
-                                                            num_data[ii].cat, num_data[ii].example_num);
-                                }
+                //calc distance to neighbors
+                for (ii=0; ii<total_examples-1; ii++){
+                    //don't calc distance to self
+                    if (kk != ii){
+                        //Eliminate bad data (examples with few words tend to have low distances
+                        //reguardless of whether they are more similar...
+                        if (num_data[ii].total_features >= 40){
+                            distance = get_distance(&num_data[kk], &num_data[ii], num_words);
+                            // if (distance < 2){
+                            //  continue;
+                            // }
+                            // printf("%f ", distance);
+                            if (num_data[ii].example_num > 0){
+                                add_distance_to_results(&results, distance, k, 
+                                                        num_data[ii].cat, num_data[ii].example_num);
                             }
                         }
-                        
                     }
-
-                    answer = calc_nearest_neighbor(&results, &mod, k);
-                    if (answer == results.correct_answer){
-                        c += 1;
-                    }
-                    // printf("\n");
-                    // for (ii=0; ii<k; ii++){
-                    //  printf("Distance, cat, example_num1, example_num2 = %2.2f, %i, %i, %i\n", 
-                    //      results.distances[ii], results.cat[ii], results.example_num, results.example_nums[ii]);
-                    // }
-                    // else{
-                        
-                    // }
-                    total += 1;
-
-                    if (verbose>0 && debug>0){
-                        printf("Process = %i, Thread = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i, jj=%i\n", 
-                                rank, omp_get_thread_num(), c, total, answer, results.correct_answer, jj);
-                    }
-
+                    
                 }
 
-                if (jj>0){
-                    end_time = MPI_Wtime();
-                    iter_time = end_time-start_time;
-
-                    total_time_private[jj-1] = iter_time;
-
-                    #pragma omp barrier
-                    // printf("HERE! %i %i\n", rank, omp_get_thread_num());
-
-                    #pragma omp atomic
-                    total_time[jj-1] += total_time_private[jj-1];
+                answer = calc_nearest_neighbor(&results, &mod, k);
+                if (answer == results.correct_answer){
+                    c += 1;
                 }
+                // printf("\n");
+                // for (ii=0; ii<k; ii++){
+                //  printf("Distance, cat, example_num1, example_num2 = %2.2f, %i, %i, %i\n", 
+                //      results.distances[ii], results.cat[ii], results.example_num, results.example_nums[ii]);
+                // }
+                // else{
+                    
+                // }
+                total += 1;
 
-                
-                // printf("          HERE2! %i %i\n", rank, omp_get_thread_num());
+                // if (verbose>0 && debug>0){
+                //     printf("Process = %i, Thread = %i, Correct/Total = %i/%i  Answer/Correct = %i/%i, jj=%i\n", 
+                //             rank, omp_get_thread_num(), c, total, answer, results.correct_answer, jj);
+                // }
+
             }
+
+            
+                
+
 
             if (verbose > 0){
                 //Individual thread result
